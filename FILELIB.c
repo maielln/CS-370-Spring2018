@@ -10,7 +10,7 @@ INTERFACE
 Uses
   Dos;
 
-
+//these are defining functions that were not defined in ATR2FUNC, addfront and addrear were defined there
   Function EXIST(thisfile : pathstr) : boolean;
   Function VALID(thisfile : pathstr) : boolean;
   Function name_form(name:string):string;
@@ -55,15 +55,18 @@ Begin
   addrear := b; //returns b
 End;
 
+//both addfront and addrear do not seem necessary, after tracing and determining where the functions lie in every file, it seems their only use is indentation which can be done in c
+
 function lstr(s1:string; l:integer):string; //function that takes in a string (s1) and an integer (L)
 begin
- if length(s1)<=l then lstr:=s1 //checks if the length of s1 is greater than L, if it is then it returns s1
+ if length(s1)<=l then lstr:=s1 //checks if the length of s1 is greater than or equal to L, if it is then it returns s1
  else lstr:=copy(s1,1,l); //copy is a pascal function in the library, link to its use: https://www.freepascal.org/docs-html/rtl/system/copy.html
+//Copy returns a string which is a copy if the Count characters in S, starting at position Index. If Count is larger than the length of the string S, the result is truncated. If Index is larger than the length of the string S, then an empty string is returned. Index is 1-based.
 end;
 
 function rstr(s1:string; l:integer):string;
 begin
- if length(s1)<=l then rstr:=s1
+ if length(s1)<=l then rstr:=s1 
  else rstr:=copy(s1,length(s1)-l+1,l);
 end;
 
