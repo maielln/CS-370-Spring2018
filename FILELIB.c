@@ -70,21 +70,24 @@ begin
  else rstr:=copy(s1,length(s1)-l+1,l);
 end;
 
-
-Function EXIST(thisfile : pathstr) : boolean;
+//probably a vital function -- may be able to convert to a better function though
+Function EXIST(thisfile : pathstr) : boolean; //function takes in a file (thisfile) as a path
   var
-    afile : file;
-    iocode : word;
+    afile : file; //afile is an empty file
+    iocode : word; //word is an unsigned 16-bits integer https://www.freepascal.org/docs-html/rtl/system/word.html
 
   begin {* fExist *}
-    assign(afile,thisfile);
-    {$I-}
-    reset(afile);
-    iocode := ioresult;
-    {$I+}
-    Exist := (iocode = 0);
-    if iocode = 0 then close(afile);
+    assign(afile,thisfile); //afile = thisfile (the parameter file is put in the empty file
+    {$I-} //the compiler is generating I/O checking code, can be replaced by throwing exceptions
+    reset(afile); //https://www.freepascal.org/docs-html/rtl/system/reset.html
+//Reset opens a file F for reading. F can be any file type. If F is a text file, or refers to standard I/O (e.g : '') then it is opened read-only, otherwise it is opened using the mode specified in filemode. If F is an untyped file, the record size can be specified in the optional parameter L. A default value of 128 is used. File sharing is not taken into account when calling Reset.
+    iocode := ioresult; //IOresult contains the result of any input/output call, when the {\$i-} compiler directive is active, disabling IO checking. When the flag is read, it is reset to zero. If IOresult is zero, the operation completed successfully. If non-zero, an error occurred.
+//iocode will receive whatever is returned from ioresult
+    {$I+} //same as previous https://www.freepascal.org/docs-html/prog/progsu38.html
+    Exist := (iocode = 0); //EXIST returns boolean
+    if iocode = 0 then close(afile); //closes file
   end;  {* fExist *}
+
 
 Function VALID(thisfile : pathstr) : boolean;
   Var
@@ -107,33 +110,34 @@ Function VALID(thisfile : pathstr) : boolean;
     else Valid := true
   end;  {* fValid *}
 
-Function name_form(name:string):string;
+  //may be useful, but can be much better than how it is written now
+Function name_form(name:string):string; //function taking in a string (name) 
 var
  i,j,k,l:integer;
  s1,s2,s3:string;
 begin
- s1:=''; s2:='';
- k:=1;
- if (name='.') or (name='..') then
+ s1:=''; s2:=''; //sets variables to nothing
+ k:=1; //sets only one variable equal to 1
+ if (name='.') or (name='..') then //checks name
   begin
-   name_form:=addrear(name,12);
-   exit;
+   name_form:=addrear(name,12); //takes the name to addrear (can probably just throw an exception)
+   exit; 
   end;
- while (k<=length(name)) and (name[k]<>'.') do
+ while (k<=length(name)) and (name[k]<>'.') do //goes through each character of name until it hits .
   begin
-   s1:=s1+name[k];
-   inc(k);
+   s1:=s1+name[k]; //moves the characters to s1
+   inc(k); //k++
   end;
- if k<length(name) then
+ if k<length(name) then //I believe this one is to get what is after the . but that can all be done in one loop
   begin
-   inc(k);
-   while (k<=length(name)) and (name[k]<>'.') do
+   inc(k); //k++
+   while (k<=length(name)) and (name[k]<>'.') do 
     begin
-     s2:=s2+name[k];
+     s2:=s2+name[k]; //moves characters to s2
      inc(k);
     end;
   end;
- name_form:=addrear(s1,9)+addrear(s2,3);
+ name_form:=addrear(s1,9)+addrear(s2,3); //returns the name of the file but formatted
 end;
 
 function exten(name:string):string;
@@ -160,20 +164,20 @@ begin
  exten:=addrear(s2,3);
 end;
 
-
-function base_name(name:string):string;
+//definitely not necessary because that was already done in name_form, both functions can be much better
+function base_name(name:string):string; //function that takes in a string (name)
 var
  i,j,k,l:integer;
  s1,s2,s3:string;
 begin
- s1:=''; s2:='';
+ s1:=''; s2:=''; 
  k:=1;
  while (k<=length(name)) and (name[k]<>'.') do
   begin
-   s1:=s1+name[k];
+   s1:=s1+name[k]; //this is just getting the beginning portion of a file name 
    inc(k);
   end;
- base_name:=s1;
+ base_name:=s1; //returns file name
 end;
 
 Function attribs(b:byte):string;
@@ -196,19 +200,20 @@ begin
  attribs:=s1;
 end;
 
-function path(fn:string):string;
+//vital depending on how we recieve the file
+function path(fn:string):string; //function takes in string (fn)
 var
  i,k:integer;
 begin
  k:=0;
- for i:=length(fn) downto 1 do
+ for i:=length(fn) downto 1 do //just a for loop, downto is used if the initial value is less than the final value, i starts with the length of the brought in string https://www.freepascal.org/docs-html/ref/refsu58.html
   begin
-   if ((fn[i]='\') or (fn[i]=':')) and (k<i) then k:=i;
+   if ((fn[i]='\') or (fn[i]=':')) and (k<i) then k:=i; //checks for end of path indicators, then has k = i
   end;
  if k<>0 then
-   path:=lstr(fn,k)
+   path:=lstr(fn,k) //sends what is found to the lstr function to be returned
   else
-   path:='';
+   path:=''; //returns nothing if at end of path
 end;
 
 function no_path(fn:string):string;
@@ -226,6 +231,7 @@ begin
    no_path:=fn;
 end;
 
+//definitely essential, easy to convert into c though, and would be better off using pointers
 function file_length(fn:string):longint;
 var
  sr:searchrec;
