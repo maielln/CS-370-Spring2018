@@ -64,10 +64,11 @@ begin
 //Copy returns a string which is a copy if the Count characters in S, starting at position Index. If Count is larger than the length of the string S, the result is truncated. If Index is larger than the length of the string S, then an empty string is returned. Index is 1-based.
 end;
 
-function rstr(s1:string; l:integer):string;
+//this function is almost an exact copy of the one above it
+function rstr(s1:string; l:integer):string; //function that takes in a string (s1) and integer (length)
 begin
- if length(s1)<=l then rstr:=s1 
- else rstr:=copy(s1,length(s1)-l+1,l);
+ if length(s1)<=l then rstr:=s1 //checks if the length is greater than or equal to s1, if it is then it returns s1
+ else rstr:=copy(s1,length(s1)-l+1,l); //sends the copy function (see above) string s1, the length of s1 - 1 + variable l, and l
 end;
 
 //probably a vital function -- may be able to convert to a better function though
@@ -77,7 +78,7 @@ Function EXIST(thisfile : pathstr) : boolean; //function takes in a file (thisfi
     iocode : word; //word is an unsigned 16-bits integer https://www.freepascal.org/docs-html/rtl/system/word.html
 
   begin {* fExist *}
-    assign(afile,thisfile); //afile = thisfile (the parameter file is put in the empty file
+    assign(afile,thisfile); //afile = thisfile (the parameter file is put in the empty file)
     {$I-} //the compiler is generating I/O checking code, can be replaced by throwing exceptions
     reset(afile); //https://www.freepascal.org/docs-html/rtl/system/reset.html
 //Reset opens a file F for reading. F can be any file type. If F is a text file, or refers to standard I/O (e.g : '') then it is opened read-only, otherwise it is opened using the mode specified in filemode. If F is an untyped file, the record size can be specified in the optional parameter L. A default value of 128 is used. File sharing is not taken into account when calling Reset.
@@ -88,26 +89,26 @@ Function EXIST(thisfile : pathstr) : boolean; //function takes in a file (thisfi
     if iocode = 0 then close(afile); //closes file
   end;  {* fExist *}
 
-
-Function VALID(thisfile : pathstr) : boolean;
+//this function seems important, as it calls Exist (above), however it seems to have a lot of dead weight. for example, boolean check is never used. As well, once the file is opened, nothing is done with it. It seems that this function is just used to check to see if the file can open
+Function VALID(thisfile : pathstr) : boolean; //function takes in a file thisfile as a path
   Var
-    afile : file;
+    afile : file; //afile is an empty file
     check : boolean;
-    iocode : word;
+    iocode : word; //word is an unsigned 16 bit int (see above)
 
   begin {* fValid *}
-    if not Exist(thisfile) then
+    if not Exist(thisfile) then //checks if the file exists, via the previous function
       begin
-        assign(afile,thisfile);
-        {$I-}
-        rewrite(afile);
-        close(afile);
-        erase(afile);
-        {$I+}
-        iocode := ioresult;
-        Valid := (iocode = 0)
+        assign(afile,thisfile); //afile = thisfile
+        {$I-} //turns off error checking in I/O
+        rewrite(afile); //sends file to function rewrite, which opens the file for writing https://www.freepascal.org/docs-html/rtl/system/rewrite.html
+        close(afile); //closes afile
+        erase(afile); //deletes afile
+        {$I+} //turns error checking in I/O back on
+        iocode := ioresult; //ioresult basically checks if there were any errors with I/O while $I was off https://www.freepascal.org/docs-html/rtl/system/ioresult.html
+        Valid := (iocode = 0) //returns ioresult's error code, or 0 for error free
       end
-    else Valid := true
+    else Valid := true //otherwise, returns true
   end;  {* fValid *}
 
   //may be useful, but can be much better than how it is written now
@@ -140,28 +141,29 @@ begin
  name_form:=addrear(s1,9)+addrear(s2,3); //returns the name of the file but formatted
 end;
 
-function exten(name:string):string;
+//seems similar to the functions above and below it, lots of redundency and such, and the function does nothing with s1 after working with it. My best guess is that these three functions are different versions of completing the same job, as if rewriting without deleting 
+function exten(name:string):string; //function passed string name
 var
  i,j,k,l:integer;
  s1,s2,s3:string;
 begin
- s1:=''; s2:='';
- k:=1;
- while (k<=length(name)) and (name[k]<>'.') do
+ s1:=''; s2:=''; //set s1 and s2 as blank
+ k:=1; //set k to 1
+ while (k<=length(name)) and (name[k]<>'.') do //sets s1 to name, minus any .
   begin
    s1:=s1+name[k];
    inc(k);
   end;
- if k<length(name) then
+ if k<length(name) then //if the previous loop stopped early, due to a period or such,
   begin
-   inc(k);
-   while (k<=length(name)) and (name[k]<>'.') do
+   inc(k); //skip the period
+   while (k<=length(name)) and (name[k]<>'.') do //and do it again sith s2
     begin
      s2:=s2+name[k];
      inc(k);
     end;
   end;
- exten:=addrear(s2,3);
+ exten:=addrear(s2,3); //passes addrear() s2 and the value 3, then returns the return
 end;
 
 //definitely not necessary because that was already done in name_form, both functions can be much better
@@ -171,16 +173,17 @@ var
  s1,s2,s3:string;
 begin
  s1:=''; s2:=''; 
- k:=1;
- while (k<=length(name)) and (name[k]<>'.') do
+ k:=1; 
+ while (k<=length(name)) and (name[k]<>'.') do //basically a for loop
   begin
    s1:=s1+name[k]; //this is just getting the beginning portion of a file name 
-   inc(k);
+   inc(k); 
   end;
  base_name:=s1; //returns file name
 end;
 
-Function attribs(b:byte):string;
+//this function determines the type of file from a byte being passed to it. it has a lot of redundancy, and can probably be done better
+Function attribs(b:byte):string; //function passed a byte
 {const
    ReadOnly = $01;
    Hidden   = $02;
@@ -188,16 +191,16 @@ Function attribs(b:byte):string;
    VolumeID = $08;
    Directory= $10;
    Archive  = $20;
-   AnyFile  = $3F;}
+   AnyFile  = $3F;} //the hex codes for different file types, note the comments
 var
 s1:string[8];
 begin
- s1:=' ';
- if (b and readonly)<>0  then s1:=s1+'R' else s1:=s1+'.';
+ s1:=' '; //assuming each file is only one type, this can easily be done with a switch
+ if (b and readonly)<>0  then s1:=s1+'R' else s1:=s1+'.'; 
  if (b and hidden  )<>0  then s1:=s1+'H' else s1:=s1+'.';
  if (b and sysfile )<>0  then s1:=s1+'S' else s1:=s1+'.';
- if (b and archive )<>0  then s1:=s1+'A' else s1:=s1+'.';
- attribs:=s1;
+ if (b and archive )<>0  then s1:=s1+'A' else s1:=s1+'.'; //this section adds an identifier to a string for the different filetypes. note how not all are used
+ attribs:=s1; //returns string s1, containing the identifiers
 end;
 
 //vital depending on how we recieve the file
@@ -216,19 +219,20 @@ begin
    path:=''; //returns nothing if at end of path
 end;
 
-function no_path(fn:string):string;
+//is almost the exact same, line for line, as the above function. this matches how functions lstr() and rstr() are also almost the same. the added redundancy seems redundant.
+function no_path(fn:string):string; //function passed string fn
 var
  i,k:integer;
 begin
- k:=0;
- for i:=length(fn) downto 1 do
+ k:=0; //set k = 0
+ for i:=length(fn) downto 1 do //for loop
   begin
-   if ((fn[i]='\') or (fn[i]=':')) and (k<i) then k:=i;
+   if ((fn[i]='\') or (fn[i]=':')) and (k<i) then k:=i; //sets k to equal the last \ or : in fn
   end;
  if k<>0 then
-   no_path:=rstr(fn,length(fn)-k)
+   no_path:=rstr(fn,length(fn)-k) //if there are '\'s or ':'s, pass function rstr string fn, and the length of fn -k. returns the result
   else
-   no_path:=fn;
+   no_path:=fn; //otherwise, returns the original, untouch string
 end;
 
 //definitely essential, easy to convert into c though, and would be better off using pointers
