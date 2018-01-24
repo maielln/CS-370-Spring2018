@@ -5,6 +5,13 @@
   Version: 1.0
   Description: Currently just a shell with some variables declared and functions declared with no
   code in the function. The current build runs.
+  ####################################################################################################
+  #                                                                                                  #
+  #                 This file is not being further developed.                                        #
+  #                                                                                                  #
+  #                                                                                                  #
+  #                                                                                                  #
+  ####################################################################################################
 */
 #include <stdio.h>
 #include <stdlib.h>
