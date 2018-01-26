@@ -564,7 +564,8 @@ end;
 
 //end Mark commenting
 
-procedure graph_mode(on:boolean);
+//Nicole starts
+procedure graph_mode(on:boolean); //graphics again, used inbetween matches to clear the graph
 begin
  if on and (not graphix) then
   begin
@@ -581,14 +582,14 @@ begin
    end;
 end;
 
-procedure prog_error(n:integer; ss:string);
-var
+procedure prog_error(n:integer; ss:string); //error proofing, will probably need something similar with how confer is
+var //n is the int of what kin of error, ss is the string that caused the error
  s:string;
 begin
  graph_mode(false);
  textcolor(15);
  write('Error #',n,': ');
- case n of
+ case n of //these errors are errors from reading in the files, if the assembly code is wrong, these errors are shown respectively
   00:s:=ss;(*user error*)
   01:s:='Invalid :label - "'+ss+'", silly mortal.';
   02:s:='Undefined identifier - "'+ss+'". A typo perhaps?';
@@ -624,7 +625,8 @@ begin
  halt;
 end;
 
-procedure print_code(n,p:integer);
+procedure print_code(n,p:integer); //this function is putting code into hexadecimal then printing it out, not sure why we would need it
+//can forget it for now, but if it comes up later that we need it we can utilize it
 var
  i:integer;
 begin
@@ -639,7 +641,8 @@ begin
   end;
 end;
 
-procedure parse1(n,p:integer; s:parsetype);
+procedure parse1(n,p:integer; s:parsetype); //it seems that this procedure will be very important to look at, as it
+//is dealing with the robot's code, we may be able to simplify it
 var
  i,j,k,opcode,microcode:integer;
  found,indirect:boolean;
@@ -713,6 +716,7 @@ begin
          found:=true;
         end;
 
+	//reading in all the instructions, but must be structured differently, going to need to utilize but not copy
      {instructions}
      if s[i]='NOP'     then begin opcode:=000; found:=true; end;
      if s[i]='ADD'     then begin opcode:=001; found:=true; end;
@@ -779,6 +783,7 @@ begin
      if s[i]='NEG'     then begin opcode:=045; found:=true; end;
      if s[i]='JTL'     then begin opcode:=046; found:=true; end;
 
+	 //found doesn't even get reset
      {registers}
      if s[i]='COLCNT'  then begin opcode:=008; microcode:=01; found:=true; end;
      if s[i]='METERS'  then begin opcode:=009; microcode:=01; found:=true; end;
@@ -856,8 +861,8 @@ begin
      if s[i]='I_DEATHS'      then begin opcode:=18; microcode:=0; found:=true; end;
      if s[i]='I_CLEARMETERS' then begin opcode:=19; microcode:=0; found:=true; end;
 
-     {memory addresses}
-     if (not found) and (s[i][1]='@') and (s[i][2] in ['0'..'9'])  then
+     {memory addresses} //this if exists to check different areas for what the assembly code wants if it is searching for a memory address
+     if (not found) and (s[i][1]='@') and (s[i][2] in ['0'..'9'])  then 
       begin
        opcode:=str2int(rstr(s[i],length(s[i])-1));
        if (opcode<0) or (opcode>(max_ram+1)+(((max_code+1) shl 3)-1)) then
@@ -867,13 +872,13 @@ begin
       end;
 
      {numbers}
-     if (not found) and (s[i][1] in ['0'..'9','-'])  then
+     if (not found) and (s[i][1] in ['0'..'9','-'])  then //this is if the code has a number to indicate what they want to change something to
       begin
        opcode:=str2int(s[i]);
        found:=true;
       end;
 
-     if found then
+     if found then //when the code is found for what the assembly is doing, then it begins to start the process of the desired operation
       begin
        code[p].op[i]:=opcode;
        if indirect then microcode:=microcode or 8;
@@ -886,14 +891,14 @@ begin
  if compile_by_line then readkey;
 end;
 
-procedure check_plen(plen:integer);
+procedure check_plen(plen:integer); //will need this if we have a max amount of code
 begin
   if plen>maxcode then
      prog_error(16,#13#10+'Maximum program length exceeded, (Limit: '+
                            cstr(maxcode+1)+' compiled lines)');
 end;
 
-procedure compile(n:integer;filename:string);
+procedure compile(n:integer;filename:string); //may need this to compile the robots, but we may not have to if we make them their own classes
 var
  pp:parsetype;
  s,s1,s2,s3,orig_s,msg:string;
@@ -1124,7 +1129,7 @@ begin
      parse1(n,plen,pp);
     end
    else
-    dec(plen);
+    dec(plen); 
 
 
    {--second pass, resolving !labels--}
@@ -1152,6 +1157,7 @@ begin
   end;
  textcolor(7);
 end;
+//Nicole ends
 
 procedure robot_config(n:integer);
 var
