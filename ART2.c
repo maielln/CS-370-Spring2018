@@ -2141,138 +2141,142 @@ begin
   end;
 end;
 
-procedure call_int(n,int_num:integer; var time_used:integer);
+//Start Mark commenting
+//this function seems to control commands from the robot code. most of these commands have to do with dealing with locations in the ram of the robot, or certain variables. would be cleaner to access variables than ram locations
+procedure call_int(n,int_num:integer; var time_used:integer);//passed ints n, int_num, and time_used
 var
  i,j,k:integer;
 begin
- with robot[n]^ do
+ with robot[n]^ do //do loop
   begin
-   case int_num of
-    00:damage(n,1000,true);
+   case int_num of //switch case
+    00:damage(n,1000,true); //calls damage function
     01:begin
-        reset_software(n);
+        reset_software(n); //calls reset_software() and sets time_used to 10
         time_used:=10;
        end;
     02:begin
-        time_used:=5;
+        time_used:=5; //sets time_used to 5, and sets locations in ram equal to round(), passed x and y.
         ram[69]:=round(x);
         ram[70]:=round(y);
        end;
     03:begin
-        time_used:=2;
+        time_used:=2; //sets time_used to 2, checks locations in ram, and sets another location to shift and 255
         if ram[65]=0 then keepshift:=false else keepshift:=true;
         ram[70]:=shift and 255;
        end;
     04:begin
-        if ram[65]=0 then overburn:=false else overburn:=true;
+        if ram[65]=0 then overburn:=false else overburn:=true; //checks a location in ram, then sets overburn to true
        end;
     05:begin
-        time_used:=2;
+        time_used:=2; //sets time_used to 2 and a location in ram to transponder
         ram[70]:=transponder;
        end;
     06:begin
-        time_used:=2;
+        time_used:=2; //sets time_used to 2 and sets locations in ram
         ram[69]:=game_cycle shr 16;
         ram[70]:=game_cycle and 65535;
        end;
-    07:begin
+    07:begin //sets ints j and k to two places in ram (seems redundant)
         j:=ram[69]; k:=ram[70];
         if j<0 then j:=0; if j>1000 then j:=1000;
-        if k<0 then k:=0; if k>1000 then k:=1000;
-        ram[65]:=round(find_angle(round(x),round(y),j,k)/pi*128+256) and 255;
-        time_used:=32;
+        if k<0 then k:=0; if k>1000 then k:=1000; //puts j and k between 0 and 1000
+        ram[65]:=round(find_angle(round(x),round(y),j,k)/pi*128+256) and 255; //calls a bunch of functions and puts the overall result in a location in ram
+        time_used:=32; //sets time_used to 32
        end;
     08:begin
-        ram[70]:=ram[5];
-        time_used:=1;
+        ram[70]:=ram[5]; //sets one location in ram equal to another
+        time_used:=1; //sets time_used to 1
        end;
     09:begin
-        ram[69]:=ram[6];
+        ram[69]:=ram[6]; //sets two locations in ram equal to others, and sets time_used to 2
         ram[70]:=ram[7];
         time_used:=2;
        end;
     10:begin
         k:=0;
-        for i:=0 to num_robots do
-         if robot[i]^.armor>0 then inc(k);
-        ram[68]:=k;
+        for i:=0 to num_robots do //for loop
+         if robot[i]^.armor>0 then inc(k); //if armor is > 0 (robot is alive) increment k
+        ram[68]:=k; //sets locations in ram to equal variables
         ram[69]:=played;
         ram[70]:=matches;
-        time_used:=4;
+        time_used:=4; //sets time_used to 4
        end;
     11:begin
-        ram[68]:=round(speed*100);
+        ram[68]:=round(speed*100); //sets locations in ram to some variables
         ram[69]:=last_damage;
         ram[70]:=last_hit;
-        time_used:=5;
+        time_used:=5; //sets time_used to 5
        end;
     12:begin
-        ram[70]:=ram[8];
+        ram[70]:=ram[8]; //sets one location in ram to another, and time_used to 1
         time_used:=1;
        end;
     13:begin
-        ram[8]:=0;
+        ram[8]:=0; //sets one location in ram to another, and time_used to 1
         time_used:=1;
        end;
     14:begin
-        com_transmit(n,channel,ram[65]);
-        time_used:=1;
+        com_transmit(n,channel,ram[65]); //passes int n, channel, and a location in ram to function com_transmit
+        time_used:=1; //sets time_used to 1
        end;
     15:begin
-        if (ram[10]<>ram[11]) then
+        if (ram[10]<>ram[11]) then //if two locations in ram are not equal, pass int n to function com_receive
          ram[70]:=com_receive(n)
         else
-         robot_error(n,12,'');
-        time_used:=1;
+         robot_error(n,12,''); //otherwise, send n and 12 to robot_error
+        time_used:=1; //set time_used to 1
        end;
     16:begin
-        if (ram[11]>=ram[10]) then
-         ram[70]:=ram[11]-ram[10]
+        if (ram[11]>=ram[10]) then //if one location in ram is >= another
+         ram[70]:=ram[11]-ram[10] //sets one location in ram to the previous two subtracted
         else
          begin
-          ram[70]:=max_queue+1-ram[10]+ram[11];
+          ram[70]:=max_queue+1-ram[10]+ram[11]; //otherwise, sets that location in ram to whatever that is.
          end;
-        time_used:=1;
+        time_used:=1; //sets time_used to 1
        end;
     17:begin
-        ram[10]:=0;
+        ram[10]:=0; //resets two locations in ram. sets time used to 1
         ram[11]:=0;
         time_used:=1;
        end;
     18:begin
-        ram[68]:=kills;
+        ram[68]:=kills; //sets two locations in ram, and time_used to 3
         ram[69]:=kills-startkills;
         ram[70]:=deaths;
         time_used:=3;
        end;
-    19:begin ram[9]:=0; meters:=0; end;
-    else robot_error(n,10,cstr(int_num));
+    19:begin ram[9]:=0; meters:=0; end; //resets a location in ram
+    else robot_error(n,10,cstr(int_num)); //sends an error
    end;
   end;
 end;
 
-procedure jump(n,o:integer; var inc_ip:boolean);
+//all this function does is send complex shit to other functions. It's either extremely critical or absolute trash
+procedure jump(n,o:integer; var inc_ip:boolean); //passed ints n and o, and bool inc_ip
 var
  i,j,k,l,loc:integer;
 begin
- with robot[n]^ do
+ with robot[n]^ do //do stuff
   begin
-   loc:=find_label(n,get_val(n,ip,o),code[ip].op[max_op] shr (o*4));
-   if (loc>=0) and (loc<=plen) then begin inc_ip:=false; ip:=loc; end
-                               else robot_error(n,2,cstr(loc));
+   loc:=find_label(n,get_val(n,ip,o),code[ip].op[max_op] shr (o*4)); //holy shit that's commands. find_label() gets sent n, get_val(),code[ip].op[max_op] bit-shifted right by int o*4. get_val() is sent n, ip, and o
+   if (loc>=0) and (loc<=plen) then begin inc_ip:=false; ip:=loc; end //if loc is not negative and is <= plen, then set inc_op to false and ip to loc
+                               else robot_error(n,2,cstr(loc)); //otherwise, report an error
   end;
 end;
 
-{FIFI}
-procedure update_debug_bars;
+
+{FIFI} //thank God for Fifi Laroo. Does display stuff
+procedure update_debug_bars; //passed and returns nothing
 begin
- if graphix and (step_mode>0) then with robot[0]^ do
+ if graphix and (step_mode>0) then with robot[0]^ do //if graphix is true and step_mode > 0, do the following:
   begin
    {debugger window}
-   viewport(480,4,635,410);
+   viewport(480,4,635,410); //display stuff
 
    {armour}
-   setfillstyle(1,robot_color(0));
+   setfillstyle(1,robot_color(0)); //more display
    if armor>0 then
     bar(88,03,87+(armor shr 2),08);
    setfillstyle(1,8);
@@ -2280,7 +2284,7 @@ begin
     bar(88+(armor shr 2),03,111,08);
 
    {heat}
-   setfillstyle(1,robot_color(0));
+   setfillstyle(1,robot_color(0)); //more display
    if heat>5 then
     bar(127,03,126+(heat div 20),08);
    setfillstyle(1,8);
@@ -2290,17 +2294,17 @@ begin
 end;
 {/FIFI}
 
-{FIFI}
-procedure update_debug_system;
+{FIFI} //Fifi to the rescue! more display
+procedure update_debug_system; //passed and returns nothing
 var
  i:integer;
 begin
- if graphix and (step_mode>0) then with robot[0]^ do
+ if graphix and (step_mode>0) then with robot[0]^ do //if graphix is true and step_mode > 0, then...
   begin
    {debugger window}
-   viewport(480,4,635,410);
+   viewport(480,4,635,410); //DISPLAY STUFF
    setfillstyle(1,0);
-   {for i:=0 to 6 do
+   {for i:=0 to 6 do //note the comments
     begin
      bar(039,32+(i*10),70,39+(i*10));
      bar(110,32+(i*10),141,39+(i*10));
@@ -2317,17 +2321,17 @@ begin
 end;
 {/FIFI}
 
-{FIFI}
-procedure update_debug_registers;
+{FIFI} //more display. more fun!
+procedure update_debug_registers; //passed and returns nothing
 var
  i:integer;
 begin
- if graphix and (step_mode>0) then with robot[0]^ do
+ if graphix and (step_mode>0) then with robot[0]^ do //see above
   begin
    {debugger window}
-   viewport(480,4,635,410);
+   viewport(480,4,635,410); //display
    setfillstyle(1,0);
-   {for i:=0 to 4 do
+   {for i:=0 to 4 do //note the comments
     begin
      bar(039,122+(i*10),70,129+(i*10));
      bar(110,122+(i*10),141,129+(i*10));
@@ -2342,15 +2346,15 @@ end;
 {/FIFI}
 
 
-{FIFI}
-procedure update_debug_flags;
+{FIFI} //every time I see these display-only functions, I take it as a personal slight. The code is saying "you're not good enough to understand me, here have some useless display that you both don't understand and will skip over! MUHAHAHAHA"
+procedure update_debug_flags; //passed and returns nothing
 var
 bin_string:string;
 begin
- if graphix and (step_mode>0) then with robot[0]^ do
+ if graphix and (step_mode>0) then with robot[0]^ do //see above
   begin
    {debugger window}
-   viewport(480,4,635,410);
+   viewport(480,4,635,410); //display stuff
    bin_string:=bin(ram[64]);
    if bin_string[13]='1' then setcolor(robot_color(0)) else setcolor(robot_color(8));
    outtextxy(111,172,'Z');
@@ -2360,7 +2364,7 @@ begin
    outtextxy(127,172,'L');
    if bin_string[16]='1' then setcolor(robot_color(0)) else setcolor(robot_color(8));
    outtextxy(135,172,'E');
-   {setfillstyle(1,0);
+   {setfillstyle(1,0); //note the comments
    bar(015,182,142,189);
    setcolor(robot_color(0));}
    {Commented out the black bars, and switched to 'textxy' -Bones}
@@ -2369,16 +2373,16 @@ begin
 end;
 {/FIFI}
 
-{FIFI}
-procedure update_debug_memory;
+{FIFI} //I feel bad because Nicole felt bad assigning me 800 lines, and now I'm doing next to no work.
+procedure update_debug_memory; //passed and returns nothing
 var
  i:integer;
 begin
- if graphix and (step_mode>0) then with robot[0]^ do
+ if graphix and (step_mode>0) then with robot[0]^ do //see above
   begin
    {debugger window}
-   viewport(480,4,635,410);
-   {setfillstyle(1,0);
+   viewport(480,4,635,410); //displays stuff
+   {setfillstyle(1,0); //commented out code
    for i:=0 to 9 do
     bar(091,212+(i*10),123,222+(i*10));}
     {Commented out the black bars, and switched to 'textxy' -Bones}
@@ -2393,16 +2397,16 @@ begin
 end;
 {/FIFI}
 
-{FIFI}
-procedure update_debug_code;
+{FIFI} //is anyone even reading this? I could confess my deepest darkest secrets here and they'd probably go unnoticed.
+procedure update_debug_code; //passed and returns nothing
 var
  i:integer;
 begin
- if graphix and (step_mode>0) then with robot[0]^ do
+ if graphix and (step_mode>0) then with robot[0]^ do //see aboce
   begin
    {debugger window}
-   viewport(480,4,635,410);
-   {code}
+   viewport(480,4,635,410); //display stuff
+   {code} //useful comment confer. Thanks for that one
    setfillstyle(1,0);
    for i:=0 to 6 do bar(003,332+(i*10),152,340+(i*10));
    setcolor(7);
@@ -2421,13 +2425,14 @@ end;
 {/FIFI}
 
 
-{FIFI}
-procedure update_debug_window;
+{FIFI} //When I was young (pre-pre-school) my mom had to work so she sent me to day care. I hated the day care lady so much that, when I left, I stole one of her decorative figurines. It's still in my room to this day
+//I'm not sorry. she threw us in the basement and turned the lights off when we misbehaved. In hindsight, that explains a lot...
+procedure update_debug_window; //passed and returns, you guessed it, nothing
 begin
  if graphix and (step_mode>0) then
   begin
 
-   {armour + heat}
+   {armour + heat} //calls all the previous functions
    update_debug_bars;
 
    {system variables}
@@ -2449,14 +2454,14 @@ begin
 end;
 {/FIFI}
 
-{FIFI}
-procedure init_debug_window;
+{FIFI} //I slept with a stuffed animal for longer than I care to admit. His name was squishy, and he used to be my brother's. The day I gave him up, my neighbor's friend broke his wrist in front of me. It's weird what you will and won't remember.
+procedure init_debug_window; //passed and returns nothing
 var i:integer;
 begin
  if graphix then
  begin
 
- {debugger window}
+ {debugger window} //MORE DISPLAY
  viewport(480,4,635,430);
  setfillstyle(1,7);
  bar(0,0,155,422);
@@ -2521,22 +2526,22 @@ begin
 end;
 {/FIFI}
 
-{FIFI}
-procedure close_debug_window;
+{FIFI} //Once when I was in elementary school, I kicked a kid who was being mean to me off the side of the slide. I then went to the lunch aid, and told them that he was hanging off the slide (which he wasn't supposed to do). He got yelled at, and I never got in trouble.
+procedure close_debug_window; //passed and returns nothing
 var i:integer;
 begin
  if graphix then
  begin
 
- stats_mode:=0;
+ stats_mode:=0; //sets stats_mode
  case num_robots of
-  0..5:stats_mode:=0;
+  0..5:stats_mode:=0; //seems redundant
   6..11:stats_mode:=1;
   12..max_robots:stats_mode:=2;
-  else stats_mode:=0;
+  else stats_mode:=0; //also redundant
  end;
 
- viewport(480,4,635,430);
+ viewport(480,4,635,430); //more display
  setfillstyle(1,7);
  bar(0,0,155,426);
 { update_cycle_window;}
@@ -2596,26 +2601,28 @@ begin
 end;
 {/FIFI}
 
-function gameover:boolean;
+//determines weather the game is still going
+function gameover:boolean; //passed nothing, returns a bool.
 var
  n,i,j,k,l:integer;
 begin
- if (game_cycle>=game_limit) and (game_limit>0) then
+ if (game_cycle>=game_limit) and (game_limit>0) then //if the game goes too long, return true
      begin gameover:=true; exit; end;
- if game_cycle and 31=0 then
+ if game_cycle and 31=0 then //31 != 0, so this should never happen. doesn't make sense to me
   begin
    k:=0;
-   for n:=0 to num_robots do
-    if robot[n]^.armor>0 then inc(k);
-   if k<=1 then gameover:=true
-           else gameover:=false;
-  end else gameover:=false;
+   for n:=0 to num_robots do //for loop
+    if robot[n]^.armor>0 then inc(k); //if armor > 0 (still alive), inc k
+   if k<=1 then gameover:=true //if k<=1, return true
+           else gameover:=false; //otherwise, return false
+  end else gameover:=false; //return false
 end;
 
-procedure toggle_graphix;
+//does display stuff. almost useful
+procedure toggle_graphix; //passed and returns nothing
 begin
  graph_mode(not graphix);
- if not graphix then
+ if not graphix then //does graphic stuff
   begin
    textcolor(7);
    writeln('Match ',played,'/',matches,', Battle in progress...');
@@ -2624,23 +2631,25 @@ begin
  else setscreen;
 end;
 
-function invalid_microcode(n,ip:integer):boolean;
+//checks if a microcode command is invalid. seems useful
+function invalid_microcode(n,ip:integer):boolean; //passed ints n and ip
 var
  invalid:boolean;
  i,j,k:integer;
 begin
  invalid:=false;
- for i:=0 to 2 do
+ for i:=0 to 2 do //for loop, runs twice
   begin
-   k:=(robot[n]^.code[ip].op[max_op] shr (i shl 2)) and 7;
-   if not (k in [0,1,2,4]) then invalid:=true;
+   k:=(robot[n]^.code[ip].op[max_op] shr (i shl 2)) and 7; //set k to robot.code.max_op bitshift right (i bitshift left twice) times
+   if not (k in [0,1,2,4]) then invalid:=true; //if k != 0, 1, 2, or 4, return true
   end;
  invalid_microcode:=invalid;
 end;
 
-procedure process_keypress(c:char);
+//DOES WHAT IT SOUNDS LIKE!!! processes a keypress.
+procedure process_keypress(c:char); //passed char c
 begin
- case c of
+ case c of //switch case, passes the command inserted to the proper function
    'C':calibrate_timing;
    'T':timing:=not timing;
    'A':show_arcs:=not show_arcs;
@@ -2656,7 +2665,8 @@ begin
  end;
 end;
 
-procedure execute_instruction(n:integer);
+//this function seems to run the main functionalities. looks useful, but definitely longer than it needs to be.
+procedure execute_instruction(n:integer); //passed int n
 var
  i,j,k:integer;
  time_used,loc:integer;
@@ -2665,46 +2675,46 @@ var
  c:char;
  {/FIFI}
 begin
- with robot[n]^ do
+ with robot[n]^ do //do stuff with the robot
   begin
    {--update system variables--}
-   ram[000]:=tspd;
+   ram[000]:=tspd; //update system variables
    ram[001]:=thd;
    ram[002]:=shift;
    ram[003]:=accuracy;
 
-   time_used:=1; inc_ip:=true; loc:=0;
-   if (ip>plen) or (ip<0) then ip:=0;
-   if invalid_microcode(n,ip) then
-      begin time_used:=1; robot_error(n,16,hex(code[ip].op[max_op])); end
+   time_used:=1; inc_ip:=true; loc:=0; //sets variables
+   if (ip>plen) or (ip<0) then ip:=0; //if ip > plen or ip < 0...
+   if invalid_microcode(n,ip) then //if the microcode is invalid...
+      begin time_used:=1; robot_error(n,16,hex(code[ip].op[max_op])); end //report an error
     else
 
   {FIFI}
-  if graphix and (step_mode>0) and (n=0) then  {if stepping enabled...}
+  if graphix and (step_mode>0) and (n=0) then  {if stepping enabled...} //if stepping enabled
    begin
-    inc(step_count);
+    inc(step_count); //increment step_count, do some display stuff...
     update_cycle_window;
     update_debug_window;
-    if (step_count mod step_mode)=0 then step_loop:=true else step_loop:=false;
-    while step_loop and (not(quit or gameover or bout_over)) do
-     if keypressed then with robot[0]^ do
+    if (step_count mod step_mode)=0 then step_loop:=true else step_loop:=false; //if step_count % stemp_moce = 0, step_loop is true. otherwise, its false
+    while step_loop and (not(quit or gameover or bout_over)) do //while loop
+     if keypressed then with robot[0]^ do //if key pressed, do stuff
       begin
-       c:=upcase(readkey);
-       case c of
+       c:=upcase(readkey); //read the key as an uppercase letter
+       case c of //switch case, sends the key press to do things. most of these are function calls or display stuff
         'X':begin
              temp_mode:=step_mode;
              step_mode:=0;
              step_loop:=false;
              close_debug_window;
             end;
-        ' ':begin step_count:=0; step_loop:=false; end;
-        '1'..'9':begin step_mode:=value(c); step_count:=0; step_loop:=false; end;
+        ' ':begin step_count:=0; step_loop:=false; end; // this one pauses the game i think
+        '1'..'9':begin step_mode:=value(c); step_count:=0; step_loop:=false; end; //so does this i think
         '0':begin step_mode:=10; step_count:=0; step_loop:=false; end;
         '-','_':if mem_watch>0 then
                  begin
                   setcolor(0);
                   for i:=0 to 9 do
-                   outtextxy(035,212+(10*i),decimal((mem_watch+i),4) + ' :');
+                   outtextxy(035,212+(10*i),decimal((mem_watch+i),4) + ' :'); //i keep reading this as outsexy
                   dec(mem_watch);
                   update_debug_memory;
                  end;
@@ -2735,16 +2745,16 @@ begin
                   update_debug_memory;
                  end;
         'G':begin toggle_graphix; temp_mode:=step_mode; step_mode:=0; step_loop:=false; end;
-        else process_keypress(c);
+        else process_keypress(c); //why wasn't all of this in process_keypress()? why isn't all of process_keypress in here?
        end;
       end;
    end;
   {/FIFI}
 
-   if (not ((code[ip].op[max_op] and 7) in [0,1])) then
-      begin time_used:=0; end
+   if (not ((code[ip].op[max_op] and 7) in [0,1])) then  //if (code i don't completely understand), then...
+      begin time_used:=0; end //set time_used to 0
     else
-   case get_val(n,ip,0) of
+   case get_val(n,ip,0) of //switch case for commands. seems useful
     00:begin (*NOP*)
         inc(executed);
        end;
@@ -2990,15 +3000,16 @@ begin
         if (loc>=0) and (loc<=plen) then begin inc_ip:=false; ip:=loc; end
                                     else robot_error(n,2,cstr(loc));
        end;
-    else begin robot_error(n,6,''); end;
+    else begin robot_error(n,6,''); end; //otherwise, print an error
    end;
-   inc(delay_left,time_used);
+   inc(delay_left,time_used); //increment delay_left and time_used
    if inc_ip then inc(ip);
    {FIFI}
    if graphix and (n=0) and (step_mode>0) then update_debug_window;
    {/FIFI}
   end;
 end;
+//End Mark comments
 
 procedure do_robot(n:integer);
 var
