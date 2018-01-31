@@ -1,14 +1,14 @@
 /*File Name: ATRLOCK.cpp
   Contributer(s): Will Csont
-  Date: 1/24/18
+  Date: 1/31/18
   Language: C++ (gcc compiler)
   Version: 1.01
-  Description: Currently mostly just a shell with some variables declared and functions declared with no
-  code in most functions except for encode. The current build doesn't run.
+  Description: Currently unfinished and need to check a bunch of notes.
 */
 #include <stdio.h>
 #include <stdlib.h>
 #include <string>
+#include <ctime>
 
 using namespace std;
 
@@ -26,7 +26,7 @@ bool this_dat;
 
 
 
-    string encode(string s)                   //********THE FOLLOWING ARE ONLY JUST EMPTY FUNCTIONS TO BE CODED LATER******
+    string encode(string s)
     {       /*k:=0;*/
 
         if (lock_code!='')
@@ -113,80 +113,120 @@ bool this_dat;
             cout<<f2<<s<<endl;
         }
     }
-   //The rest is to be coded it is unknown as to what the code is for
-   //I speculate it is a main function
-   /*begin
- randomize;
- lock_pos:=0;
- lock_dat:=0;
- if (paramcount<1) or (paramcount>2) then
-  begin
-   writeln('Usage: ATRLOCK <robot[.at2]> [locked[.atl]]');
-   halt;
-  end;
- fn1:=btrim(ucase(paramstr(1)));
- if fn1=base_name(fn1) then fn1:=fn1+'.AT2';
- if not exist(fn1) then
-  begin writeln('Robot "',fn1,'" not found!'); halt; end;
- if paramcount=2 then
-    fn2:=btrim(ucase(paramstr(2))) else fn2:=base_name(fn1)+'.ATL';
- if fn2=base_name(fn2) then fn2:=fn2+'.ATL';
- if not valid(fn2) then
-  begin writeln('Output name "',fn1,'" not valid!'); halt; end;
- if fn1=fn2 then
-  begin writeln('Filenames can not be the same!'); halt; end;
- assign(f1,fn1); reset(f1);
- assign(f2,fn2); rewrite(f2);
 
- {--copy comment header--}
- writeln(f2,';------------------------------------------------------------------------------');
- s:='';
- while (not eof(f1)) and (s='') do
-  begin
-   readln(f1,s);
-   s:=btrim(s);
-   if s[1]=';' then begin writeln(f2,s); s:=''; end;
-  end;
+    int main(String[] argv, int argc)
+    {
+        randomize();        //find out where this function is declared
+        lock_pos = 0;
+        lock_dat = 0;
+        if ((argc<1) || (argc>2))
+        {
+            cout<<"Usage: ATRLOCK <robot[.at2]> [locked[.atl]]"<<endl;
+            return 1;         //check if works if not replace other returns with an exit command
+        }
 
- {--lock header--}
- writeln(f2,';------------------------------------------------------------------------------');
- writeln(f2,'; ',no_path(base_name(fn1)),' Locked on ',date);
- writeln(f2,';------------------------------------------------------------------------------');
- lock_code:='';
- k:=random(21)+20;
- for i:=1 to k do
-  lock_code:=lock_code+char(random(32)+65);
- writeln(f2,'#LOCK',locktype,' ',lock_code);
+        fn1 = btrim(ucase(paramstr(1)));    //check where that is from and make ucase method if neccessary
 
- {--decode lock-code--}
- for i:=1 to length(lock_code) do
-  lock_code[i]:=char(ord(lock_code[i])-65);
+        if (fn1 == base_name(fn1))
+        {
+            fn1 = fn1 + ".AT2";
+        }
+        if (!exist(fn1))
+        {
+            cout<<"Robot "<<fn1<<" not found!"<<endl;
+            return 1;                                 //return
+        }
+        if (paramcount == 2)
+        {
+            fn2 = btrim(ucase(paramstr(2)));
+        }
+        else
+        {
+            fn2 = base_name(fn1) + ".ATL";
+        }
+        if (fn2 == base_name(fn2))
+        {
+            fn2 = fn2 + ".ATL";
+        }
+        if (!valid(fn2))                //find where this is from
+        {
+            cout<<"Output name '"<<fn1<<"' not valid!"<<endl;
+            return 1;
+        }
 
- write('Encoding "',fn1,'"...');
+        if (fn1 == fn2)
+        {
+            cout<<"Filenames can not be the same!"<<endl;
+            return;
+        }
 
- {--encode robot--}
- s:=btrim(s);
- if length(s)>0 then
-  write_line('',ucase(s));
- while not eof(f1) do
-  begin
-   {--read line!--}
-   readln(f1,s1); s:='';
-   s1:=btrim(ucase(s1));
+        //assign(f1,fn1); reset(f1);      //figure out: the following statement opens the file f1 for reading
+        //assign(f2,fn2); rewrite(f2);    //figure out: the following statement opens the file f2 for writing
 
-   {--write line!--}
-   write_line(s,s1);
-  end;
- writeln('Done. Used LOCK Format #',locktype,'.');
- writeln('Only ATR2 v2.08 or later can decode.');
- writeln('LOCKed robot saved as "',fn2,'"');
+        /*--copy comment header--*/
+        cout<<f2,";------------------------------------------------------------------------------"<<endl;
+        s = "";
+        while ((!eof(f1)) and (s=''))    //figure out: how to get this statement in C++
+        {
+            //readln(f1,s);              //figure out: the following statement a line from the file f1
+            s = btrim(s);                //find where btrim is
+            if (s[1] == ';')
+            {
+                cout<<f2<<s<<endl;
+                s = '';
+            }
+        }
 
- close(f1); close(f2);
-end.*/
-    int main(void)                          //**
-    {                                       //**
-        encode(fn1);                        //**
-        prepare(fn1,fn2);                   //**
-        write_line(fn1,fn2);                //**
-        return 0;                           //**
+
+
+        /*--lock header--*/
+        cout<<f2<<";------------------------------------------------------------------------------"<<endl;
+        cout<<f2,"; "<<no_path(base_name(fn1))<<" Locked on "<<ctime(time(0))<<endl;
+        cout<<f2,";------------------------------------------------------------------------------"<<endl;
+        lock_code = "";
+        k = rand()%21 + 20;
+        for (i = 1; i < k; i++)
+        {
+            lock_code = lock_code + (char)(rand()%32 + 65);
+        }
+
+        cout<<f2<<"#LOCK"<<locktype<<" "<<lock_code<<endl;
+
+        /*--decode lock-code--*/
+        for (i:=1 i < lock_code.length(); i++)
+        {
+            lock_code[i] = (char)(i-65);
+        }
+
+
+        cout<<"Encoding '"<<fn1<<"'...");
+
+        /*--encode robot--*/
+        s = btrim(s);           //to reiterate look into this function
+        if (s.length()>0)
+        {
+            write_line("",ucase(s));    //check where the uppercase function is
+        }
+
+        while( not eof(f1))         //figure out: how to get this statement in C++
+        {
+            /*--read line!--*/
+            //readln(f1,s1);          //figure out: the following statement reads a line from the file f1
+            s = '';
+            s1 = btrim(ucase(s1));  //again check where these functions are
+
+            /*--write line!--*/
+            write_line(s,s1);
+        }
+        cout<<"Done. Used LOCK Format #"<<locktype,"."<<endl;
+        cout<<"Only ATR2 v2.08 or later can decode."<<endl;
+        cout<<"LOCKed robot saved as '"<<fn2<<"'"<<endl;
+
+        close(f1);
+        close(f2);
+
+        /*encode(fn1);        Old tests to be certain it would compile
+        prepare(fn1,fn2);
+        write_line(fn1,fn2);  */
+        return 0;
     }
