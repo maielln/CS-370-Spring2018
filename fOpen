@@ -1,0 +1,86 @@
+#include <iostream>
+#include<string>
+
+using namespace std;
+
+string openFile (string);
+void read_file_to_buffer(FILE *f);
+char *buffer = NULL;
+void cleanup();
+
+
+/*
+Written by Mark Yetter, using pre-existing code from Dr. Confer
+Opens a file from a file path, checks it for lots of stuff, reads it, then displays it.
+Note: The code has trouble reading files with multiple lines
+*/
+int main (void)
+{
+    string doc;
+    char path[80] = "C:/Users/MCYet/Desktop/f.txt"; //f.txt is a text file that reads "Hello world"
+    FILE * roboFile = NULL;
+
+	atexit(cleanup);
+
+	roboFile = fopen(path, "r");
+	if (roboFile == NULL)
+	{
+        cout << "Could not open file: " << path;
+        return 1;
+	}
+
+	read_file_to_buffer(roboFile);
+
+	doc = buffer;
+
+	fclose(roboFile);
+	free(buffer);
+	buffer = NULL;
+
+    cout << doc;
+
+    return 0;
+}
+
+
+void read_file_to_buffer(FILE *f) {
+	long file_size = 0;
+
+	if(buffer != NULL) {
+		fprintf(stderr, "Buffer in use\n");
+		exit(EXIT_FAILURE);
+	}
+
+	rewind(f);
+	if(fseek(f, 0, SEEK_END) != 0) {
+		perror("Couldn't seek to end of file");
+		exit(EXIT_FAILURE);
+	}
+
+	file_size = ftell(f);
+	if(file_size < 0) {
+		perror("Couldn't tell size");
+		exit(EXIT_FAILURE);
+	}
+	rewind(f);
+
+	buffer = (char *)malloc(sizeof(char) * (file_size + 1));
+	if(buffer == NULL) {
+		fprintf(stderr, "Could not allocate buffer\n");
+		exit(EXIT_FAILURE);
+	}
+
+	if(fread(buffer, sizeof(char), (size_t)file_size, f) != file_size) {
+		fprintf(stderr, "Couldn't read file\n");
+		exit(EXIT_FAILURE);
+	}
+	buffer[file_size] = '\0';
+
+	return;
+}
+
+void cleanup()
+{
+
+	return;
+}
