@@ -25,6 +25,30 @@ bool this_dat;
 //missing f1 and f2 of type text need to look into that later
 
 
+    string ucase(string s)
+    {
+        for(int i = 0; i < s.length(); i++)
+        {
+            if(s[i] >= 97 && s[i] <= 122)
+            {
+                s[i] = s[i] - 32;
+            }
+        }
+        return s;
+    }
+
+    string lstr(string s1,int l)
+    {
+        if (s1.length()<=l)
+        {
+            return s1;
+        }
+        else
+        {
+            return s1.substr(0,l);
+        }
+
+    }
 
     string encode(string s)
     {       /*k:=0;*/
@@ -110,14 +134,14 @@ bool this_dat;
         if (s.length() > 0)
         {
             s = encode(s);
-            cout<<f2<<s<<endl;
+//            cout<<f2<<s<<endl;
         }
     }
 
     int main(void)
     {
-        randomize();        //find out where this function is declared
-        lock_pos = 0;
+        //randomize();        //find out where this function is declared
+/*        lock_pos = 0;
         lock_dat = 0;
         if ((argc<1) || (argc>2))
         {
@@ -125,7 +149,7 @@ bool this_dat;
             return 1;         //check if works if not replace other returns with an exit command
         }
 
-        fn1 = btrim(ucase(paramstr(1)));    //check where that is from and make ucase method if neccessary
+        fn1 = btrim(ucase(paramstr(1)));    //check where that is from
 
         if (fn1 == base_name(fn1))
         {
@@ -162,25 +186,25 @@ bool this_dat;
 
         //assign(f1,fn1); reset(f1);      //figure out: the following statement opens the file f1 for reading
         //assign(f2,fn2); rewrite(f2);    //figure out: the following statement opens the file f2 for writing
-
+*/
         /*--copy comment header--*/
-        cout<<f2<<";------------------------------------------------------------------------------"<<endl;
+/*        cout<<f2<<";------------------------------------------------------------------------------"<<endl;
         s = "";
-        while (/*(!eof(f1)) && */(s==""))    //figure out: how to get this statement in C++
+        while ((!eof(f1)) && (s==""))    //figure out: how to get this statement in C++
         {
             //readln(f1,s);              //figure out: the following statement a line from the file f1
-            s = btrim(s);                //find where btrim is
+            s = btrim(s);                //find where btrim is (remove the spaces at the end)
             if (s[1] == ';')
             {
                 cout<<f2<<s<<endl;
                 s = "";
             }
         }
-
+*/
 
 
         /*--lock header--*/
-        cout<<f2<<";------------------------------------------------------------------------------"<<endl;
+/*        cout<<f2<<";------------------------------------------------------------------------------"<<endl;
         cout<<f2,"; "<<no_path(base_name(fn1))<<" Locked on "<<ctime(time(0))<<endl;
         cout<<f2,";------------------------------------------------------------------------------"<<endl;
         lock_code = "";
@@ -191,18 +215,18 @@ bool this_dat;
         }
 
         cout<<f2<<"#LOCK"<<locktype<<" "<<lock_code<<endl;
-
+*/
         /*--decode lock-code--*/
-        for (i = 1; i < lock_code.length(); i++)
+/*        for (i = 1; i < lock_code.length(); i++)
         {
-            lock_code[i] = (char)(i-65);
+            lock_code[i] = (char)(lock_code[i]-65);
         }
 
 
         cout<<"Encoding '"<<fn1<<"'...";
-
+*/
         /*--encode robot--*/
-        s = btrim(s);           //to reiterate look into this function
+/*        s = btrim(s);           //to reiterate look into this function
         if (s.length()>0)
         {
             write_line("",ucase(s));    //check where the uppercase function is
@@ -210,13 +234,14 @@ bool this_dat;
 
         while( not eof(f1))         //figure out: how to get this statement in C++
         {
+*/
             /*--read line!--*/
             //readln(f1,s1);          //figure out: the following statement reads a line from the file f1
-            s = "";
+ /*           s = "";
             s1 = btrim(ucase(s1));  //again check where these functions are
-
+*/
             /*--write line!--*/
-            write_line(s,s1);
+/*            write_line(s,s1);
         }
         cout<<"Done. Used LOCK Format #"<<locktype<<"."<<endl;
         cout<<"Only ATR2 v2.08 or later can decode."<<endl;
@@ -224,10 +249,12 @@ bool this_dat;
 
         close(f1);
         close(f2);
+*/
+        //encode(fn1);
+       // prepare(fn1,fn2);
+        //write_line(fn1,fn2);
 
-        /*encode(fn1);
-        prepare(fn1,fn2);
-        write_line(fn1,fn2);  */
+       cout<<ucase("thIs will BE ees Test 32@%^%$34256425^$%^$*$")<<endl;
+
         return 0;
     }
-
