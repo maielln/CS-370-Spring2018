@@ -3,7 +3,7 @@
   Date: 1/31/18
   Language: C++ (gcc compiler)
   Version: 1.01
-  Description: Currently unfinished and need to check a bunch of notes.
+  Description: Currently unfinished and need to check a bunch of notes. Doesn't compile.
 */
 #include <stdio.h>
 #include <stdlib.h>
@@ -39,7 +39,7 @@ bool this_dat;
                     lock_pos = 1;
                 }
 
-                if ((i>=0 && i<=31)||(i>=128 && i<=255))
+                if ((s[i]>=0 && s[i]<=31)||(s[i]>=128 && s[i]<=255))
                 {
                     s[i] = ' ';
                 }
@@ -230,3 +230,4 @@ bool this_dat;
         write_line(fn1,fn2);  */
         return 0;
     }
+
