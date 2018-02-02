@@ -11,21 +11,23 @@ void cleanup();
 
 /*
 Written by Mark Yetter, using pre-existing code from Dr. Confer
+Written in C++ (GNU GCC) using Code::Blocks
+Last updated 2/2/2018
 Opens a file from a file path, checks it for lots of stuff, reads it, then displays it.
-Note: The code has trouble reading files with multiple lines
 */
 int main (void)
 {
     string doc;
-    char path[80] = "C:/Users/MCYet/Desktop/f.txt"; //f.txt is a text file that reads "Hello world"
+    char path[80] = "C:/Users/MCYet/Desktop/School/Y2S2/CS 370/fOpen/f.txt"; //f.txt is a text file that reads "Hello world"
     FILE * roboFile = NULL;
+    int i=0;
 
 	atexit(cleanup);
 
-	roboFile = fopen(path, "r");
+	roboFile = fopen(path, "rb");
 	if (roboFile == NULL)
 	{
-        cout << "Could not open file: " << path;
+        cout << "Could not find file at " << path;
         return 1;
 	}
 
