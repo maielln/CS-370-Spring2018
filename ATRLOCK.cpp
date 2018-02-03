@@ -47,8 +47,52 @@ bool this_dat;
         {
             return s1.substr(0,l);
         }
-
     }
+
+    string ltrim(string s1 )
+    {
+        int i;
+        while ((s1.length() > 0) && ((s1[0] == ' ' ) || (s1[0] == 8) || (s1[0] == 9)))
+        {
+            s1 = s1.substr(0,s1.length()-1);
+        }
+
+        return s1;
+    }
+
+
+    string rtrim(string s1)
+    {
+        while ((s1.length() > 0) && ((s1.substr(s1.length()-1,1) == " " ) || (s1[s1.length()-1] == 8)
+            || (s1[s1.length()-1] == 9)))
+        {
+            s1 = s1.substr(0,s1.length()-1);
+        }
+
+        return s1;
+    }
+
+
+    string btrim(string s1)
+    {
+        return ltrim(rtrim(s1));
+    }
+
+    string base_name(string name)
+    {
+        int k;
+        string s1,s2;
+        s1 = "";
+        s2 = "";
+        k = 1;
+        while (k <= name.length() && (name[k] != '.'))
+        {
+            s1 = s1+name[k];
+            k++;
+        }
+        return s1;
+    }
+
 
     string encode(string s)
     {       /*k:=0;*/
@@ -106,7 +150,6 @@ bool this_dat;
 
         for( i = 1; s1.length(); i++)
         {
-            //CHECK WHAT #8 - 10 WAS SET TO IN ORIGIONAL CODE!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
             if ( (s1[i] != ' ') || (s1[i] != 8) || (s1[i] != 9) || (s1[i] != 10) || (s1[i] != ','))
             {
                 s2 = s2 + s1[i];
@@ -143,13 +186,11 @@ bool this_dat;
         //randomize();        //find out where this function is declared
 /*        lock_pos = 0;
         lock_dat = 0;
-        if ((argc<1) || (argc>2))
-        {
-            cout<<"Usage: ATRLOCK <robot[.at2]> [locked[.atl]]"<<endl;
-            return 1;         //check if works if not replace other returns with an exit command
-        }
+        
+        
+        //replace with file system code
 
-        fn1 = btrim(ucase(paramstr(1)));    //check where that is from
+        fn1 = //sets the file
 
         if (fn1 == base_name(fn1))
         {
