@@ -47,7 +47,7 @@ int main (void)
 	fclose (roboFile);
 
     string temp; //this is the part that does stuff. replace it with the stuff you want done
-    temp = getLine(1);
+    temp = getLine(1); //please note that, if a line does not exist, getLine() will return ""
     writeLine (temp, outFile); //this ends the part that does stuff. don't put code under it.
 
     fclose (outFile);
