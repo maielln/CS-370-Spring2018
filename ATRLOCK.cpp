@@ -100,9 +100,8 @@ bool this_dat;
 
         if (lock_code!="")
         {
-            for( i = 1; i < s.length(); i++)
+            for( i = 0; i < s.length(); i++)
             {
-cout<<s<<endl;
                 lock_pos++;
                 if (lock_pos>lock_code.length())
                 {
@@ -296,12 +295,13 @@ cout<<s<<endl;
         close(f2);
 */
         //encode(fn1);
-       // prepare(fn1,fn2);
+        // prepare(fn1,fn2);
         //write_line(fn1,fn2);
 
         cout<<ucase("thIs will BE ees Test 32@%^%$34256425^$%^$*$")<<endl;
         cout<<lstr(" I don't know ", 7)<<endl;
         lock_code = lock_code + (char)(rand()%32 + 65);
-        cout<<encode("Could I get this to work at all?")<<endl;
+        cout<<encode("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!@#$%^&*()")<<endl;
         return 0;
     }
+
