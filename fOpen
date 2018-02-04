@@ -1,47 +1,60 @@
 #include <iostream>
-#include<string>
+#include <string>
+#include <stdio.h>
+#include <string.h>
 
 using namespace std;
 
-string openFile (string);
-void read_file_to_buffer(FILE *f);
+void read_file_to_buffer(FILE *);
 char *buffer = NULL;
 void cleanup();
+int findLine (int);
+string getLine (int);
+void writeLine (string, FILE *);
 
 
 /*
 Written by Mark Yetter, using pre-existing code from Dr. Confer
 Written in C++ (GNU GCC) using Code::Blocks
-Last updated 2/2/2018
-Opens a file from a file path, checks it for lots of stuff, reads it, then displays it.
+Last updated 2/3/18
+When given a file path, opens an input and output file. Has the capability
+to read lines from the input, edit them, and print lines in the output.
 */
+
 int main (void)
 {
-    string doc;
-    char path[80] = "C:/Users/MCYet/Desktop/School/Y2S2/CS 370/fOpen/f.txt"; //f.txt is a text file that reads "Hello world"
+    char inPath[80] = "C:/Users/MCYet/Desktop/School/Y2S2/CS 370/fOpen/f.txt";
+    char outPath[80] = "C:/Users/MCYet/Desktop/School/Y2S2/CS 370/fOpen/fOut.txt";
     FILE * roboFile = NULL;
-    int i=0;
+    FILE * outFile = NULL;
 
 	atexit(cleanup);
 
-	roboFile = fopen(path, "rb");
+	roboFile = fopen(inPath, "rb");
 	if (roboFile == NULL)
 	{
-        cout << "Could not find file at " << path;
-        return 1;
+        cout << "Could not find input file at " << inPath;
+        exit(EXIT_FAILURE);
 	}
+	outFile = fopen(outPath, "wb");
+	if (outFile == NULL)
+    {
+        cout << "Error opening output file at " << outPath;
+        exit(EXIT_FAILURE);
+    }
 
 	read_file_to_buffer(roboFile);
+	fclose (roboFile);
 
-	doc = buffer;
+    string temp; //this is the part that does stuff. replace it with the stuff you want done
+    temp = getLine(1);
+    writeLine (temp, outFile); //this ends the part that does stuff. don't put code under it.
 
-	fclose(roboFile);
+    fclose (outFile);
 	free(buffer);
 	buffer = NULL;
 
-    cout << doc;
-
-    return 0;
+    exit(EXIT_SUCCESS);
 }
 
 
@@ -85,4 +98,59 @@ void cleanup()
 {
 
 	return;
+}
+
+int findLine (int lNum)
+{
+    int index = 0, position = 0;
+
+    if (lNum == 0)
+        return 0;
+
+    for (position=0; index<lNum; position++)
+    {
+        if (buffer[position] == '\0')
+        {
+            cout << "Line " << lNum << " doesn't exist!";
+            return -1;
+        }
+        else if (buffer[position] == '\r')
+        {
+            index++;
+        }
+    }
+
+    return position+1;
+}
+
+string getLine (int lNum)
+{
+    int index = 0, position = 0;
+    string line = "";
+
+    position = findLine(lNum);
+    if (position < 0)
+        return "";
+
+    for (index=0; index<1; position++)
+    {
+        if (buffer[position]=='\r' || buffer[position]=='\0')
+        {
+            index++;
+            line += buffer[position];\
+        }
+        else
+            line += buffer[position];
+    }
+
+    return line;
+}
+
+void writeLine (string line, FILE *f)
+{
+    const char * cLine = line.c_str();
+
+    fputs(cLine, f);
+
+    return;
 }
