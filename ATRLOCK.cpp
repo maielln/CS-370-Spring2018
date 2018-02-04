@@ -95,12 +95,14 @@ bool this_dat;
 
 
     string encode(string s)
-    {       /*k:=0;*/
+    {
+        /*k:=0;*/
 
         if (lock_code!="")
         {
             for( i = 1; i < s.length(); i++)
             {
+cout<<s<<endl;
                 lock_pos++;
                 if (lock_pos>lock_code.length())
                 {
@@ -113,7 +115,7 @@ bool this_dat;
                 }
 
                 this_dat = i && 15;
-                s[i] = ((i ^ lock_pos ^ lock_dat) + 1);
+                s[i] = ((s[i] ^ lock_code[lock_pos] ^ lock_dat) + 1);
                 lock_dat = (char) (this_dat);
             }
         }
@@ -126,6 +128,8 @@ bool this_dat;
         int i,j,k,l;
         string s2;
         /*--remove comments--*/
+
+
         if ((s1.length() == 0) || (s1[1] == ';'))
         {
             s1 = "";
@@ -137,7 +141,7 @@ bool this_dat;
             {
                 if (s1[i] == ';')
                 {
-                    k = i;
+                    k = i + 1;
                 }
                 if (k>0)
                 {
@@ -148,7 +152,7 @@ bool this_dat;
         /*--remove excess spaces--*/
         s2 = "";
 
-        for( i = 1; s1.length(); i++)
+        for( i = 1; i < s1.length(); i++)
         {
             if ( (s1[i] != ' ') || (s1[i] != 8) || (s1[i] != 9) || (s1[i] != 10) || (s1[i] != ','))
             {
@@ -186,8 +190,8 @@ bool this_dat;
         //randomize();        //find out where this function is declared
 /*        lock_pos = 0;
         lock_dat = 0;
-        
-        
+
+
         //replace with file system code
 
         fn1 = //sets the file
@@ -295,7 +299,9 @@ bool this_dat;
        // prepare(fn1,fn2);
         //write_line(fn1,fn2);
 
-       cout<<ucase("thIs will BE ees Test 32@%^%$34256425^$%^$*$")<<endl;
-
+        cout<<ucase("thIs will BE ees Test 32@%^%$34256425^$%^$*$")<<endl;
+        cout<<lstr(" I don't know ", 7)<<endl;
+        lock_code = lock_code + (char)(rand()%32 + 65);
+        cout<<encode("Could I get this to work at all?")<<endl;
         return 0;
     }
