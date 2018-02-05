@@ -34,11 +34,14 @@ bool this_dat;
 
 int main (void)
 {
-    char inPath[80] = "C:/Users/MCYet/Desktop/School/Y2S2/CS 370/fOpen/f.txt";
-    char outPath[80] = "C:/Users/MCYet/Desktop/School/Y2S2/CS 370/fOpen/fOut.txt";
+    char inPath[80]; //"C:/Users/MCYet/Desktop/School/Y2S2/CS 370/fOpen/f.txt"
+    char outPath[80]; //"C:/Users/MCYet/Desktop/School/Y2S2/CS 370/fOpen/fOut.txt"
     FILE * roboFile = NULL;
     FILE * outFile = NULL;
     int o = 0;
+
+    cout << "Please enter the path of the input file: ";
+    cin >> inPath;
 
 	atexit(cleanup);
 
@@ -48,6 +51,10 @@ int main (void)
         cout << "Could not find input file at " << inPath;
         exit(EXIT_FAILURE);
 	}
+
+    cout << "Please enter the path of the output file: ";
+    cin >> outPath;
+
 	outFile = fopen(outPath, "wb");
 	if (outFile == NULL)
     {
@@ -74,6 +81,8 @@ int main (void)
     fclose (outFile);
 	free(buffer);
 	buffer = NULL;
+
+	cout << "File encrypted!";
 
     exit(EXIT_SUCCESS);
 }
