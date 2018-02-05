@@ -13,11 +13,6 @@ int findLine (int);
 string getLine (int);
 void writeLine (string, FILE *);
 string ucase(string s);
-string lstr(string s1,int l);
-string ltrim(string s1 );
-string rtrim(string s1);
-string btrim(string s1);
-string base_name(string name);
 string encode(string s);
 
 /*
@@ -35,7 +30,7 @@ bool this_dat;
 int main (void)
 {
     char inPath[80]; //"C:/Users/MCYet/Desktop/School/Y2S2/CS 370/fOpen/f.txt"
-    char outPath[80]; //"C:/Users/MCYet/Desktop/School/Y2S2/CS 370/fOpen/fOut.txt"
+    char justAnIfStatement = 'J';
     FILE * roboFile = NULL;
     FILE * outFile = NULL;
     int o = 0;
@@ -52,18 +47,39 @@ int main (void)
         exit(EXIT_FAILURE);
 	}
 
-    cout << "Please enter the path of the output file: ";
-    cin >> outPath;
+    read_file_to_buffer(roboFile);
+	fclose (roboFile);
 
-	outFile = fopen(outPath, "wb");
+	while (justAnIfStatement != 'y' && justAnIfStatement != 'Y' && justAnIfStatement != 'N' && justAnIfStatement != 'n')
+    {
+
+        cout << "Would you like to output in the same file? All existing data will be overwritten (Y/N): ";
+        cin >> justAnIfStatement;
+
+        if (justAnIfStatement == 'y' || justAnIfStatement == 'Y')
+        {
+            outFile = fopen(inPath, "wb");
+        }
+        else if (justAnIfStatement == 'n' || justAnIfStatement == 'N')
+        {
+            cout << "Please enter the path of the output file: ";
+            cin >> inPath;
+
+            outFile = fopen(inPath, "wb");
+        }
+        else
+        {
+            cout << "Invalid input. Please enter 'Y' for yes or 'N' for no" << endl;
+        }
+    }
+
 	if (outFile == NULL)
     {
-        cout << "Error opening output file at " << outPath;
+        cout << "Error opening output file at " << inPath;
         exit(EXIT_FAILURE);
     }
 
-	read_file_to_buffer(roboFile);
-	fclose (roboFile);
+    cout << endl;
 
     s = getLine(0);
     o = s.length();
@@ -87,7 +103,7 @@ int main (void)
     exit(EXIT_SUCCESS);
 }
 
-
+//checks the validity of a file, and reads it to a buffer. Since the buffer is a global variable, the function returns nothing.
 void read_file_to_buffer(FILE *f) {
 	long file_size = 0;
 
@@ -124,12 +140,14 @@ void read_file_to_buffer(FILE *f) {
 	return;
 }
 
+//Appears to clean stuff up. Was a part of Confer's original code, so I ain't touching shit
 void cleanup()
 {
 
 	return;
 }
 
+//Passed a line number in a file (starting at 0), then returns the location of the start of the line in the buffer
 int findLine (int lNum)
 {
     int index = 0, position = 0;
@@ -152,6 +170,7 @@ int findLine (int lNum)
     return position+1;
 }
 
+//passed a line number in a file (starting at 0), and returns a string containing that line.
 string getLine (int lNum)
 {
     int index = 0, position = 0;
@@ -184,6 +203,7 @@ string getLine (int lNum)
     return line;
 }
 
+//Casts a string to a constant char *, outputs it to a file, and ends the line. Made for windows.
 void writeLine (string line, FILE *f)
 {
     const char * cLine = line.c_str();
@@ -194,102 +214,45 @@ void writeLine (string line, FILE *f)
     return;
 }
 
-
+//Turns all characters in a string into uppercase letters
 string ucase(string s)
+{
+    for(int i = 0; i < s.length(); i++)
     {
-        for(int i = 0; i < s.length(); i++)
+        if(s[i] >= 97 && s[i] <= 122)
         {
-            if(s[i] >= 97 && s[i] <= 122)
+            s[i] = s[i] - 32;
+        }
+    }
+    return s;
+}
+
+//encodes a string, removing white space and randomizing the letters to deter reading
+string encode(string s)
+{
+    if (lock_code != ""){
+        for (int i = 1; i < s.length(); i++)
+        {
+            lock_pos++;
+
+            if (lock_pos > lock_code.length())
             {
-                s[i] = s[i] - 32;
+                lock_pos = 1;
             }
-        }
-        return s;
-    }
 
-
-    string lstr(string s1,int l)
-    {
-        if (s1.length()<=l)
-        {
-            return s1;
-        }
-        else
-        {
-            return s1.substr(0,l);
-        }
-    }
-
-
-    string ltrim(string s1 )
-    {
-        int i;
-        while ((s1.length() > 0) && ((s1[0] == ' ' ) || (s1[0] == 8) || (s1[0] == 9)))
-        {
-            s1 = s1.substr(0,s1.length()-1);
-        }
-
-        return s1;
-    }
-
-
-string rtrim(string s1)
-    {
-        while ((s1.length() > 0) && ((s1.substr(s1.length()-1,1) == " " ) || (s1[s1.length()-1] == 8)
-            || (s1[s1.length()-1] == 9)))
-        {
-            s1 = s1.substr(0,s1.length()-1);
-        }
-
-        return s1;
-    }
-
-
-    string btrim(string s1)
-    {
-        return ltrim(rtrim(s1));
-    }
-
-    string base_name(string name)
-    {
-        int k;
-        string s1,s2;
-        s1 = "";
-        s2 = "";
-        k = 1;
-        while (k <= name.length() && (name[k] != '.'))
-        {
-            s1 = s1+name[k];
-            k++;
-        }
-        return s1;
-    }
-
-
-    string encode(string s)
-    {
-        if (lock_code != ""){
-            for (int i = 1; i < s.length(); i++)
-            {
-                lock_pos++;
-
-                if (lock_pos > lock_code.length())
-                {
-                    lock_pos = 1;
-                }
-
-                if ((s[i] >= 0 && s[i] <= 31) || (s[i] >= 128 && s[i] <= 255)) {
-                    s[i] = ' ';
-                }
-
-                this_dat = (i && 15);
-
-                if(s[i] != '\0' && s[i] != ' ' && (s[i] != '\r' || s[i+1] != '\n'))
-                    s[i] = ((s[i] ^ lock_code[lock_pos] ^ lock_dat) + 1);
-                else
-                    s[i] = '\0';
-                lock_dat = (char)this_dat;
+            if ((s[i] >= 0 && s[i] <= 31) || (s[i] >= 128 && s[i] <= 255)) {
+                s[i] = ' ';
             }
+
+            this_dat = (i && 15);
+
+            if(s[i] != '\0' && s[i] != ' ' && (s[i] != '\r' || s[i+1] != '\n'))
+                s[i] = ((s[i] ^ lock_code[lock_pos] ^ lock_dat) + 1);
+            else
+                s[i] = '\0';
+            lock_dat = (char)this_dat;
         }
-      return s;
     }
+    return s;
+}
+
