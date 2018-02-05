@@ -21,11 +21,10 @@ string base_name(string name);
 string encode(string s);
 
 /*
-Written by Mark Yetter, using pre-existing code from Dr. Confer
-Written in C++ (GNU GCC) using Code::Blocks
-Last updated 2/3/18
-When given a file path, opens an input and output file. Has the capability
-to read lines from the input, edit them, and print lines in the output.
+Written by Mark Nicole, and Will
+Written in C++ (GNU GCC)
+Last updated 2/5/18
+opens a file, removes blank space, and encrypts it
 */
 
 string fn1,fn2,s,s1,s2,lock_code;
@@ -186,6 +185,7 @@ void writeLine (string line, FILE *f)
     return;
 }
 
+
 string ucase(string s)
     {
         for(int i = 0; i < s.length(); i++)
@@ -197,6 +197,7 @@ string ucase(string s)
         }
         return s;
     }
+
 
     string lstr(string s1,int l)
     {
@@ -210,6 +211,7 @@ string ucase(string s)
         }
     }
 
+
     string ltrim(string s1 )
     {
         int i;
@@ -222,7 +224,7 @@ string ucase(string s)
     }
 
 
-    string rtrim(string s1)
+string rtrim(string s1)
     {
         while ((s1.length() > 0) && ((s1.substr(s1.length()-1,1) == " " ) || (s1[s1.length()-1] == 8)
             || (s1[s1.length()-1] == 9)))
@@ -255,34 +257,6 @@ string ucase(string s)
     }
 
 
-    /*string encode(string s)
-    {
-//        k:=0;
-        if (lock_code!="")
-        {
-            for( i = 0; i < s.length(); i++)
-            {
-                lock_pos++;
-                if (lock_pos>lock_code.length())
-                {
-                    lock_pos = 1;
-                }
-                if ((s[i]>=0 && s[i]<=31)||(s[i]>=128 && s[i]<=255))
-                {
-                    s[i] = '\0';
-                }
-                this_dat = i && 15;
-               if ((s[i] != ' ') || (s[i] != '\t') || (s[i] != '\r' && s[i+1] == '\n'))
-               {
-                  s[i] = ((s[i] ^ lock_code[lock_pos] ^ lock_dat) + 1);
-                  lock_dat = (char) (this_dat);
-                }
-                if ((s[i] == ' ') || (s[i] != '\t') || (s[i] == '\r' && s[i+1] == '\n'))
-                    s[i] = '\0';
-            }
-        }
-        return s;
-    }*/
     string encode(string s)
     {
         if (lock_code != ""){
@@ -301,7 +275,7 @@ string ucase(string s)
 
                 this_dat = (i && 15);
 
-                if(s[i] != '\0' && s[i] != '\t' && s[i] != ' ' && (s[i] != '\r' || s[i+1] != '\n'))
+                if(s[i] != '\0' && s[i] != ' ' && (s[i] != '\r' || s[i+1] != '\n'))
                     s[i] = ((s[i] ^ lock_code[lock_pos] ^ lock_dat) + 1);
                 else
                     s[i] = '\0';
