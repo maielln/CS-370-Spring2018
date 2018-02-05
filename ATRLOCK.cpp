@@ -16,7 +16,7 @@ string ucase(string s);
 string encode(string s);
 
 /*
-Written by Mark Nicole, and Will
+Written by Mark, Nicole, and Will
 Written in C++ (GNU GCC)
 Last updated 2/5/18
 opens a file, removes blank space, and encrypts it
