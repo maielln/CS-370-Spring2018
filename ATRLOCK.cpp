@@ -16,7 +16,7 @@ string ucase(string s);
 string encode(string s);
 
 /*
-Written by Mark, Nicole, and Will
+Written by Mark Nicole, and Will
 Written in C++ (GNU GCC)
 Last updated 2/5/18
 opens a file, removes blank space, and encrypts it
@@ -33,12 +33,18 @@ int main (void)
     char justAnIfStatement = 'J';
     FILE * roboFile = NULL;
     FILE * outFile = NULL;
-    int o = 0;
+    int o = 0, i = 0;
+
+    atexit(cleanup);
 
     cout << "Please enter the path of the input file: ";
     cin >> inPath;
 
-	atexit(cleanup);
+    for (i=0;i<80;i++)
+    {
+        if (inPath[i] == '\ ')
+            inPath[i] = '/';
+    }
 
 	roboFile = fopen(inPath, "rb");
 	if (roboFile == NULL)
@@ -65,6 +71,12 @@ int main (void)
             cout << "Please enter the path of the output file: ";
             cin >> inPath;
 
+            for (i=0;i<80;i++)
+            {
+                if (inPath[i] == '\ ')
+                    inPath[i] = '/';
+            }
+
             outFile = fopen(inPath, "wb");
         }
         else
@@ -83,7 +95,6 @@ int main (void)
 
     s = getLine(0);
     o = s.length();
-    int i;
     lock_code = lock_code + (char)(rand()%32 + 65);
     for (i=1;s!="";i++)
     {
@@ -255,4 +266,3 @@ string encode(string s)
     }
     return s;
 }
-
