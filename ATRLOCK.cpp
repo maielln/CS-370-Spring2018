@@ -1,31 +1,192 @@
-/*File Name: ATRLOCK.cpp
-  Contributer(s): Will Csont
-  Date: 1/31/18
-  Language: C++ (gcc compiler)
-  Version: 1.01
-  Description: Currently unfinished and need to check a bunch of notes. Doesn't compile.
-*/
-#include <stdio.h>
-#include <stdlib.h>
-#include <string>
-#include <ctime>
 #include <iostream>
+#include <string>
+#include <stdio.h>
+#include <string.h>
+#include <cstdlib>
+
 using namespace std;
 
-//uses functions from the stuff and filelib files. look into later
+void read_file_to_buffer(FILE *);
+char *buffer = NULL;
+void cleanup();
+int findLine (int);
+string getLine (int);
+void writeLine (string, FILE *);
+string ucase(string s);
+string lstr(string s1,int l);
+string ltrim(string s1 );
+string rtrim(string s1);
+string btrim(string s1);
+string base_name(string name);
+string encode(string s);
 
-#define locktype 3
-
+/*
+Written by Mark Yetter, using pre-existing code from Dr. Confer
+Written in C++ (GNU GCC) using Code::Blocks
+Last updated 2/3/18
+When given a file path, opens an input and output file. Has the capability
+to read lines from the input, edit them, and print lines in the output.
+*/
 
 string fn1,fn2,s,s1,s2,lock_code;
 
 int i,j,k,lock_pos,lock_dat;
 bool this_dat;
 
-//missing f1 and f2 of type text need to look into that later
+int main (void)
+{
+    char inPath[80] = "C:/Users/MCYet/Desktop/School/Y2S2/CS 370/fOpen/f.txt";
+    char outPath[80] = "C:/Users/MCYet/Desktop/School/Y2S2/CS 370/fOpen/fOut.txt";
+    FILE * roboFile = NULL;
+    FILE * outFile = NULL;
+    int o = 0;
+
+	atexit(cleanup);
+
+	roboFile = fopen(inPath, "rb");
+	if (roboFile == NULL)
+	{
+        cout << "Could not find input file at " << inPath;
+        exit(EXIT_FAILURE);
+	}
+	outFile = fopen(outPath, "wb");
+	if (outFile == NULL)
+    {
+        cout << "Error opening output file at " << outPath;
+        exit(EXIT_FAILURE);
+    }
+
+	read_file_to_buffer(roboFile);
+	fclose (roboFile);
+
+    s = getLine(0);
+    o = s.length();
+    int i;
+    lock_code = lock_code + (char)(rand()%32 + 65);
+    for (i=1;s!="";i++)
+    {
+        s = ucase(s);
+        s = encode(s);
+        if (s[1] != '\0')
+            writeLine (s, outFile);
+        s = getLine(i);
+    }
+
+    fclose (outFile);
+	free(buffer);
+	buffer = NULL;
+
+    exit(EXIT_SUCCESS);
+}
 
 
-    string ucase(string s)
+void read_file_to_buffer(FILE *f) {
+	long file_size = 0;
+
+	if(buffer != NULL) {
+		fprintf(stderr, "Buffer in use\n");
+		exit(EXIT_FAILURE);
+	}
+
+	rewind(f);
+	if(fseek(f, 0, SEEK_END) != 0) {
+		perror("Couldn't seek to end of file");
+		exit(EXIT_FAILURE);
+	}
+
+	file_size = ftell(f);
+	if(file_size < 0) {
+		perror("Couldn't tell size");
+		exit(EXIT_FAILURE);
+	}
+	rewind(f);
+
+	buffer = (char *)malloc(sizeof(char) * (file_size + 1));
+	if(buffer == NULL) {
+		fprintf(stderr, "Could not allocate buffer\n");
+		exit(EXIT_FAILURE);
+	}
+
+	if(fread(buffer, sizeof(char), (size_t)file_size, f) != file_size) {
+		fprintf(stderr, "Couldn't read file\n");
+		exit(EXIT_FAILURE);
+	}
+	buffer[file_size] = '\0';
+
+	return;
+}
+
+void cleanup()
+{
+
+	return;
+}
+
+int findLine (int lNum)
+{
+    int index = 0, position = 0;
+
+    if (lNum == 0)
+        return 0;
+
+    for (position=0; index<lNum; position++)
+    {
+        if (buffer[position] == '\0')
+        {
+            return -1;
+        }
+        else if (buffer[position] == '\r')
+        {
+            index++;
+        }
+    }
+
+    return position+1;
+}
+
+string getLine (int lNum)
+{
+    int index = 0, position = 0;
+    string line = "";
+
+    position = findLine(lNum);
+    if (position < 0)
+        return "";
+
+    for (index=0; index<1; position++)
+    {
+
+        if(buffer[position] == ';')
+        {
+            line += '\r';
+            index++;
+        }
+        else if (buffer[position]=='\r' || buffer[position]=='\0')
+        {
+            line += buffer[position];
+            index++;
+        }
+        else if(buffer[position]!=' ' && buffer[position]!=9)
+        {
+            line += buffer[position];
+        }
+
+    }
+
+    return line;
+}
+
+void writeLine (string line, FILE *f)
+{
+    const char * cLine = line.c_str();
+
+    fputs(cLine, f);
+    fputs("\r\n", f);
+
+    return;
+}
+
+string ucase(string s)
     {
         for(int i = 0; i < s.length(); i++)
         {
@@ -94,10 +255,9 @@ bool this_dat;
     }
 
 
-    string encode(string s)
+    /*string encode(string s)
     {
-        /*k:=0;*/
-
+//        k:=0;
         if (lock_code!="")
         {
             for( i = 0; i < s.length(); i++)
@@ -107,201 +267,46 @@ bool this_dat;
                 {
                     lock_pos = 1;
                 }
-
                 if ((s[i]>=0 && s[i]<=31)||(s[i]>=128 && s[i]<=255))
                 {
+                    s[i] = '\0';
+                }
+                this_dat = i && 15;
+               if ((s[i] != ' ') || (s[i] != '\t') || (s[i] != '\r' && s[i+1] == '\n'))
+               {
+                  s[i] = ((s[i] ^ lock_code[lock_pos] ^ lock_dat) + 1);
+                  lock_dat = (char) (this_dat);
+                }
+                if ((s[i] == ' ') || (s[i] != '\t') || (s[i] == '\r' && s[i+1] == '\n'))
+                    s[i] = '\0';
+            }
+        }
+        return s;
+    }*/
+    string encode(string s)
+    {
+        if (lock_code != ""){
+            for (int i = 1; i < s.length(); i++)
+            {
+                lock_pos++;
+
+                if (lock_pos > lock_code.length())
+                {
+                    lock_pos = 1;
+                }
+
+                if ((s[i] >= 0 && s[i] <= 31) || (s[i] >= 128 && s[i] <= 255)) {
                     s[i] = ' ';
                 }
 
-                this_dat = i && 15;
-                s[i] = ((s[i] ^ lock_code[lock_pos] ^ lock_dat) + 1);
-                lock_dat = (char) (this_dat);
+                this_dat = (i && 15);
+
+                if(s[i] != '\0' && s[i] != '\t' && s[i] != ' ' && (s[i] != '\r' || s[i+1] != '\n'))
+                    s[i] = ((s[i] ^ lock_code[lock_pos] ^ lock_dat) + 1);
+                else
+                    s[i] = '\0';
+                lock_dat = (char)this_dat;
             }
         }
-
-        return s;
+      return s;
     }
-
-    string prepare(string s,string s1)
-    {
-        int i,j,k,l;
-        string s2;
-        /*--remove comments--*/
-
-
-        if ((s1.length() == 0) || (s1[1] == ';'))
-        {
-            s1 = "";
-        }
-        else
-        {
-            k = 0;
-            for (i = s1.length(); i > 1; i--)
-            {
-                if (s1[i] == ';')
-                {
-                    k = i + 1;
-                }
-                if (k>0)
-                {
-                    s1 = lstr(s1,k-1);      //check what this is
-                }
-            }
-        }
-        /*--remove excess spaces--*/
-        s2 = "";
-
-        for( i = 1; i < s1.length(); i++)
-        {
-            if ( (s1[i] != ' ') || (s1[i] != 8) || (s1[i] != 9) || (s1[i] != 10) || (s1[i] != ','))
-            {
-                s2 = s2 + s1[i];
-            }
-
-            else if (s2 != "")
-            {
-                s = s + s2 + ' ';
-                s2 = "";
-            }
-
-        }
-        if ( s2 != "" )
-        {
-            s = s + s2;
-        }
-        return s;
-    }
-
-    void write_line(string s,string s1)
-    {
-        s = prepare(s,s1);
-
-        /*{--write line!--}*/
-        if (s.length() > 0)
-        {
-            s = encode(s);
-//            cout<<f2<<s<<endl;
-        }
-    }
-
-    int main(void)
-    {
-        //randomize();        //find out where this function is declared
-/*        lock_pos = 0;
-        lock_dat = 0;
-
-
-        //replace with file system code
-
-        fn1 = //sets the file
-
-        if (fn1 == base_name(fn1))
-        {
-            fn1 = fn1 + ".AT2";
-        }
-        if (!exist(fn1))
-        {
-            cout<<"Robot "<<fn1<<" not found!"<<endl;
-            return 1;                                 //return
-        }
-        if (paramcount == 2)
-        {
-            fn2 = btrim(ucase(paramstr(2)));
-        }
-        else
-        {
-            fn2 = base_name(fn1) + ".ATL";
-        }
-        if (fn2 == base_name(fn2))
-        {
-            fn2 = fn2 + ".ATL";
-        }
-        if (!valid(fn2))                //find where this is from
-        {
-            cout<<"Output name '"<<fn1<<"' not valid!"<<endl;
-            return 1;
-        }
-
-        if (fn1 == fn2)
-        {
-            cout<<"Filenames can not be the same!"<<endl;
-            return 1;
-        }
-
-        //assign(f1,fn1); reset(f1);      //figure out: the following statement opens the file f1 for reading
-        //assign(f2,fn2); rewrite(f2);    //figure out: the following statement opens the file f2 for writing
-*/
-        /*--copy comment header--*/
-/*        cout<<f2<<";------------------------------------------------------------------------------"<<endl;
-        s = "";
-        while ((!eof(f1)) && (s==""))    //figure out: how to get this statement in C++
-        {
-            //readln(f1,s);              //figure out: the following statement a line from the file f1
-            s = btrim(s);                //find where btrim is (remove the spaces at the end)
-            if (s[1] == ';')
-            {
-                cout<<f2<<s<<endl;
-                s = "";
-            }
-        }
-*/
-
-
-        /*--lock header--*/
-/*        cout<<f2<<";------------------------------------------------------------------------------"<<endl;
-        cout<<f2,"; "<<no_path(base_name(fn1))<<" Locked on "<<ctime(time(0))<<endl;
-        cout<<f2,";------------------------------------------------------------------------------"<<endl;
-        lock_code = "";
-        k = rand()%21 + 20;
-        for (i = 1; i < k; i++)
-        {
-            lock_code = lock_code + (char)(rand()%32 + 65);
-        }
-
-        cout<<f2<<"#LOCK"<<locktype<<" "<<lock_code<<endl;
-*/
-        /*--decode lock-code--*/
-/*        for (i = 1; i < lock_code.length(); i++)
-        {
-            lock_code[i] = (char)(lock_code[i]-65);
-        }
-
-
-        cout<<"Encoding '"<<fn1<<"'...";
-*/
-        /*--encode robot--*/
-/*        s = btrim(s);           //to reiterate look into this function
-        if (s.length()>0)
-        {
-            write_line("",ucase(s));    //check where the uppercase function is
-        }
-
-        while( not eof(f1))         //figure out: how to get this statement in C++
-        {
-*/
-            /*--read line!--*/
-            //readln(f1,s1);          //figure out: the following statement reads a line from the file f1
- /*           s = "";
-            s1 = btrim(ucase(s1));  //again check where these functions are
-*/
-            /*--write line!--*/
-/*            write_line(s,s1);
-        }
-        cout<<"Done. Used LOCK Format #"<<locktype<<"."<<endl;
-        cout<<"Only ATR2 v2.08 or later can decode."<<endl;
-        cout<<"LOCKed robot saved as '"<<fn2<<"'"<<endl;
-
-        close(f1);
-        close(f2);
-*/
-        //encode(fn1);
-        // prepare(fn1,fn2);
-        //write_line(fn1,fn2);
-
-        cout<<ucase("thIs will BE ees Test 32@%^%$34256425^$%^$*$")<<endl;
-        cout<<lstr(" I don't know ", 7)<<endl;
-        lock_code = lock_code + (char)(rand()%32 + 65);
-        cout<<encode("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!@#$%^&*()")<<endl;
-        return 0;
-    }
-
