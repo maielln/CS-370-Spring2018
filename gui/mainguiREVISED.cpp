@@ -138,7 +138,7 @@ bool loadMedia() {
 
 
 	//load audio
-	onClick = Mix_LoadWAV("fitness2.wav");
+	onClick = Mix_LoadWAV("ring.wav");
 	if (onClick == NULL) {
 		printf( "Failed to load scratch sound effect! SDL_mixer Error: %s\n", Mix_GetError() );
 		success = false;
