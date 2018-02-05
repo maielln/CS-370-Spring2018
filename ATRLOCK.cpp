@@ -42,7 +42,7 @@ int main (void)
 
     for (i=0;i<80;i++)
     {
-        if (inPath[i] == '\ ')
+        if (inPath[i] == 92)
             inPath[i] = '/';
     }
 
@@ -73,7 +73,7 @@ int main (void)
 
             for (i=0;i<80;i++)
             {
-                if (inPath[i] == '\ ')
+                if (inPath[i] == 92)
                     inPath[i] = '/';
             }
 
