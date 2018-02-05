@@ -3,6 +3,8 @@
 #include <stdio.h>
 #include <string>
 #include <iostream>
+#include <SDL_mixer.h>
+#include "helloworld.cpp"
 
 //sets screen dimensions
 const int SCREEN_WIDTH = 800;
@@ -12,7 +14,7 @@ const int SCREEN_HEIGHT = 600;
 //ask tyler
 const int BUTTON_WIDTH = 200;
 const int BUTTON_HEIGHT = 100;
-const int TOTAL_BUTTONS = 3;
+const int TOTAL_BUTTONS = 2;
 
 bool init();
 bool loadMedia();
@@ -43,10 +45,12 @@ SDL_Point MPos[TOTAL_BUTTONS];
 // 0: play
 // 1: exit
 
+Mix_Chunk *onClick = NULL;
+
 bool init() {
 	bool success = true;
-
-	if( SDL_Init( SDL_INIT_VIDEO ) < 0 )
+	//initalize audio and vid
+	if( SDL_Init( SDL_INIT_VIDEO | SDL_INIT_AUDIO) < 0 )
 	{
 		printf( "SDL could not initialize! SDL_Error: %s\n", SDL_GetError() );
 		success = false;
@@ -66,6 +70,14 @@ bool init() {
 			gWindowSurface = SDL_GetWindowSurface( gWindow );
 		}
 	}
+					//freq, format, channels, sample size
+	if( Mix_OpenAudio( 44100, MIX_DEFAULT_FORMAT, 2, 2048 ) < 0 ) {
+
+		printf( "SDL_mixer could not initialize! SDL_mixer Error: %s\n", Mix_GetError() );
+		success = false;
+	}
+
+
 
 	return success;
 }
@@ -124,6 +136,14 @@ bool loadMedia() {
 		}
 	}
 
+
+	//load audio
+	onClick = Mix_LoadWAV("fitness2.wav");
+	if (onClick == NULL) {
+		printf( "Failed to load scratch sound effect! SDL_mixer Error: %s\n", Mix_GetError() );
+		success = false;
+	}
+
 	return success;
 }
 
@@ -133,19 +153,24 @@ void close()
 	SDL_FreeSurface(titleScreen);
 	SDL_FreeSurface(playButton);
 	SDL_FreeSurface(exitButton);
-	SDL_FreeSurface(playButtonClick); 
-	SDL_FreeSurface(exitButtonClick); 
+	SDL_FreeSurface(playButtonClick);
+	SDL_FreeSurface(exitButtonClick);
 	titleScreen = NULL;
 	playButton = NULL;
 	exitButton = NULL;
-	playButtonClick = NULL; 
-	exitButtonClick = NULL; 
+	playButtonClick = NULL;
+	exitButtonClick = NULL;
+
+	//free music
+	Mix_FreeChunk (onClick);
+	onClick = NULL;
 
 	//Destroy window
 	SDL_DestroyWindow( gWindow );
 	gWindow = NULL;
 
 	//Quit SDL subsystems
+	Mix_Quit();
 	SDL_Quit();
 }
 
@@ -193,6 +218,7 @@ bool mouseHandle (SDL_Event* M) {
 			switch (M->type) {
 			case SDL_MOUSEBUTTONDOWN:
 				SDL_BlitSurface(playButtonClick, &buttonParams[0], gWindowSurface, &buttonPos[0]);
+				Mix_PlayChannel(-1, onClick, 0);
 				break;
 
 				case SDL_MOUSEBUTTONUP:
@@ -206,7 +232,7 @@ bool mouseHandle (SDL_Event* M) {
 
 		}
 
-
+	//exit button
 	if( M->type == SDL_MOUSEMOTION || M->type == SDL_MOUSEBUTTONDOWN || M->type == SDL_MOUSEBUTTONUP )
 	{
 		//Get mouse position
@@ -236,6 +262,7 @@ bool mouseHandle (SDL_Event* M) {
 			switch (M->type) {
 			case SDL_MOUSEBUTTONDOWN:
 				SDL_BlitSurface(exitButtonClick, &buttonParams[1], gWindowSurface, &buttonPos[1]);
+				Mix_PlayChannel(-1, onClick, 0);
 				break;
 
 				case SDL_MOUSEBUTTONUP:
@@ -262,6 +289,7 @@ int main( int argc, char* args[] ) {
 	//boot SDL and load menu
 	init();
 	loadMedia();
+	world();
 
 	//load title screen
 	SDL_BlitSurface(titleScreen, NULL, gWindowSurface, NULL);
