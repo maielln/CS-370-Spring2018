@@ -16,7 +16,7 @@ string ucase(string s);
 string encode(string s);
 
 /*
-Written by Mark Nicole, and Will
+Written by Mark, Nicole, and Will
 Written in C++ (GNU GCC)
 Last updated 2/5/18
 opens a file, removes blank space, and encrypts it
@@ -109,7 +109,9 @@ int main (void)
 	free(buffer);
 	buffer = NULL;
 
-	cout << "File encrypted!";
+	cout << "File encrypted!" << endl;
+	cout << "Press any character and enter to exit." << endl;
+	cin >> justAnIfStatement;
 
     exit(EXIT_SUCCESS);
 }
