@@ -25,7 +25,7 @@ opens a file, removes blank space, and encrypts it
 string fn1,fn2,s,s1,s2,lock_code;
 
 int i,j,k,lock_pos,lock_dat;
-bool this_dat;
+bool this_dat,header = true;
 
 int main (void)
 {
@@ -193,22 +193,24 @@ string getLine (int lNum)
     if (position < 0)
         return "";
 
+    bool isComment = false;
     for (index=0; index<1; position++)
     {
 
-        if(buffer[position] == ';')
-        {
-            line += '\r';
-            index++;
-        }
-        else if (buffer[position]=='\r' || buffer[position]=='\0')
+        if (buffer[position]=='\r' || buffer[position]=='\0')
         {
             line += buffer[position];
             index++;
+        }
+        else if(buffer[position] == ';' || isComment)
+        {
+            line += buffer[position];
+            isComment = true;
         }
         else if(buffer[position]!=' ' && buffer[position]!=9)
         {
             line += buffer[position];
+            header = false;
         }
 
     }
@@ -244,13 +246,18 @@ string ucase(string s)
 string encode(string s)
 {
     if (lock_code != ""){
-        for (int i = 1; i < s.length(); i++)
+        for (int i = 0; i < s.length(); i++)
         {
             lock_pos++;
 
             if (lock_pos > lock_code.length())
             {
                 lock_pos = 1;
+            }
+
+            if(s[i] == ';' && header)
+            {
+                return s;
             }
 
             if ((s[i] >= 0 && s[i] <= 31) || (s[i] >= 128 && s[i] <= 255)) {
