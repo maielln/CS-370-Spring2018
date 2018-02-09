@@ -6,24 +6,33 @@
 #include <SDL_mixer.h>
 #include "helloworld.cpp"
 
+/* 
+Written by Eric McLean and Tyler Corey 
+Written in C++ (GNU GCC)
+Last updated 2/5/218
+Desc: This program initializes SDL libraries, snipes sprites to create buttons, 
+	then formats the images to the gui onscreen. The gui then produces another 
+	window upon clicking a button, and plays a sound effect. 
+*/
+
 //sets screen dimensions
 const int SCREEN_WIDTH = 800;
 const int SCREEN_HEIGHT = 600;
 
-//set button dimensions
-//ask tyler
+//set button dimensions and number of buttons
 const int BUTTON_WIDTH = 200;
 const int BUTTON_HEIGHT = 100;
 const int TOTAL_BUTTONS = 2;
 
+//basic functions that start, load, and run SDL 
 bool init();
 bool loadMedia();
 void close();
 
-//the window we create
+//the name of the window we create
 SDL_Window* gWindow = NULL;
 
-//the surface created by the window
+//the "screen" created by the window
 SDL_Surface* gWindowSurface = NULL;
 
 //our images
@@ -45,9 +54,15 @@ SDL_Point MPos[TOTAL_BUTTONS];
 // 0: play
 // 1: exit
 
+//sound effect 
 Mix_Chunk *onClick = NULL;
 
 bool init() {
+	/* Desc: This fucntion initializes the SDL 
+		Libraries used in this program, as well as creating
+		the window and surface we will use. Our audio is
+		also initalized. */
+	
 	bool success = true;
 	//initalize audio and vid
 	if( SDL_Init( SDL_INIT_VIDEO | SDL_INIT_AUDIO) < 0 )
@@ -83,11 +98,13 @@ bool init() {
 }
 
 bool loadMedia() {
+	/* Desc: This fucntion loads in the files needed to 
+		format the screen and sound effects. The buttons
+		are clipped from a sprite sheet. The audio is loaded. */
+		
 	bool success = true;
 
-	//may need error checking (02)
-	//title image doesn't need params since it is just
-	//a cover
+	//title image loaded
 	titleScreen = SDL_LoadBMP("mainmenu.bmp");
 	if (titleScreen == NULL) {
 		printf("Title Image could not be loaded");
@@ -149,6 +166,10 @@ bool loadMedia() {
 
 void close()
 {
+	/* Desc: This fucntion frees all the resources
+		brought in by the GUI. This also closes the window
+		currently in use. */
+		
 	//Deallocate surface
 	SDL_FreeSurface(titleScreen);
 	SDL_FreeSurface(playButton);
@@ -175,6 +196,11 @@ void close()
 }
 
 bool mouseHandle (SDL_Event* M) {
+	/* Desc: this fucntion handles the position and actions 
+		of the mouse. The mouse is located, and on click a new button 
+		is shown to create a "flash" effect. A sound effect is 
+		also played. */
+		
 	bool quitter = false;
 	MPos[0].x = buttonPos[0].x;
 	MPos[0].y = buttonPos[0].y;
@@ -293,8 +319,8 @@ int main( int argc, char* args[] ) {
 
 	//load title screen
 	SDL_BlitSurface(titleScreen, NULL, gWindowSurface, NULL);
-    //display buttons
-
+    
+	//display buttons
     SDL_BlitSurface(playButton, &buttonParams[cnt], gWindowSurface, &buttonPos[cnt]);
     cnt++;
     SDL_BlitSurface(exitButton, &buttonParams[cnt], gWindowSurface, &buttonPos[cnt]);
@@ -312,12 +338,12 @@ int main( int argc, char* args[] ) {
 				}
 
 			}
-			//Update the surface
+			//Update the screen
 			SDL_UpdateWindowSurface( gWindow );
 	}
 	close();
 
 
 	return 0;
-	}
+}
 
