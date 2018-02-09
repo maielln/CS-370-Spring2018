@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <cstdlib>
+#include <ctime>
 
 using namespace std;
 
@@ -95,6 +96,7 @@ int main (void)
 
     s = getLine(0);
     o = s.length();
+    srand((unsigned)time(0));
     lock_code = lock_code + (char)(rand()%32 + 65);
     for (i=1;s!="";i++)
     {
@@ -109,7 +111,7 @@ int main (void)
 	free(buffer);
 	buffer = NULL;
 
-	cout << "File encrypted!" << endl;
+	cout << "File encrypted! Used lock_code :"<<lock_code<< endl;
 	cout << "Press any character and enter to exit." << endl;
 	cin >> justAnIfStatement;
 
