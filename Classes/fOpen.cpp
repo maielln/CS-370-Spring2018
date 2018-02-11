@@ -9,7 +9,6 @@ fOpen::fOpen()
 {
     char inPath[80] = "C:/Users/wildo/Desktop/AT_Robots/atrobots/atrobots/CIRCLES.AT2";
     FILE * roboFile = NULL;
-    FILE * outFile = NULL;
     roboFile = fopen(inPath, "rb");
 	if (roboFile == NULL)
 	{
@@ -191,7 +190,22 @@ bool fOpen::isValidExt(char directory[])
         ext[0] = ext[2];
         ext[2] = temp;
     }
-    return ext == "AT2" ||ext == "txt";
+
+    ext = ucase(ext);
+
+    return ext == "AT2" ||ext == "TXT";
+}
+
+string fOpen::ucase(string s)
+{
+    for(int i = 0; i < s.length(); i++)
+    {
+        if(s[i] >= 97 && s[i] <= 122)
+        {
+            s[i] = s[i] - 32;
+        }
+    }
+    return s;
 }
 
 //returns buffer
