@@ -27,6 +27,7 @@ class fOpen
         FILE * roboFile;
         bool isValidExt(char directory[]);
         int findLine (int);
+        string ucase(string s);
 };
 
 #endif
