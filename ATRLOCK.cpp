@@ -30,7 +30,7 @@ bool this_dat,header = true;
 
 int main (void)
 {
-    char inPath[80]; //"C:/Users/MCYet/Desktop/School/Y2S2/CS 370/fOpen/f.txt"
+    char inPath[80] = "C:/Users/wildo/Desktop/AT_Robots/atrobots/atrobots/CIRCLES.AT2";
     char justAnIfStatement = 'J';
     FILE * roboFile = NULL;
     FILE * outFile = NULL;
@@ -38,8 +38,7 @@ int main (void)
 
     atexit(cleanup);
 
-    cout << "Please enter the path of the input file: ";
-    cin >> inPath;
+
 
     for (i=0;i<80;i++)
     {
@@ -69,8 +68,7 @@ int main (void)
         }
         else if (justAnIfStatement == 'n' || justAnIfStatement == 'N')
         {
-            cout << "Please enter the path of the output file: ";
-            cin >> inPath;
+            char inPath[80] = "C:/Users/wildo/Desktop/output.txt";
 
             for (i=0;i<80;i++)
             {
@@ -97,7 +95,7 @@ int main (void)
     s = getLine(0);
     o = s.length();
     srand((unsigned)time(0));
-    lock_code = lock_code + (char)(rand()%32 + 65);
+    lock_code = lock_code +  (char)66/*(char)(rand()%32 + 65)*/;
     for (i=1;s!="";i++)
     {
         s = ucase(s);
@@ -195,24 +193,31 @@ string getLine (int lNum)
     if (position < 0)
         return "";
 
+    if(buffer[position]!=';')
+    {
+        header = false;
+    }
     bool isComment = false;
+
     for (index=0; index<1; position++)
     {
-
         if (buffer[position]=='\r' || buffer[position]=='\0')
         {
             line += buffer[position];
             index++;
         }
-        else if(buffer[position] == ';' || isComment)
+        else if((buffer[position] == ';' || isComment) && header)
         {
             line += buffer[position];
             isComment = true;
         }
+        else if(buffer[position] == ';' && !header)
+        {
+            index++;
+        }
         else if(buffer[position]!=' ' && buffer[position]!=9)
         {
             line += buffer[position];
-            header = false;
         }
 
     }
@@ -262,16 +267,23 @@ string encode(string s)
                 return s;
             }
 
-            if ((s[i] >= 0 && s[i] <= 31) || (s[i] >= 128 && s[i] <= 255)) {
+            if ((s[i] >= 0 && s[i] <= 31) || (s[i] >= 128 && s[i] <= 255))
+            {
                 s[i] = ' ';
             }
 
             this_dat = (i && 15);
 
             if(s[i] != '\0' && s[i] != ' ' && (s[i] != '\r' || s[i+1] != '\n'))
+            {
                 s[i] = ((s[i] ^ lock_code[lock_pos] ^ lock_dat) + 1);
+            }
+
             else
+            {
                 s[i] = '\0';
+            }
+
             lock_dat = (char)this_dat;
         }
     }
