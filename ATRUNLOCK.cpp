@@ -34,6 +34,7 @@ bool this_dat;
 int main (void)
 {
     char inPath[80] = "C:/Users/wildo/Desktop/output.txt";
+
     char justAnIfStatement = 'J';
     FILE * roboFile = NULL;
     FILE * outFile = NULL;
@@ -41,7 +42,8 @@ int main (void)
 
     atexit(cleanup);
 
-
+    cout<<"Please enter the directory of the file encrypted by ATRLOCK: ";
+    cin>>inPath;
 
     for (i=0;i<80;i++)
     {
@@ -58,9 +60,8 @@ int main (void)
 
     read_file_to_buffer(roboFile);
 	fclose (roboFile);
-	cout<<buffer<<endl;
 
-/*	while (justAnIfStatement != 'y' && justAnIfStatement != 'Y' && justAnIfStatement != 'N' && justAnIfStatement != 'n')
+	while (justAnIfStatement != 'y' && justAnIfStatement != 'Y' && justAnIfStatement != 'N' && justAnIfStatement != 'n')
     {
 
         cout << "Would you like to output in the same file? All existing data will be overwritten (Y/N): ";
@@ -73,6 +74,8 @@ int main (void)
         else if (justAnIfStatement == 'n' || justAnIfStatement == 'N')
         {
             char inPath[80] = "C:/Users/wildo/Desktop/output.txt";
+            cout<<"Please enter the directory of the file you want the output to go to: ";
+            cin>>inPath;
 
             for (i=0;i<80;i++)
             {
@@ -93,31 +96,27 @@ int main (void)
         cout << "Error opening output file at " << inPath;
         exit(EXIT_FAILURE);
     }
-*/
+
     cout << endl;
 
     s = getLine(0);
     o = s.length();
-    srand((unsigned)time(0));
-    lock_code = lock_code +  (char)66/*(char)(rand()%32 + 65)*/;
+    lock_code = s[0];
+    s = getLine(1);
     for (i=1;s!="";i++)
     {
         s = ucase(s);
         s = decode(s);
-        if (s[1] != '\0')
+        if (s[1] != '\0'&& s [0] !=13 && s [0] != 9)
             writeLine (s, outFile);
         s = getLine(i);
-        if(s=="")
-        {
-            cout<<"were ending premeturally"<<endl;
-        }
     }
 
     fclose (outFile);
 	free(buffer);
 	buffer = NULL;
 
-	cout << "File encrypted! Used lock_code :"<<lock_code<< endl;
+	cout << "File decrypted! Used lock_code :"<<lock_code<< endl;
 	cout << "Press any character and enter to exit." << endl;
 	cin >> justAnIfStatement;
 
@@ -209,18 +208,17 @@ string getLine (int lNum)
             line += buffer[position];
             index++;
         }
+
         else if(buffer[position] == ';')
         {
+            line += '\r';
             index++;
         }
         else if(buffer[position]!=' ' && buffer[position]!=9)
         {
             line += buffer[position];
         }
-        cout<<buffer[position]<<endl;
-        cout<<position<<endl;
     }
-
     return line;
 }
 
@@ -249,11 +247,12 @@ string ucase(string s)
 }
 
 //decodes a string, removing white space and randomizing the letters to deter reading
+//lock_dat was a failed way for mote encryption
 string decode(string s)
 {
     if (lock_code != "")
     {
-        for (int i = 0; i < s.length(); i++)
+        for (int i = 0; i < s.length()-1; i++)
         {
             lock_pos++;
 
@@ -262,21 +261,11 @@ string decode(string s)
                 lock_pos = 1;
             }
 
-            if ((s[i] >= 0 && s[i] <= 31) )
-            {
-                s[i] = ' ';
-            }
-
             this_dat = (i && 15);
 
-            if(s[i] != '\0' && s[i] != ' ' && (s[i] != '\r' || s[i+1] != '\n'))
+            if(s[i]!='\r'||s[i]!='\0')
             {
-                s[i] = decrypt(lock_code[lock_pos],decrypt(lock_dat,s[i])) - 1;
-            }
-
-            else
-            {
-                s[i] = '\0';
+                s[i] = decrypt(lock_code[lock_pos],s[i]) - 1;
             }
 
             lock_dat = (char)this_dat;
