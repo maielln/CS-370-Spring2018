@@ -30,7 +30,7 @@ bool this_dat,header = true;
 
 int main (void)
 {
-    char inPath[80] = "C:/Users/wildo/Desktop/AT_Robots/atrobots/atrobots/CIRCLES.AT2";
+    char inPath[80] = "C:/Users/wildo/Desktop/AT_Robots/atrobots/atrobots/STACK.AT2";
     char justAnIfStatement = 'J';
     FILE * roboFile = NULL;
     FILE * outFile = NULL;
@@ -38,7 +38,8 @@ int main (void)
 
     atexit(cleanup);
 
-
+    cout<<"Please enter the directory of the file you want encrypted: ";
+    cin>>inPath;
 
     for (i=0;i<80;i++)
     {
@@ -69,6 +70,8 @@ int main (void)
         else if (justAnIfStatement == 'n' || justAnIfStatement == 'N')
         {
             char inPath[80] = "C:/Users/wildo/Desktop/output.txt";
+            cout<<"Please enter the directory of the file you want the output to go to: ";
+            cin>>inPath;
 
             for (i=0;i<80;i++)
             {
@@ -95,7 +98,8 @@ int main (void)
     s = getLine(0);
     o = s.length();
     srand((unsigned)time(0));
-    lock_code = lock_code +  (char)66/*(char)(rand()%32 + 65)*/;
+    lock_code = lock_code +  (char)(rand()%32 + 65);
+    writeLine(lock_code,outFile);
     for (i=1;s!="";i++)
     {
         s = ucase(s);
@@ -213,6 +217,7 @@ string getLine (int lNum)
         }
         else if(buffer[position] == ';' && !header)
         {
+            line += '\r';
             index++;
         }
         else if(buffer[position]!=' ' && buffer[position]!=9)
@@ -276,7 +281,7 @@ string encode(string s)
 
             if(s[i] != '\0' && s[i] != ' ' && (s[i] != '\r' || s[i+1] != '\n'))
             {
-                s[i] = ((s[i] ^ lock_code[lock_pos] ^ lock_dat) + 1);
+                s[i] = ((s[i] ^ lock_code[lock_pos]) + 1);
             }
 
             else
