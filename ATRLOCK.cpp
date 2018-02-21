@@ -30,7 +30,7 @@ bool this_dat,header = true;
 
 int main (void)
 {
-    char inPath[80] = "C:/Users/wildo/Desktop/AT_Robots/atrobots/atrobots/STACK.AT2";
+    char inPath[80] = "C:/Users/wildo/Desktop/AT_Robots/atrobots/atrobots/INDIRECT.AT2";
     char justAnIfStatement = 'J';
     FILE * roboFile = NULL;
     FILE * outFile = NULL;
@@ -201,30 +201,43 @@ string getLine (int lNum)
     {
         header = false;
     }
-    bool isComment = false;
+    bool isComment = false,first = true;
 
     for (index=0; index<1; position++)
     {
         if (buffer[position]=='\r' || buffer[position]=='\0')
         {
             line += buffer[position];
+            first = false;
             index++;
         }
         else if((buffer[position] == ';' || isComment) && header)
         {
             line += buffer[position];
+            first = false;
             isComment = true;
         }
         else if(buffer[position] == ';' && !header)
         {
             line += '\r';
+            first = false;
             index++;
         }
-        else if(buffer[position]!=' ' && buffer[position]!=9)
+        else if(buffer[position]!=9)
         {
-            line += buffer[position];
+           if(buffer[position] == ' ')
+           {
+               if(buffer[position-1]!=' '&& position != 0 && !first)
+                {
+                    line += buffer[position];
+                }
+           }
+           else
+           {
+               line += buffer[position];
+           }
+           first = false;
         }
-
     }
 
     return line;
@@ -234,7 +247,6 @@ string getLine (int lNum)
 void writeLine (string line, FILE *f)
 {
     const char * cLine = line.c_str();
-
     fputs(cLine, f);
     fputs("\r\n", f);
 
@@ -282,11 +294,6 @@ string encode(string s)
             if(s[i] != '\0' && s[i] != ' ' && (s[i] != '\r' || s[i+1] != '\n'))
             {
                 s[i] = ((s[i] ^ lock_code[lock_pos]) + 1);
-            }
-
-            else
-            {
-                s[i] = '\0';
             }
 
             lock_dat = (char)this_dat;
