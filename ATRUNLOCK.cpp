@@ -29,7 +29,7 @@ int i,j,k,lock_pos,lock_dat;
 
 int* bitString;
 
-bool this_dat;
+bool this_dat,header = true;
 
 int main (void)
 {
@@ -74,8 +74,8 @@ int main (void)
         else if (justAnIfStatement == 'n' || justAnIfStatement == 'N')
         {
             char inPath[80] = "C:/Users/wildo/Desktop/output.txt";
-            cout<<"Please enter the directory of the file you want the output to go to: ";
-            cin>>inPath;
+//            cout<<"Please enter the directory of the file you want the output to go to: ";
+//            cin>>inPath;
 
             for (i=0;i<80;i++)
             {
@@ -103,11 +103,11 @@ int main (void)
     o = s.length();
     lock_code = s[0];
     s = getLine(1);
-    for (i=1;s!="";i++)
+    for (i=2;s!="";i++)
     {
         s = ucase(s);
         s = decode(s);
-        if (s[1] != '\0'&& s [0] !=13 && s [0] != 9)
+        if (s[1] != '\0'&& s [0] !=13 && s [0] != 9 && s [0] !=10)
             writeLine (s, outFile);
         s = getLine(i);
     }
@@ -201,6 +201,13 @@ string getLine (int lNum)
         return "";
     }
 
+    bool first = true;
+
+    if(buffer[position]!=';'&& position != 0)
+    {
+        header = false;
+    }
+
     for (index=0; index<1; position++)
     {
         if (buffer[position]=='\r' || buffer[position]=='\0')
@@ -209,16 +216,28 @@ string getLine (int lNum)
             index++;
         }
 
-        else if(buffer[position] == ';')
+        else if(buffer[position] == ';' && header)
         {
             line += '\r';
             index++;
         }
-        else if(buffer[position]!=' ' && buffer[position]!=9)
+        else if(buffer[position]!=9)
         {
-            line += buffer[position];
+           if(buffer[position] == ' ')
+           {
+               if(buffer[position-1]!=' '&& position != 0 && !first)
+                {
+                    line += buffer[position];
+                }
+           }
+           else
+           {
+               line += buffer[position];
+           }
+           first = false;
         }
     }
+
     return line;
 }
 
@@ -262,11 +281,16 @@ string decode(string s)
             }
 
             this_dat = (i && 15);
+            if(s[i] == ' ')
+            {
 
-            if(s[i]!='\r'||s[i]!='\0')
+            }
+            else if(s[i]!='\r'||s[i]!='\0'&& s[i] != ' ')
             {
                 s[i] = decrypt(lock_code[lock_pos],s[i]) - 1;
             }
+
+
 
             lock_dat = (char)this_dat;
         }
