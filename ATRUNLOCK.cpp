@@ -74,8 +74,8 @@ int main (void)
         else if (justAnIfStatement == 'n' || justAnIfStatement == 'N')
         {
             char inPath[80] = "C:/Users/wildo/Desktop/output.txt";
-//            cout<<"Please enter the directory of the file you want the output to go to: ";
-//            cin>>inPath;
+            cout<<"Please enter the directory of the file you want the output to go to: ";
+            cin>>inPath;
 
             for (i=0;i<80;i++)
             {
@@ -98,7 +98,6 @@ int main (void)
     }
 
     cout << endl;
-
     s = getLine(0);
     o = s.length();
     lock_code = s[0];
@@ -180,7 +179,7 @@ int findLine (int lNum)
         {
             return -1;
         }
-        else if (buffer[position] == '\r')
+        else if (buffer[position] == '\r'&& buffer[position + 1] == '\n')
         {
             index++;
         }
