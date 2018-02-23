@@ -41,7 +41,7 @@ class Missile {
 	
 }
 
-void missileInit() {
+void Missile::missileInit() {
 	dam = 0; 
 	speed = 1; 
 	
@@ -53,11 +53,11 @@ void missileInit() {
 	
 }
 
-void shoot(r) {
+void Missile::shoot(r) {
 	lastShot = r; 
 }
 
-bool hitD(r, x, y) {	
+bool Missile::hitD(r, x, y) {	
 	bool hit =  false; 
 	int cnt = 0; 
 	
@@ -72,7 +72,7 @@ bool hitD(r, x, y) {
 }
 
 
-double damage (shotStrength) { 
+double Missile::damage (shotStrength) { 
 
 	dam = shotStrength * .80; 
 	
@@ -81,7 +81,7 @@ double damage (shotStrength) {
 }
 	
 //this is the line the missile will follow 	
-void line(x, y) {
+void Missile::line(x, y) {
 	//assume the robot is origin (0,0)
 	double m, b; 
 	
@@ -103,10 +103,10 @@ void line(x, y) {
 	
 }	
 
-double getDam() {
+double Missile::getDam() {
 	return dam; 
 }
 
-int getLastShot() {
+int Missile::getLastShot() {
 	return lastShot; 
 }
