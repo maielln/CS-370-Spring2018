@@ -15,49 +15,6 @@ using namespace std;
 
 #include "Robot.h"
 
-/*int wins = 0;
-int trials = 0;
-int kills = 0;
-int deaths = 0;
-int match_shots = 0;
-int hits = 0;
-double damage_total = 0;
-int cycles_lived = 0;
-int error_count = 0;
-//each of the variables above has a function to give the values of each statistic
-int plen = 0;
-double max_time = 0;
-
-
-string name = "", fn = "";
-double arc_count = 0, sonar_count = 0;
-double robot_time_limit = 0;
-int scanrange = 1500;
-double shotstrength = 1;
-double damageadj = 1, speedadj = 1;
-int mines = 0;
-bool shields_up; //this was taken from robot_config in ATR2.PAS
-//these variables were taken from init_robot in ATR2.PAS
-
-int scanner = 5;
-int weapon = 2;
-int armor = 2;
-int engine = 2;
-int heatsinks = 1;
-int shield = 0;
-//this is initialized in init_robot with robot_config*/
-//above are gathered variables
-
-//below variables are declared in the header
-//int max_ram, max_labels, max_vars, max_op; //hardware data pieces
-//int acceleration, turn_rate, crash_range, speed; //robot moving
-//int shields, overburn, keepshift, cooling, scanrange;
-//int max_sonar, max_missiles, max_mines, max_queue, missile_spd, hit_range; //details
-//int mines;
-//int kills, wins, deaths, hits; //stats variables, can add/remove
-//double shotstrength, damageadj;
-//bool shields_up;
-
 //all variables can be accessed outside of the class, so all variables
 //can be incremented and utilized outside without update and get functions
 
