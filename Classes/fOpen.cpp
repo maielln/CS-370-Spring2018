@@ -3,23 +3,6 @@
 
 using namespace std;
 
-
-//No Argument constructor (Will remove in future updates)
-fOpen::fOpen()
-{
-    char inPath[80] = "C:/Users/wildo/Desktop/AT_Robots/atrobots/atrobots/CIRCLES.AT2";
-    FILE * roboFile = NULL;
-    roboFile = fopen(inPath, "rb");
-	if (roboFile == NULL)
-	{
-        cout << "Could not find input file at " << inPath;
-        exit(EXIT_FAILURE);
-	}
-
-	read_file_to_buffer(roboFile);
-	fclose (roboFile);
-}
-
 //Constructor that takes in a character array of a valid Directory in the computer
 //otherwise it throws an error.
 fOpen::fOpen(char inDirectory[])
@@ -36,12 +19,12 @@ fOpen::fOpen(char inDirectory[])
 
     if(!isValidExt(inDirectory))
     {
-        cout << "ERROR Non-Valid Extension " << inPath;
+        cout << "File extension not valid " << inPath << endl << "Please use a .AT2 or .TXT file";
         exit(EXIT_FAILURE);
     }
 
     roboFile = fopen(inPath, "rb");
-    cout<<inPath<<endl;
+
 	if (roboFile == NULL)
 	{
         cout << "Could not find input file at " << inPath;
@@ -163,9 +146,9 @@ bool fOpen::isValidExt(char directory[])
     {
         directSize++;
         i++;
-        if(i>=999999999999)
+        if(i>=80)
         {
-            cout<<"ERROR TRYING TO READ DIRECTORY EXTENSION "<<endl;
+            cout<<"Could not read file extension"<<endl;
             exit(EXIT_FAILURE);
         }
     }
