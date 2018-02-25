@@ -11,8 +11,7 @@ using namespace std;
 class fOpen
 {
     public:
-        fOpen();
-        fOpen(char inDirectory[]);
+        fOpen(char[]);
         string getBuffer ();
         void read_file_to_buffer(FILE *f);
         void cleanup();
