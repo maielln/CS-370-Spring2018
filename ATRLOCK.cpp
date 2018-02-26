@@ -30,7 +30,7 @@ bool this_dat,header = true;
 
 int main (void)
 {
-    char inPath[80] = "C:/Users/wildo/Desktop/AT_Robots/atrobots/atrobots/INDIRECT.AT2";
+    char inPath[80] = "C:/Users/wildo/Desktop/AT_Robots/atrobots/atrobots/OVERHEAT.AT2";
     char justAnIfStatement = 'J';
     FILE * roboFile = NULL;
     FILE * outFile = NULL;
@@ -99,7 +99,7 @@ int main (void)
     o = s.length();
     srand((unsigned)time(0));
     lock_code = lock_code +  (char)(rand()%32 + 65);
-    writeLine(lock_code,outFile);
+    writeLine(lock_code + " This code was encoded by ATRLOCK. DO NOT REMOVE THIS STATEMENT",outFile);
     for (i=1;s!="";i++)
     {
         s = ucase(s);
