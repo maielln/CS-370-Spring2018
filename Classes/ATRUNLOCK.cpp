@@ -13,6 +13,12 @@ string ATRUNLOCK::decipher(string buf)
     buffer = buf;
 
     s = getLine(0);
+    
+    if(s.find("This code was encoded by ATRLOCK. DO NOT REMOVE THIS STATEMENT") != 2)
+    {
+        cout<<"NOT VALID ENCODED FILE RETURNING EMPTY STRING\r"<<endl;
+        return "";
+    }
     o = s.length();
     lock_code = s[0];
     s = getLine(1);
