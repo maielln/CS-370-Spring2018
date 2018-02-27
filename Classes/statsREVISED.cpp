@@ -30,15 +30,6 @@ int main (void) {
 		stats.winLossChk(a[cnt], cnt);
 	}
 
-	cout << endl;
-
-	for (int cnt = 0; cnt < MAX_ROBOTS; cnt++) {
-        cout << a[cnt] << endl;
-
-
-	}
-
-
 
 	//display header
 	stats.displayHead();
@@ -46,11 +37,6 @@ int main (void) {
 	for (int cnt = 0; cnt < MAX_ROBOTS; cnt++) {
 		stats.displayLine(cnt);
 	}
-
-
-
-
-
 
 
 	return 0;

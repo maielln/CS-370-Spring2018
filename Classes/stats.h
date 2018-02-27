@@ -11,6 +11,8 @@
 #include <iostream>
 #include <stdio.h>
 #include <string>
+#include <iomanip>
+//#include <cstdint>
 using namespace std;
 
  //on the fly
@@ -44,6 +46,7 @@ class Stats {
 
 void Stats::init()  {
 	//Initializes the base stats for each rbt
+	//all these need to be 0'd
 	for (int cnt = 0; cnt < TOTAL_ROBOTS; cnt++) {
 		wins[cnt] = 1;
 		kills[cnt] = 2;
@@ -76,13 +79,18 @@ void Stats::winLossChk(int a, int r) {
  }
 
 void Stats::displayHead() {
-	printf("-------------------------------------------------------");
-	printf("|Robot           Wins  Matches  Kills  Deaths    Shots|");
-	printf("-------------------------------------------------------");
+	printf("        --------------------------------------------------------");
+	cout << endl;
+	printf("       | Robot           Wins  Matches  Kills  Deaths    Shots  |");
+	cout << endl;
+	printf("        --------------------------------------------------------");
+	cout << endl;
 }
 
 void Stats::displayLine(int r) {
-	cout << r << " - " << wins[r] << " " << matches[r] << " " << kills[r] << " " << deaths[r] << " " << shots[r] << endl;
+    //r is a stand in for robot names
+    cout << setw(12) << r << setw(10) << "~~~~~~~" << setw(5) << wins[r] << setw(8) << matches[r] << setw(8) << kills[r] << setw(8) << deaths[r]
+        << setw(8) << shots[r] << endl;
 }
 
 void Stats::shotCnt(int s, int r) {
