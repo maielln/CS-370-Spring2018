@@ -4,6 +4,7 @@
 
 #include <string>
 #include <cstdlib>
+#include <scan.h>
 
 #ifndef ROBOT
 #define ROBOT
@@ -14,7 +15,6 @@ class Robot{
 
   public:
     int max_ram; //ram is going to hold all registers
-    uint16_t RAM[]; //ram for 16 bit integers
     int acceleration, turn_rate, crash_range, speed; //robot moving
     int shields, overburn, keepshift, cooling, scanrange;
     int x, y; //Robot coordinates
@@ -24,15 +24,19 @@ class Robot{
     double shotstrength, damageadj, speedadj;
     bool shields_up;
     string Name;
+    Robot** robot_arr;
+    
 
-
-
-    Robot(string); //used to create robot
+    Robot(string, Robot**); //used to create robot
     void init_Robot(); //initializes robot - ported directly from Confer's code
     void robot_config(int, int, int, int, int, int, int);//note int order for this
+    void set_coordinates(int, int); //sets robot coordinates
 
   private:
     bool isLocked;
+
+   public:
+    uint16_t RAM[]; //ram for 16 bit integers
 };
 
 #endif // Robot
