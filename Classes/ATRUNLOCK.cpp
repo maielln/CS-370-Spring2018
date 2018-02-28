@@ -1,19 +1,27 @@
 #include "ATRUNLOCK.h"
 
+/*
+Written by Will
+Written in C++ (GNU GCC)
+Last updated 2/15/18
+A class that takes a string encrypted by the ATRLOCK program
+and brings it back to the original
+*/
 
 
-
+//Constructor
 ATRUNLOCK::ATRUNLOCK (void)
 {
 
 }
 
+//Takes a valid string encrypted by ATRLOOCK otherwise it returns an empty string
 string ATRUNLOCK::decipher(string buf)
 {
     buffer = buf;
 
     s = getLine(0);
-    
+
     if(s.find("This code was encoded by ATRLOCK. DO NOT REMOVE THIS STATEMENT") != 2)
     {
         cout<<"NOT VALID ENCODED FILE RETURNING EMPTY STRING\r"<<endl;
@@ -156,6 +164,7 @@ string ATRUNLOCK::decode(string s)
     return s;
 }
 
+//gets a character of ints that represent the bitstring of the character value c
 int* ATRUNLOCK::getBitString(char c)
 {
     bitString = new int[MAX_BIT];
@@ -182,6 +191,8 @@ int* ATRUNLOCK::getBitString(char c)
     return bitString;
 }
 
+//performs the opposite of exclusive or with the key and crypted being the
+//crypted character from ATRLOCK this one takes two bitstrings
 int* ATRUNLOCK::decrypt(int* key,int* crypted)
 {
     bitString = new int[MAX_BIT];
@@ -212,6 +223,7 @@ int* ATRUNLOCK::decrypt(int* key,int* crypted)
     return bitString;
 }
 
+//calculates the integer equivalent of a given bitstring
 int ATRUNLOCK::bitSTringToInt(int* bitS)
 {
     int total = 0;
@@ -228,6 +240,8 @@ int ATRUNLOCK::bitSTringToInt(int* bitS)
     return total;
 }
 
+//performs the opposite of exclusive or with the key and crypted being the
+//crypted character from ATRLOCK this one takes two characters
 char ATRUNLOCK::decrypt(char key,char crypted)
 {
     int* keyBit = getBitString(key);
