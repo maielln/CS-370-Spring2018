@@ -18,13 +18,14 @@ using namespace std;
 //all variables can be accessed outside of the class, so all variables
 //can be incremented and utilized outside without update and get functions
 
-Robot::Robot(string fileName) //basically the create_robot (line 1305)
+Robot::Robot(string fileName, Robot** rArr) //basically the create_robot (line 1305)
 {
   //here will initialize all global variables from the compile file
   //porting create_robot from ATR2.PAS
   //instead of passing individual variables, use a typeDef array and put
   //each variable in a specific slot and initialize it in this function
     Name = fileName;
+    robot_arr = rArr;
     cout<<Name<<" has been created."<<endl;
     srand((unsigned) time(0));
     x = rand() % 100; //base code for now, getting a random number then having it go from 0-100
@@ -33,9 +34,6 @@ Robot::Robot(string fileName) //basically the create_robot (line 1305)
     max_ram = 1023;
     RAM[max_ram];
     health = 100;
-
-
-
 }
 
 void Robot::init_Robot()
@@ -44,9 +42,7 @@ void Robot::init_Robot()
   {
     ram[i] = 0; //frees up all memory
   }
-
   ram[71] = 768; //not sure why this is needed but ok
-
   for(i = 0; i < max_code; i++)
   {
     for(int k = 0; k < max_op; k++)
@@ -54,7 +50,6 @@ void Robot::init_Robot()
       code[i].op[k] = 0; //taking what operation was determined and resetting it?
     }
   }
-
   reset_hardware(n); //line 1220 in my files
   reset_software(n); //line 1202 in my files
   //if we look to include these funcitons, it should probably be placed in a different file?
