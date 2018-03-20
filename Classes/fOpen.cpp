@@ -5,19 +5,30 @@ using namespace std;
 
 //Constructor that takes in a character array of a valid Directory in the computer
 //otherwise it throws an error.
-fOpen::fOpen(char inDirectory[])
+fOpen::fOpen()
 {
-    int i = 0;
-    while(inDirectory[i]!='\0')
-    {
-        inPath[i] = inDirectory[i];
-        i++;
-    }
-    inPath[i] = '\0';
+    cout<<"here"<<endl;
+    OPENFILENAME ofn ;
+
+    char szFile[100] ;
+
+    ZeroMemory( &ofn , sizeof( ofn));
+	ofn.lStructSize = sizeof ( ofn );
+	ofn.hwndOwner = NULL  ;
+	ofn.lpstrFile = szFile ;
+	ofn.lpstrFile[0] = '\0';
+	ofn.nMaxFile = sizeof( szFile );
+	ofn.lpstrFilter = "ATR Files\0*.AT2\0Text\0*.TXT\0";
+	ofn.nFilterIndex =1;
+	ofn.lpstrFileTitle = NULL ;
+
+	GetOpenFileName( &ofn );;
+
+    inPath = ofn.lpstrFile;
 
     FILE * roboFile = NULL;
 
-    if(!isValidExt(inDirectory))
+    if(!isValidExt(inPath))
     {
         cout << "File extension not valid " << inPath << endl << "Please use a .AT2 or .TXT file";
         exit(EXIT_FAILURE);
