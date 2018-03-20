@@ -5,13 +5,15 @@
 #include <stdio.h>
 #include <string.h>
 #include <cstdlib>
+#include <windows.h>
+#include <Commdlg.h>
 
 using namespace std;
 
 class fOpen
 {
     public:
-        fOpen(char[]);
+        fOpen();
         string getBuffer ();
         void read_file_to_buffer(FILE *f);
         void cleanup();
@@ -20,8 +22,7 @@ class fOpen
 
 
     private:
-        char inPath[80];
-        char outPath[80];
+        char * inPath;
         char * buffer;
         FILE * roboFile;
         bool isValidExt(char directory[]);
