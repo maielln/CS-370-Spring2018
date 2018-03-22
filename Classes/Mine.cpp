@@ -22,11 +22,13 @@ void Mine::emptyMine (void)
     detect = 0;
 }
 
-void Mine::doMine(int n,int m,int rx,int ry)
+void Mine::doMine(int rx,int ry)
 {
     if ((x>=0) && (x<=1000) && (y>=0) && (y<=1000) && (yield>0))
     {
         d = distance(x,y,rx,ry);
+        cout<<"d= "<<d<<endl;
+        cout<<"detect= "<<detect<<endl;
         if (d<=detect)
         {
             detonate = true;
