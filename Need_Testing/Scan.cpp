@@ -101,7 +101,7 @@ int scan(int n)
                     }
                 }
             }
-            end;
+
             if (nn  >= 0 && nn <=num_robots)
             {
                 ram[5] = robot[nn].transponder;
