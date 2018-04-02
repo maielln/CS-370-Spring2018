@@ -1,10 +1,12 @@
 #include "fOpen.h"
-//constructor
+
+//If an error pops up saying that there is undefined reference to WIN98@ something like that
+//than you need to go to build, build options, and go to linker settings. From there add  the
+//file libcomdlg32.a there then run the program again.
 
 using namespace std;
 
-//Constructor that takes in a character array of a valid Directory in the computer
-//otherwise it throws an error.
+//Constructor
 fOpen::fOpen()
 {
     cout<<"here"<<endl;
@@ -18,7 +20,7 @@ fOpen::fOpen()
 	ofn.lpstrFile = szFile ;
 	ofn.lpstrFile[0] = '\0';
 	ofn.nMaxFile = sizeof( szFile );
-	ofn.lpstrFilter = "ATR Files\0*.AT2\0Text\0*.TXT\0";
+	ofn.lpstrFilter = "All\0*.*\0Pascal .PAS\0*.PAS\0";
 	ofn.nFilterIndex =1;
 	ofn.lpstrFileTitle = NULL ;
 
