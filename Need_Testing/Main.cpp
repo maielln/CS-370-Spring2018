@@ -4,10 +4,11 @@
 #include <string.h>
 #include "Robot.h"
 #include "fOpen.h"
-//#include "Missile.h"
+//#include "Missile.h"      //include these files later
 //#include "Mine.h"
 
-//including old constants
+//including old constants from the original code
+//also ported over the old comments while removing the FIFI ones
 #define    show_code false
 #define    compile_by_line false
 #define    max_var_len 16
@@ -65,7 +66,7 @@ using namespace std;
 
 //{--robot variables--}
  int num_robots;
-// Robot robotarray = new Robot[max_robots+2]; //{ a few extra pointers for luck.. :) }
+// Robot robotarray = new Robot[max_robots+2]; 
 // Missle missilearray = new Missile[max_missiles];
 
 // {--compiler variables--}
@@ -85,7 +86,7 @@ int temp_mode;     //{stores previous step_mode for return to step}
 int step_count;    //{step counter used as break flag}
 bool step_loop;     //{break flag for stepping}
  //{bool show_debugger;} {flag for viewing debugger panel vs. robot stats}
- //{/FIFI}
+
 bool old_shields,insane_missiles,debug_info,windoze,no_gfx,graphix,sound_on;
 bool logging_errors,timing,show_arcs,registered;
 int game_delay,time_slice,insanity,update_timer,max_gx,max_gy,stats_mode,delay_per_sec,reg_num,paramcount;
@@ -97,11 +98,8 @@ bool quit,report,show_cnotice;
 int kill_count,report_type;
 double sint[256],cost[256];
 
-int main()
-{
-    return 0;
-}
-
+//Displays an error if it occurs taking in a string and prints it accordingly.
+//It is just used for debugging.
 void prog_error(int n, string ss)
 {
     string s;
@@ -140,6 +138,9 @@ void prog_error(int n, string ss)
     cout<<s<<endl<<endl;
 }
 
+//initializes the variables above before the game is done.
+//Only run it when you want all the variables to be the starting value.
+//A lot is commented out, because some isn't currently in yet.
 void init()
 {
     step_mode = 0; //{stepping disabled}
@@ -290,4 +291,11 @@ void init()
     }
 
     return;
+}
+
+//have fun testing!!!
+int main()
+{
+    init();
+    return 0;
 }
