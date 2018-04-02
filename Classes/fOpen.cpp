@@ -1,18 +1,22 @@
 #include "fOpen.h"
-
-//If an error pops up saying that there is undefined reference to WIN98@ something like that
-//than you need to go to build, build options, and go to linker settings. From there add  the
-//file libcomdlg32.a there then run the program again.
+//constructor
 
 using namespace std;
 
-//Constructor
+//Constructor that takes in a character array of a valid Directory in the computer
+//otherwise it throws an error.
 fOpen::fOpen()
 {
-    cout<<"here"<<endl;
     OPENFILENAME ofn ;
 
     char szFile[100] ;
+    buffer = "";
+
+    cout<<"Please select an AT2 or text file."<<endl;
+    for(int i=0; i<1000000000;i++)
+    {
+
+    }
 
     ZeroMemory( &ofn , sizeof( ofn));
 	ofn.lStructSize = sizeof ( ofn );
@@ -20,7 +24,7 @@ fOpen::fOpen()
 	ofn.lpstrFile = szFile ;
 	ofn.lpstrFile[0] = '\0';
 	ofn.nMaxFile = sizeof( szFile );
-	ofn.lpstrFilter = "All\0*.*\0Pascal .PAS\0*.PAS\0";
+	ofn.lpstrFilter = "ATR Files\0*.AT2\0Text\0*.TXT\0";
 	ofn.nFilterIndex =1;
 	ofn.lpstrFileTitle = NULL ;
 
@@ -32,19 +36,21 @@ fOpen::fOpen()
 
     if(!isValidExt(inPath))
     {
-        cout << "File extension not valid " << inPath << endl << "Please use a .AT2 or .TXT file";
-        exit(EXIT_FAILURE);
+        cout << "ERROR: File extension not valid " << inPath << endl << "Please use a .AT2 or .TXT file";
+        buffer = "";
+        return;
     }
 
     roboFile = fopen(inPath, "rb");
 
 	if (roboFile == NULL)
 	{
-        cout << "Could not find input file at " << inPath;
-        exit(EXIT_FAILURE);
+        cout << "ERROR: Could not find input file at " << inPath;
+        buffer = "";
+        return;
 	}
 
-    buffer = NULL;
+    buffer = "";
 	read_file_to_buffer(roboFile);
 	fclose (roboFile);
 }
@@ -53,45 +59,46 @@ fOpen::fOpen()
 void fOpen::read_file_to_buffer(FILE *f)
 {
     long file_size = 0;
+    buffer = NULL;
 
 	if(buffer != NULL) {
-		fprintf(stderr, "Buffer in use\n");
-		exit(EXIT_FAILURE);
+		fprintf(stderr, "ERROR: Buffer in use\n");
+		buffer = "";
+		return;
 	}
 
 	rewind(f);
 	if(fseek(f, 0, SEEK_END) != 0) {
-		perror("Couldn't seek to end of file");
-		exit(EXIT_FAILURE);
+		perror("ERROR: Couldn't seek to end of file");
+		buffer = "";
+		return;
 	}
 
 	file_size = ftell(f);
 	if(file_size < 0) {
-		perror("Couldn't tell size");
-		exit(EXIT_FAILURE);
+		perror("ERROR: Couldn't tell size");
+		buffer = "";
+		return;
 	}
 	rewind(f);
 
 	buffer = (char *)malloc(sizeof(char) * (file_size + 1));
 	if(buffer == NULL) {
-		fprintf(stderr, "Could not allocate buffer\n");
-		exit(EXIT_FAILURE);
+		fprintf(stderr, "ERROR: Could not allocate buffer\n");
+		buffer = "";
+		return;
 	}
 
 	if(fread(buffer, sizeof(char), (size_t)file_size, f) != file_size) {
-		fprintf(stderr, "Couldn't read file\n");
-		exit(EXIT_FAILURE);
+		fprintf(stderr, "ERROR: Couldn't read file\n");
+		buffer = "";
+		return;
 	}
 	buffer[file_size] = '\0';
 
 	return;
 }
 
-//does nothing
-void fOpen::cleanup()
-{
-    return;
-}
 
 //finds the position of the line
 int fOpen::findLine (int lNum)
@@ -114,30 +121,6 @@ int fOpen::findLine (int lNum)
     }
 
     return position+1;
-}
-
-//gets the string representing the line that is currently being selected
-string fOpen::getLine (int lNum)
-{
-    int index = 0, position = 0;
-    string line = "";
-
-    position = findLine(lNum);
-    if (position < 0)
-        return "";
-
-    for (index=0; index<1; position++)
-    {
-        if (buffer[position]=='\r' || buffer[position]=='\0')
-        {
-            line += buffer[position];
-            index++;
-        }
-        else
-            line += buffer[position];
-    }
-
-    return line;
 }
 
 //writes a line from the file
@@ -208,4 +191,9 @@ string fOpen::ucase(string s)
 string fOpen::getBuffer ()
 {
     return buffer;
+}
+
+char* fOpen::getInPath ()
+{
+    return inPath;
 }
