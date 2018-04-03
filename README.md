@@ -15,3 +15,5 @@
   Robots: Robot class and header,
           Missile class and header,
           Mine class and header,
+
+  Stats: Stats class and header
