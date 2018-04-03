@@ -7,7 +7,7 @@
 
 //Contributor(s): Nicole Maiello
 //shell of robot, holds all variables
-
+//if an error occurs involving C++11, use this https://stackoverflow.com/questions/18174988/how-can-i-add-c11-support-to-codeblocks-compiler
 using namespace std;
 
 class Robot{
