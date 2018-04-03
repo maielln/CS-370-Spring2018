@@ -66,7 +66,7 @@ using namespace std;
 
 //{--robot variables--}
  int num_robots;
-// Robot robotarray = new Robot[max_robots+2]; 
+// Robot robotarray = new Robot[max_robots+2];
 // Missle missilearray = new Missile[max_missiles];
 
 // {--compiler variables--}
@@ -97,6 +97,31 @@ long matches,played,executed;
 bool quit,report,show_cnotice;
 int kill_count,report_type;
 double sint[256],cost[256];
+
+/*//Currently in progress so commented out for now
+string ltrim(string s1)
+{
+    while ((s1.length()>0) && ((s1.substr(0,1)==' ') || (s1.substr(1,1)==#8) || (s1.substr(0,1)==#9)))
+    {
+        s1 = s1.substr(1,s1.length()-1);
+    }
+    return s1;
+}
+
+string rtrim(s1 string)
+{
+    while ((s1.length()>0) && ((s1.substr(s1.length()-1,1)==' ') || (s1.substr(s1.length()-1,1)==#8) || (s1.substr(s1.length(),1)==#9)))
+    {
+        s1 = s1.substr(0,s1.length()-1);
+    }
+    return s1;
+}
+
+string btrim(string s1)
+{
+    return ltrim(rtrim(s1));
+}
+*/
 
 //Displays an error if it occurs taking in a string and prints it accordingly.
 //It is just used for debugging.
@@ -297,5 +322,8 @@ void init()
 int main()
 {
     init();
+    fOpen f1;
+
+
     return 0;
 }
