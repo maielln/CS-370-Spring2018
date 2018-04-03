@@ -1,3 +1,7 @@
+/*
+  This is what we have of the big if statement in the pascal code so far.
+*/
+
   found = false;
   opcode = -1;
   microcode = -1;
