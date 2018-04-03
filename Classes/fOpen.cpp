@@ -10,7 +10,7 @@ fOpen::fOpen()
     OPENFILENAME ofn ;
 
     char szFile[100] ;
-    buffer = "";
+    buffer = NULL;
 
     cout<<"Please select an AT2 or text file."<<endl;
     for(int i=0; i<1000000000;i++)
@@ -37,7 +37,7 @@ fOpen::fOpen()
     if(!isValidExt(inPath))
     {
         cout << "ERROR: File extension not valid " << inPath << endl << "Please use a .AT2 or .TXT file";
-        buffer = "";
+        buffer = (char*)"";
         return;
     }
 
@@ -46,11 +46,11 @@ fOpen::fOpen()
 	if (roboFile == NULL)
 	{
         cout << "ERROR: Could not find input file at " << inPath;
-        buffer = "";
+        buffer = (char*)"";
         return;
 	}
 
-    buffer = "";
+    buffer = (char*)"";
 	read_file_to_buffer(roboFile);
 	fclose (roboFile);
 }
@@ -63,21 +63,21 @@ void fOpen::read_file_to_buffer(FILE *f)
 
 	if(buffer != NULL) {
 		fprintf(stderr, "ERROR: Buffer in use\n");
-		buffer = "";
+		buffer = (char*)"";
 		return;
 	}
 
 	rewind(f);
 	if(fseek(f, 0, SEEK_END) != 0) {
 		perror("ERROR: Couldn't seek to end of file");
-		buffer = "";
+		buffer = (char*)"";
 		return;
 	}
 
 	file_size = ftell(f);
 	if(file_size < 0) {
 		perror("ERROR: Couldn't tell size");
-		buffer = "";
+		buffer = (char*)"";
 		return;
 	}
 	rewind(f);
@@ -85,13 +85,13 @@ void fOpen::read_file_to_buffer(FILE *f)
 	buffer = (char *)malloc(sizeof(char) * (file_size + 1));
 	if(buffer == NULL) {
 		fprintf(stderr, "ERROR: Could not allocate buffer\n");
-		buffer = "";
+		buffer = (char*)"";
 		return;
 	}
 
-	if(fread(buffer, sizeof(char), (size_t)file_size, f) != file_size) {
+	if((int)(fread(buffer, sizeof(char), (size_t)file_size, f)) != file_size) {
 		fprintf(stderr, "ERROR: Couldn't read file\n");
-		buffer = "";
+		buffer = (char*)"";
 		return;
 	}
 	buffer[file_size] = '\0';
@@ -177,7 +177,7 @@ bool fOpen::isValidExt(char directory[])
 
 string fOpen::ucase(string s)
 {
-    for(int i = 0; i < s.length(); i++)
+    for(int i = 0; i < (int)(s.length()); i++)
     {
         if(s[i] >= 97 && s[i] <= 122)
         {
