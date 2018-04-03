@@ -12,18 +12,13 @@
 
 using namespace std;
 
-string Format::format(string SSPath)
+string Format::format(string S)
 {
-    fOpen inFile(SSPath);
-    fireCount = 0;
-    scanning = false;
-    scanarc = 1; //some variables for robot
-
-    fText = inFile.getBuffer();
+    fText = S;
 
     formatFile();
 
-    return fText; //returning the address of position 0
+    return fText;
 }
 
 void Format::formatFile()
