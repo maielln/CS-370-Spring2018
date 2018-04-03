@@ -10,6 +10,7 @@
 #include <iostream>
 #include <cstdlib>
 #include <ctime>
+#include <array>
 
 using namespace std;
 
@@ -18,31 +19,41 @@ using namespace std;
 //all variables can be accessed outside of the class, so all variables
 //can be incremented and utilized outside without update and get functions
 
-Robot::Robot(string fileName, Robot** rArr) //basically the create_robot (line 1305)
+Robot::Robots(string fileName, string compFile) //basically the create_robot (line 1305)
 {
   //here will initialize all global variables from the compile file
   //porting create_robot from ATR2.PAS
   //instead of passing individual variables, use a typeDef array and put
   //each variable in a specific slot and initialize it in this function
     Name = fileName;
-    robot_arr = rArr;
+    compiledFile = compFile;
     cout<<Name<<" has been created."<<endl;
-    srand((unsigned) time(0));
-    x = rand() % 100; //base code for now, getting a random number then having it go from 0-100
-    y = rand() % 100; //same as above but for y
-    cout<<x<<" "<<y<<endl;
-    max_ram = 1023;
-    RAM[max_ram];
+    x = rand() % 1000; //base code for now, getting a random number then having it go from 0-100
+    y = rand() % 1000; //same as above but for y
+    cout<<"Coordinates: "<<"("<<x<<", "<<y<<")"<<endl;
+    attackNum = 0;
+    arraySize = 0;
+
+    set_AttackArray();
+
     health = 100;
+    kills = 0;
+    deaths = 0;
+    shots = 0;
+    wins = 0;
+
+    turretAngle = rand() % 255;
 }
 
-void Robot::init_Robot()
-{
+//void Robot::init_Robot() //have to work with this more
+//{
  /* for(int i = 0; i < max_ram; i++)
   {
     ram[i] = 0; //frees up all memory
   }
+
   ram[71] = 768; //not sure why this is needed but ok
+
   for(i = 0; i < max_code; i++)
   {
     for(int k = 0; k < max_op; k++)
@@ -50,11 +61,12 @@ void Robot::init_Robot()
       code[i].op[k] = 0; //taking what operation was determined and resetting it?
     }
   }
+
   reset_hardware(n); //line 1220 in my files
   reset_software(n); //line 1202 in my files
   //if we look to include these funcitons, it should probably be placed in a different file?
     */
-}
+//}
 
 void Robot::robot_config(int scan, int weap, int arm, int eng, int mine, int shielding, int heat) //line 1149 in my file
 {
@@ -175,8 +187,32 @@ void Robot::robot_config(int scan, int weap, int arm, int eng, int mine, int shi
     heatsinks = 0; //will come back to
 }
 
-void Robot::set_coordinates(int x1, int y1)
+void Robot::set_AttackArray()
 {
-  x = x1;
-  y = y1;
+    string Line = "";
+    int cnt = 0;
+    for(int i = 0;i < compiledFile.length(); i++)
+    {
+        if(compiledFile[i] == '\n')
+        {
+            Stack[cnt] = Line;
+            cnt++;
+            Line = "";
+        }
+        else
+            Line += compiledFile[i];
+    }
+    arraySize = cnt;
 }
+
+string Robot::sendAttack()
+{
+    if(attackNum > arraySize)
+    {
+        attackNum = 0;
+        return Stack[arraySize];
+    }
+    else
+        return Stack[attackNum];
+}
+
