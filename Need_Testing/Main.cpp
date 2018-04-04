@@ -2,6 +2,7 @@
 #include <iostream>
 #include <cmath>
 #include <string.h>
+#include <ctime>
 #include "Robot.h"
 #include "fOpen.h"
 //#include "Missile.h"      //include these files later
@@ -66,7 +67,7 @@ using namespace std;
 
 //{--robot variables--}
  int num_robots;
-// Robot robotarray = new Robot[max_robots+2];
+ Robot robotarray[max_robots];
 // Missle missilearray = new Missile[max_missiles];
 
 // {--compiler variables--}
@@ -98,10 +99,10 @@ bool quit,report,show_cnotice;
 int kill_count,report_type;
 double sint[256],cost[256];
 
-/*//Currently in progress so commented out for now
-string ltrim(string s1)
+
+/*string ltrim(string s1)
 {
-    while ((s1.length()>0) && ((s1.substr(0,1)==' ') || (s1.substr(1,1)==#8) || (s1.substr(0,1)==#9)))
+    while ((s1.length()>0) && ((s1.substr(0,1)==" ") || (s1.substr(1,1)==(string)((char)(8))) || (s1.substr(0,1)==(string((char)(9))))
     {
         s1 = s1.substr(1,s1.length()-1);
     }
@@ -110,7 +111,7 @@ string ltrim(string s1)
 
 string rtrim(s1 string)
 {
-    while ((s1.length()>0) && ((s1.substr(s1.length()-1,1)==' ') || (s1.substr(s1.length()-1,1)==#8) || (s1.substr(s1.length(),1)==#9)))
+    while ((s1.length()>0) && ((s1.substr(s1.length()-1,1)==" ") || (s1.substr(s1.length()-1,1)==(char)(8)) || (s1.substr(s1.length(),1)==(char)(9))))
     {
         s1 = s1.substr(0,s1.length()-1);
     }
@@ -120,6 +121,371 @@ string rtrim(s1 string)
 string btrim(string s1)
 {
     return ltrim(rtrim(s1));
+}
+*/
+
+//Awaiting more members to be added to the robot class
+/*void do_robot(int n)
+{
+    int i,j,k,l,tthd;
+    double heat_mult,ttx,tty;
+
+    if ((n<0) || (n>max_robots))
+    {
+        return;
+    }
+    //with robotarray[n].^ do
+    //{--time slice--}
+    robotarray[n].time_left = time_slice;
+    if ((robotarray[n].time_left>robot_time_limit) && (robotarray[n].robot_time_limit>0))
+    {
+        robotarray[n].time_left = robotarray[n].robot_time_limit;
+    }
+
+    if ((robotarray[n].time_left>robotarray[n].max_time) && (robotarray[n].max_time>0))
+    {
+        robotarray[n].time_left=robotarray[n].max_time;
+    }
+
+    executed=0;
+
+   //{--execute timeslice--}
+    while ((robotarray[n].time_left>0) && (!robotarray[n].cooling) && (executed<20+time_slice) && (robotarray[n].health>0))
+    {
+        if (robotarray[n].delay_left<0)
+        {
+            robotarray[n].delay_left=0;
+        }
+        if (robotarray[n].delay_left>0)
+        {
+            robotarray[n].delay_left--;
+            time_left--;
+        }
+        if ((robotarray[n].time_left>=0) && (robotarray[n].delay_left=0))
+        {
+            execute_instruction(n);
+        }
+
+        if (robotarray[n].heat>=shutdown)
+        {
+            robotarray[n].cooling = true;
+            robotarray[n].shields_up = false;
+        }
+        if (robotarray[n].heat>=500)
+        {
+            damage(n,1000,true);
+        }
+
+    }
+
+    //{--fix up variables--}
+    robotarray[n].thd = (robotarray[n].thd+1024) && 255;
+    robotarray[n].hd = (robotarray[n].hd+1024) && 255;
+    robotarray[n].shift = (robotarray[n].shift+1024) && 255;
+    if (robotarray[n].tspd<-75)
+    {
+       robotarray[n].tspd = -75;
+    }
+    if (robotarray[n].tspd>100)
+    {
+        robotarray[n].tspd = 100;
+    }
+    if (robotarray[n].spd<-75)
+    {
+        robotarray[n].spd=-75;
+    }
+    if (robotarray[n].spd>100)
+    {
+        robotarray[n].spd=100;
+    }
+    if (robotarray[n].heat<0)
+    {
+        robotarray[n].heat=0;
+    }
+    if (robotarray[n].last_damage<INT_MAX)
+    {
+        robotarray[n].last_damage++;
+    }
+    if (robotarray[n].last_hit<INT_MAX)
+    {
+        robotarray[n].last_hit++;
+    }
+
+    //{--update heat--}
+    if (robotarray[n].shields_up && ((game_cycle && 3)==0))
+    {
+        robotarray[n].heat++;
+    }
+    if (!robotarray[n].shields_up)
+    {
+        if (robotarray[n].heat>0)
+        {
+            switch (robotarray[n].heatsinks)//(*heat adjustments*)
+            {
+                case 5:
+                    if ((game_cycle && 1)==0) //?????
+                    {
+                        robotarray[n].heat--;
+                    }
+                case 4:
+                    if ((game_cycle % 3)==0)
+                    {
+                        robotarray[n].heat--;
+                    }
+                case 3:
+                    if ((game_cycle && 3)==0)
+                    {
+                        robotarray[n].heat--;
+                    }
+                case 2:
+                    if ((game_cycle && 7)==0)
+                    {
+                        robotarray[n].heat--;
+                    }
+            }
+        }
+
+        else if ((game_cycle && 3)==0)
+        {
+            robotarray[n].heat++;
+        }
+
+        if (robotarray[n].overburn && ((game_cycle % 3)==0))
+        {
+            robotarray[n].heat++;
+        }
+
+        if (robotarray[n].heat>0)
+        {
+            robotarray[n].heat;
+        }
+        if ((robotarray[n].heat>0) && (game_cycle && 7==0) && (abs(tspd)<=25))
+        {
+            robotarray[n].heat--;
+        }
+        if ((robotarray[n].heat<=shutdown-50) || (robotarray[n].heat<=0))
+        {
+            robotarray[n].cooling = false;
+        }
+    }
+
+    if (robotarray[n].cooling)
+    {
+        robotarray[n].tspd=0;
+    }
+
+    heat_mult=1;
+    if(robotarray[n].heat>=80 && robotarray[n].heat<=99)
+    {
+        heat_mult=0.98;
+    }
+    if(robotarray[n].heat>=100 && robotarray[n].heat<=149)
+    {
+        heat_mult=0.95;
+    }
+    if(robotarray[n].heat>=150 && robotarray[n].heat<=199)
+    {
+        heat_mult=0.85;
+    }
+    if(robotarray[n].heat>=200 && robotarray[n].heat<=249)
+    {
+        heat_mult=0.75;
+    }
+    if(robotarray[n].heat>=250 && robotarray[n].heat<=INT_MAX)
+    {
+        heat_mult=0.50;
+    }
+
+    if (robotarray[n].overburn)
+    {
+        heat_mult = heat_mult*1.30;
+    }
+    if ((robotarray[n].heat>=475) && ((game_cycle && 3)==0))
+    {
+        damage(n,1,true)
+    }
+    else if ((robotarray[n].heat>=450) && ((game_cycle && 7)==0))
+    {
+        damage(n,1,true);
+    }
+    else if ((robotarray[n].heat>=400) && ((game_cycle && 15)==0))
+    {
+        damage(n,1,true);
+    }
+    else if ((robotarray[n].heat>=350) && ((game_cycle && 31)==0))
+    {
+        then damage(n,1,true);
+    }
+    else if ((robotarray[n].heat>=300) && ((game_cycle && 63)==0))
+    {
+        damage(n,1,true);
+    }
+
+    //{--update robot in physical world--}
+    //{-acceleration-}
+    if(abs(robotarray[n].spd-robotarray[n].tspd)<=acceleration)
+    {
+        robotarray[n].spd = robotarray[n].tspd;
+    }
+
+    else
+    {
+        if( robotarray[n].tspd>robotarray[n].spd)
+        {
+            robotarray[n].spd += robotarray[n].acceleration;
+        }
+        else
+        {
+            robotarray[n].spd -= robotarray[n].acceleration;
+        }
+    }
+   //{-turning-}
+    tthd = robotarray[n].hd + robotarray[n].shift;
+    if ((abs(robotarray[n].hd-robotarray[n].thd)<=turn_rate) || (abs(robotarray[n].hd-robotarray[n].thd)>=256-turn_rate))
+    {
+        robotarray[n].hd = robotarray[n].thd;
+    }
+    else if( robotarray[n].hd != robotarray[n].thd)
+    {
+        k = 0;
+        if (((robotarray[n].thd > robotarray[n].hd) && (abs(robotarray[n].hd-robotarray[n].thd)<=128)) ||
+                ((robotarray[n].thd<robotarray[n].hd) && (abs(robotarray[n].hd-robotarray[n].thd)>=128)))
+        {
+            k = 1;
+        }
+        if (k == 1)
+        {
+            hd =(hd+robotarray[n].turn_rate) && 255;
+        }
+        else
+        {
+            hd = (hd+256-robotarray[n].turn_rate) && 255;
+        }
+    }
+    robotarray[n].hd = robotarray[n].hd && 255;
+    if(keepshift)
+    {
+        shift = (tthd-hd+1024) && 255;
+    }
+
+    //{-moving-}
+    speed = robotarray[n].spd/100*(max_vel*heat_mult*speedadj);
+    xv = sint[hd]*speed;
+    yv =-cost[hd]*speed;
+    if ((hd==0) || (hd==128))
+    {
+        xv = 0;
+    }
+
+    if ((hd=64) || (hd=192))
+    {
+        yv = 0;
+    }
+    if (xv!=0)
+    {
+        ttx = x+xv;
+    }
+    else
+    {
+        ttx = x;
+    }
+
+    if (yv!=0) then
+    {
+        tty = y+yv;
+    }
+    else
+    {
+        tty = y;
+    }
+
+    if ((ttx<0) || (tty<0) || (ttx>1000) || (tty>1000))
+    {
+        ram[8]++;
+        tspd=0;
+        if (abs(speed)>=max_vel/2)
+        {
+            damage(n,1,true);
+        }
+        spd=0;
+        //{ttx=x; tty=y;}
+    }
+
+    for (i =0; i < num_robots;i++)
+    {
+        if ((i!=n) && (robotarray[i].armor>0) && (distance(ttx,tty,robotarray[i].x,robotarray[i].y)<crash_range))
+        {
+            tspd=0;
+            spd=0;
+            ttx=x;
+            tty=y;
+            robotarray[i].tspd=0;
+            robotarray[i].spd=0;
+            ram[8]++;
+            robotarray[i].ram++;
+            if (abs(speed)>=max_vel/2)
+            {
+                damage(n,1,true);
+                damage(i,1,true);
+            }
+        }
+    }
+
+    if (ttx<0)
+    {
+        ttx=0;
+    }
+    if (tty<0)
+    {
+        tty=0;
+    }
+    if (ttx>1000)
+    {
+        ttx=1000;
+    }
+    if (tty>1000)
+    {
+        tty=1000;
+    }
+    meters = meters+distance(robotarray[n].x,robotarray[n].y,ttx,tty);
+    if (meters>=maxint)
+    {
+        meters = meters-maxint;
+    }
+
+    ram[9]=trunc(meters);
+    robotarray[n].x=ttx;
+    robotarray[n].y=tty;
+
+   //{--draw robot--}
+   if (robotarray[n].health<0)
+   {
+       robotarray[n].health = 0;
+   }
+
+   if (robotarray[n].heat<0)
+   {
+       robotarray[n].heat = 0;
+   }
+   if (graphix)
+   {
+        if (robotarray[n].health!=larmor)
+        {
+            update_armor(n);
+        }
+
+        if (heat / 5.0 !=lheat / 5.0)
+        {
+            update_heat(n);
+        }
+        draw_robot(n);
+   }
+
+   lheat = heat;
+   larmor = armor;
+
+   //{--Cycle complete, inc counter--}
+   cycles_lived++;
 }
 */
 
@@ -240,7 +606,7 @@ void init()
 
     else
     {
-//        prog_error(5,"");
+        prog_error(5,"");
     }
 
     temp_mode = step_mode;  //{store initial step_mode}
@@ -249,7 +615,7 @@ void init()
     {
         for (int i = 0; i<num_robots; i++)     //check what this is
         {
- //           robot[i].errorlog = robot[i].base_name(fn)+'.ERR';
+ //           robotarray[i].errorlog = robotarray[i].base_name(fn)+'.ERR';
         }
     }
 
@@ -259,7 +625,7 @@ void init()
     }
     if (num_robots<1)
     {
- //       prog_error(4,"");
+        prog_error(4,"");
     }
 
 /*  if (!no_gfx)
@@ -312,9 +678,10 @@ void init()
     //{--Just to avoid floating pointers--}
     for ( int i = 0; i<max_robots ;i++)
     {
-//        robot[i] = new Robot(/*Whatever we want to use to make a placeholder*/);
+//        robotarray[i] = new Robot(/*Whatever we want to use to make a placeholder*/);
     }
 
+    srand((unsigned)time(0));
     return;
 }
 
@@ -324,6 +691,7 @@ int main()
     init();
     fOpen f1;
 
+    cout<<f1.getInPath()<<endl;
 
     return 0;
 }
