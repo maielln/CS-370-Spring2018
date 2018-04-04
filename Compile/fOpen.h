@@ -20,7 +20,7 @@ class fOpen
         //returns the variable buffer
         string getBuffer ();
         //returns the variable inPath
-        char* getInPath ();
+        string getInPath ();
 
 
 
@@ -29,6 +29,7 @@ class fOpen
         char * inPath;
         char * buffer;
         FILE * roboFile;
+        string inPathStr;
         bool isValidExt(char directory[]);
         void read_file_to_buffer(FILE *f);
         void writeLine (string, FILE *f);
