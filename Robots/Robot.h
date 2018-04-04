@@ -31,7 +31,7 @@ class Robot{
     int tarName;
     string compiledFile;
     int attackNum;
-    int delay_left;
+    int delay_left,time_left,robot_time_limit;
 
 
     Robots(string, string); //initializes robot
@@ -44,3 +44,4 @@ class Robot{
 };
 
 #endif // Robot
+
