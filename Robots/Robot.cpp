@@ -41,6 +41,9 @@ Robot::Robots(string fileName, string compFile) //basically the create_robot (li
     deaths = 0;
     shots = 0;
     wins = 0;
+    time_left = 0;
+    delay_left = 0;
+    robot_time_limit=0;
 
     turretAngle = rand() % 255;
 }
