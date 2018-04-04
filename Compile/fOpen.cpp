@@ -28,9 +28,17 @@ fOpen::fOpen()
 	ofn.nFilterIndex =1;
 	ofn.lpstrFileTitle = NULL ;
 
-	GetOpenFileName( &ofn );;
+	GetOpenFileName( &ofn );
 
     inPath = ofn.lpstrFile;
+
+    int i = 0;
+    inPathStr = "";
+    while(inPath[i]!='\0')
+    {
+        inPathStr += inPath[i];
+        i++;
+    }
 
     FILE * roboFile = NULL;
 
@@ -51,6 +59,7 @@ fOpen::fOpen()
 	}
 
 	read_file_to_buffer(roboFile);
+
 	fclose (roboFile);
 }
 
@@ -191,7 +200,7 @@ string fOpen::getBuffer ()
     return buffer;
 }
 
-char* fOpen::getInPath ()
+string fOpen::getInPath()
 {
-    return inPath;
+    return inPathStr;
 }
