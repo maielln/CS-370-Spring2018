@@ -16,8 +16,7 @@ Written in c++ (gcc compiler)
 int main (void)
 {
 	string input = "";
-	int i;
-	char * filePath;
+	int i, numRobots = 0;
 
 	while (input != "exit")
 	{
@@ -48,13 +47,22 @@ int main (void)
             cout << "Which file position would you like to edit: ";
             cin >> i;
             i--;
-            if (i < 32)
+            if (i < 32 && fileArr[i] != NULL)
             {
-                filePath = fileArr[i] -> getInPath();
-                cout << "Please select a file to replace " << filePath << " : ";
+                cout << "Please select a file to replace " << fileArr[i] -> getInPath() << " : ";
                 delete fileArr[i];
                 fileArr[i] = new fOpen();
                 cout << "File successfully replaced!" << endl;
+            }
+            else if (i < 32)
+            {
+                cout << "Please select a file to add in position " << i+1 << ": ";
+                fileArr[i] = new fOpen ();
+                cout << "File successfully added!" << endl;
+            }
+            else
+            {
+                cout << "Invalid entry. Please pick a number between 1 and 32" << endl;
             }
         }
 		else if (input == "delete")
@@ -68,12 +76,12 @@ int main (void)
 			}
 			else
 			{
-			    filePath = fileArr[i] -> getInPath();
-				cout << "Are you sure you would like to delete " << filePath << "? (y/n): ";
+				cout << "Are you sure you would like to delete " << fileArr[i] -> getInPath() << "? (y/n): ";
 				cin >> input;
 				if (input == "y")
 				{
 					delete fileArr[i];
+					fileArr[i] = NULL;
 					cout << "File " << i+1 << " deleted!" << endl;
 				}
 				else
@@ -88,8 +96,19 @@ int main (void)
 			cout << "Are you sure you would like to start with the selected robots? (y/n): ";
 			cin >> input;
 			if (input == "y")
+            {
+                for (i=0;i<32;i++)
+                {
+                    if (fileArr[i] != NULL)
+                    {
+                        cout << "Loading in " << fileArr[i] -> getInPath() << endl;
+                        numRobots++;
+                    }
+                }
+                cout << "Starting the game with these " << numRobots << " robots." << endl;
 				return 1;
-			input = "continue";
+            }
+
 		}
 		else if (input != "exit")
 		{
@@ -104,7 +123,6 @@ int main (void)
 void display (void)
 {
 	int i = 0;
-	char * filePath;
 
 	cout << "--------------------------------------------------" << endl;
 
@@ -118,8 +136,7 @@ void display (void)
 		}
 		else
 		{
-		    filePath = fileArr[i]->getInPath();
-			cout << filePath << endl;
+			cout << fileArr[i] -> getInPath() << endl;
 		}
 	}
 
@@ -127,3 +144,4 @@ void display (void)
 
 	return;
 }
+
