@@ -99,6 +99,13 @@ bool quit,report,show_cnotice;
 int kill_count,report_type;
 double sint[256],cost[256];
 
+//string ltrim(string s1);
+//string rtrim(s1 string);
+//string btrim(string s1);
+double distance(int x1, int y1, int x2, int y2);
+//void damage(int n,int d,bool physical);
+//void do_robot(int n)
+void prog_error(int n, string ss);
 
 /*string ltrim(string s1)
 {
@@ -121,6 +128,116 @@ string rtrim(s1 string)
 string btrim(string s1)
 {
     return ltrim(rtrim(s1));
+}
+*/
+
+double distance(int x1, int y1, int x2, int y2)
+{
+    return pow((pow(x2-x1,2) + pow(y2-y1,2)),.5);
+}
+
+/*void damage(int n,int d,bool physical)
+{
+    int i,k,h,dd;
+    double m;
+    if ((n<0) || (n>num_robots) || (robotarray[n].health<=0))
+    {
+        return;
+    }
+
+    if (robotarray[n].config.shield<3)
+    {
+        robotarray[n].shields_up =false;
+    }
+    //with robotarray[n]^ do
+    h =0;
+    if ((robotarray[n].shields_up) && (!physical))
+    {
+        dd =d;
+        if ((robotarray[n].old_shields) && (robotarray[n].shield>=3))
+        {
+            d =0;
+            h =0;
+        }
+        else
+        {
+            switch (robotarray[n].shield)
+            {
+                case 3: d =round(dd*2/3);
+                    if (d<1)
+                    {
+                        d =1;
+                        h =round(dd*2/3);
+                    }
+                case 4: h =(int)(dd/2);
+                    d =dd-h;
+                case 5: d =round(dd*1/3);
+                    if (d<1)
+                    {
+                        d =1;
+                    }
+                default: h =round(dd*1/3);
+                if (h<1)
+                {
+                    h =1;
+                }
+            }
+        }
+    }
+    if (d<0)
+    {
+        d =0;
+    }
+ //   if debug_info then
+ //       begin writeln(#13,zero_pad(game_cycle,5),' D ',n,': ',health,'-',d,'=',health-d,'           ');
+ //       repeat until keypressed; flushkey; end;
+    if (d>0)
+    {
+        d =round(d*robotarray[n].damageadj);
+        if (d<1)
+        {
+            d =1;
+        }
+    }
+
+    robotarray[n].health -=d;
+    robotarray[n].heat+=h);
+    robotarray[n].last_damage =0;
+    if (health<=0)
+    {
+        robotarray[n].health =0;
+        update_health(n);
+        robotarray[n].heat =500;
+        update_heat(n);
+        robotarray[n].health =0;
+        robotarray[n].kill_count;
+        robotarray[n].deaths;
+        update_lives(n);
+ //       if graphix && timing then time_delay(10);
+ //       draw_robot(n);    //replace with new removal of robot from GUI
+        robotarray[n].heat =0;
+        update_heat(n);
+        init_missile(robotarray[n].x,robotarray[n].y,0,0,0,n,blast_circle,false);
+        if (robotarray[n].overburn)
+        {
+            m =1.3;
+        }
+        else
+        {
+            m =1;
+        }
+        for (i =0 ; i<num_robots;i++)
+        {
+            if ((i!=n) && (robotarray[i].health>0))
+            {
+                k =round(distance(robotarray[n].x,robotarray[n].y,robotarray[i].x,robotarray[i].y));
+                if (k<blast_radius)
+                {
+                    damage(i,round(abs(blast_radius-k)*m),false);
+                }
+            }
+        }
+    }
 }
 */
 
