@@ -32,6 +32,8 @@ class Missile {
 	int speed, dam, lastShot, owner, tarx = 0, tary = 0;
 	double xChange, yChange;
 	bool does_Exist;
+    double x, y, lx, ly, mult, mspd;
+    int source, a, hd, rad, lrad, max_rad;
 
 	double xCor[MAX_RANGE], yCor[MAX_RANGE];
 
@@ -43,8 +45,6 @@ class Missile {
 	void setTar(int, int);
 	void myMove();
 //	void line(); //x and y are doubles?
-    double x;
-    double y;
 
 	//getters
 	double getDam();
