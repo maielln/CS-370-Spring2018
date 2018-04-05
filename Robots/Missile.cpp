@@ -5,7 +5,16 @@
 
 using namespace std;
 
-Missile::Missiles(){}
+Missile::Missiles()
+{
+    a=0;
+    source=-1;
+    x=0;
+    y=0;
+    lx=0;
+    ly=0;
+    mult=1;
+}
 
 void Missile::initMissile(int r, int xx, int yy) {
     owner = r;
