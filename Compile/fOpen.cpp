@@ -12,11 +12,7 @@ fOpen::fOpen()
     char szFile[100] ;
     buffer = NULL;
 
-    cout<<"Please select an AT2 or text file."<<endl;
-    for(int i=0; i<1000000000;i++)
-    {
-
-    }
+    //cout<<"Please select an AT2 or text file."<<endl;
 
     ZeroMemory( &ofn , sizeof( ofn));
 	ofn.lStructSize = sizeof ( ofn );
@@ -44,8 +40,9 @@ fOpen::fOpen()
 
     if(!isValidExt(inPath))
     {
-        cout << "ERROR: File name or extension is not valid " << inPath << endl << "Please be sure you are selecting a .AT2 or .TXT file.";
+        cout << "ERROR: File name or extension is not valid " << inPath << endl << "Please be sure you are selecting a .AT2 or .TXT file." << endl;
         buffer = (char*)"";
+        inPathStr = "";
         return;
     }
 
@@ -53,8 +50,9 @@ fOpen::fOpen()
 
 	if (roboFile == NULL)
 	{
-        cout << "ERROR: Could not find input file at " << inPath;
+        cout << "ERROR: Could not find input file at " << inPath << endl;
         buffer = (char*)"";
+        inPathStr = "";
         return;
 	}
 
@@ -204,3 +202,4 @@ string fOpen::getInPath()
 {
     return inPathStr;
 }
+
