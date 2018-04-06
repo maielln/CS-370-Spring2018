@@ -19,6 +19,73 @@ using namespace std;
 //all variables can be accessed outside of the class, so all variables
 //can be incremented and utilized outside without update and get functions
 
+Robot::Robot() //creates an empty robot
+{
+    health = 100;
+    kills = 0;
+    deaths = 0;
+    shots = 0;
+    wins = 0;
+    time_left = 0;
+    delay_left = 0;
+    robot_time_limit=0;
+    scanrange = 1500;
+    shotstrength = 1;
+    damageadj = 1;
+    speedadj = 1;
+    mines = 0;
+    
+    hd = rand() % 256; //from reset_hardware
+    
+    plen = 0;
+    for(int i = 0; i < max_ram; i++)
+      RAM[i] = 0;
+    RAM[71] = 768;
+    thd = hd;
+    tspd = 0;
+    scanarc = 8;
+    shift = 0;
+    error_count = 0;
+    err = 0;
+    overburn = false;
+    keepshift = false;
+    ip = 0;
+    accuracy = 0;
+    meters = 0;
+    delay_left = 0;
+    time_left = 0;
+    shields_up = false; //up to here is reset_software
+    
+    meters = 0;
+    shift = 0;
+    lhd = hd + 1;
+    lshift = shift + 1;
+    spd = 0;
+    speed = 0;
+    cooling = false;
+    larmor = 0;
+    heat = 0;
+    lheat = 1; 
+    match_shots = 0;
+    won = false;
+    last_damage = 0;
+    last_hit = 0;
+    transponder = 2;
+    shutdown = 400;
+    channel = transponder;
+    startkills = kills;
+
+    robot_config(5,2,2,2,1,0,0); //scanner, weapon, armor, engine, heatsinks, shield, max_mines
+
+    acceleration = 4;
+    lx = 0;
+    ly = 0;
+    xv = 0;
+    yv = 0;
+
+    
+}
+
 Robot::Robots(string fileName, string compFile) //basically the create_robot (line 1305)
 {
   //here will initialize all global variables from the compile file
@@ -35,15 +102,6 @@ Robot::Robots(string fileName, string compFile) //basically the create_robot (li
     arraySize = 0;
 
     set_AttackArray();
-
-    health = 100;
-    kills = 0;
-    deaths = 0;
-    shots = 0;
-    wins = 0;
-    time_left = 0;
-    delay_left = 0;
-    robot_time_limit=0;
 
     turretAngle = rand() % 255;
 }
