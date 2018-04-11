@@ -5,8 +5,8 @@
 #include <ctime>
 #include "Robot.h"
 #include "fOpen.h"
-//#include "Missile.h"      //include these files later
-//#include "Mine.h"
+#include "Missile.h"
+//#include "Mine.h"         //include these files later
 
 //including old constants from the original code
 //also ported over the old comments while removing the FIFI ones
@@ -37,6 +37,7 @@
 #define max_config_points 12
 #define max_mines 63
 #define mine_blast 35
+#define maxint 32787
 
  //{simulator & graphics}
 #define screen_scale 0.46
@@ -67,16 +68,16 @@ using namespace std;
 
 //{--robot variables--}
  int num_robots;
- Robot robotarray[max_robots];
-// Missle missilearray = new Missile[max_missiles];
+ Robot robot[max_robots];
+ Missile missile[max_missiles];
 
 // {--compiler variables--}
 // ftext;
 int numvars,numlabels,maxcode,lock_pos,lock_dat;
-string varnamearray[max_vars],reg_name;
-int varlocarray[max_vars];
-string labelnamearray[max_vars];
-int labelnumarray[max_labels];
+string varname[max_vars],reg_name;
+int varloc[max_vars];
+string labelname[max_vars];
+int labelnum[max_labels];
 bool show_source,compile_only;
 string lock_code;
 
@@ -106,6 +107,7 @@ double distance(int x1, int y1, int x2, int y2);
 //void damage(int n,int d,bool physical);
 //void do_robot(int n)
 void prog_error(int n, string ss);
+//void init_missile(double xx, double yy, double xxv, double yyv,int dir,int s,int blast,bool ob);
 
 /*string ltrim(string s1)
 {
@@ -136,32 +138,654 @@ double distance(int x1, int y1, int x2, int y2)
     return pow((pow(x2-x1,2) + pow(y2-y1,2)),.5);
 }
 
-/*void damage(int n,int d,bool physical)
+void execute_instruction(int n)
+{
+    int i,j,k;
+    int time_used,loc;
+    bool inc_ip;
+
+    char c;
+
+    //with robot[n]^ do
+
+   //{--update system variables--}
+    robot[n].ram[0]= robot[n].tspd;
+    robot[n].ram[1]= robot[n].thd;
+    robot[n].ram[2]= robot[n].shift;
+    robot[n].ram[3]= robot[n].accuracy;
+
+    time_used= 1;
+    inc_ip= true;
+    loc= 0;
+    if ((robot[n].ip>plen) || (robot[n].ip<0))
+    {
+        robot[n].ip= 0;
+    }
+
+    if (invalid_microcode(n,robot[n].ip))
+    {
+        time_used= 1;
+        robot_error(n,16,hex(code[robot[n].ip].op[max_op]));
+    }
+    else
+    {
+        if (graphix && (step_mode>0) && (n=0)) //{if stepping enabled...}
+        {
+            step_count++;
+            update_cycle_window();
+            update_debug_window();
+            if ((step_count mod step_mode)==0)
+            {
+                step_loop= true;
+            }
+            else
+            {
+                step_loop= false;
+            }
+
+            while (step_loop && (!(quit || gameover || bout_over)))
+            {
+                if (keypressed) //with robot[0]^ do
+                {
+                    c= upcase(readkey);
+                    case c of
+                        case 'X':
+                            temp_mode= step_mode;
+                            step_mode= 0;
+                            step_loop= false;
+                            close_debug_window;
+                            break;
+                        case ' ':
+                            step_count= 0;
+                            step_loop= false;
+                            break;
+                        case '1':
+                        case '2':
+                        case '3':
+                        case '4':
+                        case '5':
+                        case '6':
+                        case '7':
+                        case '8':
+                        case '9':
+                            step_mode= value(c);
+                            step_count= 0;
+                            step_loop= false;
+                            break;
+                        case '0':
+                            step_mode= 10;
+                            step_count= 0;
+                            step_loop= false;
+                            break;
+                        case '-':
+                        case '_':
+                            if (mem_watch>0)
+                            {
+                                setcolor(0);
+                                for (i= 0; i < 9;i++)
+                                {
+                                    outtextxy(035,212+(10*i),decimal((mem_watch+i),4) + ' :');
+                                }
+                                    mem_watch--;
+                                    update_debug_memory();
+                            }
+                            break;
+                        case '+':
+                        case '=':
+                            if (mem_watch<1014)
+                            {
+                                setcolor(0);
+                                for (i= 0; i < 9;i++)
+                                {
+                                    outtextxy(035,212+(10*i),decimal((mem_watch+i),4) + ' :');
+                                }
+                                mem_watch++;
+                                update_debug_memory();
+                            }
+                            break;
+                        case '[':
+                        case '{':
+                            if (mem_watch>0)
+                            {
+                                setcolor(0);
+                                for (i= 0; i < 9;i++)
+                                {
+                                    outtextxy(035,212+(10*i),decimal((mem_watch+i),4) + ' :');
+                                }
+
+                                mem_watch-=10;
+                                if (mem_watch<0)
+                                {
+                                    mem_watch= 0;
+                                }
+                                update_debug_memory();
+                            }
+
+                        break;
+                        case ']':
+                        case '}':
+                            if mem_watch<1014 then
+                            {
+                                setcolor(0);
+                                for (i= 0; i < 9;i++)
+                                {
+                                    outtextxy(035,212+(10*i),decimal((mem_watch+i),4) + ' :');
+                                }
+
+                                mem_watch+=10;
+                                if (mem_watch>1014)
+                                {
+                                    mem_watch= 1014;
+                                }
+                                update_debug_memory();
+                            }
+                            break;
+                        case 'G':
+                            toggle_graphix();
+                            temp_mode= step_mode;
+                            step_mode= 0;
+                            step_loop= false;
+                            break;
+                        default process_keypress(c);
+                }
+            }
+        }
+    }
+
+
+    if (! (((code[robot[n].ip].op[max_op] && 7) > 0)&& ( code[robot[n].ip].op[max_op]<1)))
+    {
+        time_used= 0;
+    }
+    else
+    {
+        switch (get_val(n,robot[n].ip,0))
+        {
+            case 0: //(*NOP*)
+                executed++;
+                break;
+
+            case 1: //(*ADD*)
+                put_val(n,robot[n].ip,1,get_val(n,robot[n].ip,1)+get_val(n,robot[n].ip,2));
+                executed++;
+                break;
+
+            case 2: //(*SUB*)
+                put_val(n,robot[n].ip,1,get_val(n,robot[n].ip,1)-get_val(n,robot[n].ip,2));
+                executed++;
+                break;
+
+            case 3: //(*OR*)
+                put_val(n,robot[n].ip,1,get_val(n,robot[n].ip,1) || get_val(n,robot[n].ip,2));
+                executed++;
+                break;
+
+            case 4: //(*AND*)
+                put_val(n,robot[n].ip,1,get_val(n,robot[n].ip,1) && get_val(n,robot[n].ip,2));
+                executed++;
+                break;
+
+            case 5: //(*XOR*)
+                put_val(n,robot[n].ip,1,get_val(n,robot[n].ip,1) ^ get_val(n,robot[n].ip,2));
+                executed++;
+                break;
+
+            case 6: //(*NOT*)
+                put_val(n,robot[n].ip,1,!(get_val(n,robot[n].ip,1)));
+                executed++;
+                break;
+
+            case 7: //(*MPY*)
+                put_val(n,ip,1,get_val(n,robot[n].ip,1)*get_val(n,robot[n].ip,2));
+                time_used= 10;
+                executed++;
+                break;
+
+            case 8: //(*DIV*)
+                j= get_val(n,robot[n].ip,2);
+                if (j!=0)
+                {
+                    put_val(n,robot[n].ip,1,get_val(n,robot[n].ip,1) div j);
+                }
+                else
+                {
+                    robot_error(n,8,"");
+                }
+                time_used= 10;
+                executed++;
+                break;
+
+            case 9: //(*MOD*)
+                j= get_val(n,robot[n].ip,2);
+                if (j!=0)
+                {
+                    put_val(n,robot[n].ip,1,get_val(n,robot[n].ip,1) mod j)
+                }
+                else
+                {
+                    robot_error(n,8,"");
+                }
+                time_used= 10;
+            executed++;
+            break;
+
+            case 10: //(*RET*)
+                ip= pop(n);
+                if ((robot[n].ip<0) || (robot[n].ip>robot[n].plen))
+                {
+                    robot_error(n,7,cstr(ip));
+                }
+                executed++;
+                break;
+
+            case 11: //(*GSB*)
+                loc= find_label(n,get_val(n,robot[n].ip,1),robot[n].code[ip].op[max_op] shr (1*4));
+                if (loc>=0)
+                {
+                    push(n,ip);
+                    inc_ip= false;
+                    robot[n].ip= loc;
+                }
+                else
+                {
+                    robot_error(n,2,cstr(get_val(n,robot[n].ip,1)));
+                }
+                executed++;
+                break;
+
+            case 12: //(*JMP*)
+                jump(n,1,inc_ip);
+                executed++;
+                break;
+
+            case 13: //(*JLS,JB*)
+                if (robot[n].ram[64] && 2>0)
+                {
+                    jump(n,1,inc_ip);
+                }
+
+                time_used= 0;
+                executed++;
+                break;
+
+            case 14: //(*JGR,JA*)
+                if (robot[n].ram[64] && 4>0)
+                {
+                    jump(n,1,inc_ip);
+                }
+
+                time_used= 0;
+                executed++;
+                break;
+
+            case 15: //(*JNE*)
+                if (robot[n].ram[64] && 1==0)
+                    jump(n,1,inc_ip);
+                time_used= 0;
+                executed++;
+                break;
+
+            case 16: //(*JEQ,JE*)
+                if (robot[n].ram[64] && 1>0)
+                {
+                    jump(n,1,inc_ip);
+                }
+
+                time_used= 0;
+                executed++;
+                break;
+
+            case 17: //(*SWAP, XCHG*)
+                robot[n].ram[4]= get_val(n,robot[n].ip,1);
+                put_val(n,robot[n].ip,1,get_val(n,robot[n].ip,2));
+                put_val(n,robot[n].ip,2,ram[4]);
+                time_used= 3;
+                executed++;
+                break;
+
+            case 18: //(*DO*)
+                ram[67]= get_
+                val(robot[n].n,ip,1);
+                executed++;
+                break;
+
+            case 19: //(*LOOP*)
+                dec(robot[n].ram[67]);
+                if (robot[n].ram[67]>0)
+                {
+                    jump(n,1,inc_ip);
+                }
+
+                executed++;
+                break;
+
+            case 20: //(*CMP*)
+                k= get_val(n,robot[n].ip,1)-get_val(n,robot[n].ip,2);
+                robot[n].ram[64]= robot[n].ram[64] && 65520;
+                if (k==0)
+                {
+                    ram[64]= robot[n].ram[64] || 1;
+                }
+                if (k<0)
+                {
+                    ram[64]= robot[n].ram[64] || 2;
+                }
+                if (k>0)
+                {
+                    robot[n].ram[64]= robot[n].ram[64] || 4;
+                }
+                if ((get_val(n,robot[n].ip,2)=0) && (k=0))
+                {
+                    robot[n].ram[64]= robot[n].ram[64] || 8;
+                }
+
+                executed++;
+                break;
+
+            case 21: //(*TEST*)
+                k = get_val(n,robot[n].ip,1) && get_val(n,robot[n].ip,2);
+                robot[n].ram[64]= robot[n].ram[64] && 65520;
+                if (k==get_val(n,robot[n].ip,2))
+                {
+                    robot[n].ram[64]= robot[n].ram[64] || 1;
+                }
+                if (k==0)
+                {
+                    robot[n].ram[64]= robot[n].ram[64] || 8;
+                }
+                executed++;
+                break;
+
+            case 22: //(*MOV, SET*)
+                put_val(n,robot[n].ip,1,get_val(n,robot[n].ip,2));
+                executed++;
+                break;
+
+            case 23: //(*LOC*)
+                put_val(n,ip,1,robot[n].code[ip].op[2]);
+                time_used= 2;
+                executed++;
+                break;
+
+            case 24: //(*GET*)
+                k= get_val(n,ip,2);
+                if ((k>=0) && (k<=max_ram))
+                {
+                    put_val(n,robot[n].ip,1,robot[n].ram[k]);
+                }
+
+                else if ((k>max_ram) && (k<=(Max_ram+1)+(((max_code+1) shl 3)-1)))  //NOTE HERE CHECK HOW TO DO SHL!!!!!!!!!!!!
+                {
+                        j= k-max_ram-1;
+                        put_val(n,robot[n].ip,1,code[j shr 2].op[j && 3]);
+                }
+                else
+                {
+                    robot_error(n,4,cstr(k));
+                }
+                time_used= 2;
+                executed++;
+                break;
+
+            case 25: //(*PUT*)
+                k = get_val(n,ip,2);
+                if ((k>=0) && (k<=max_ram))
+                {
+                    robot[n].ram[k]= get_val(n,robot[n].ip,1);
+                }
+
+                else
+                {
+                    robot_error(n,4,cstr(k));
+                }
+                time_used= 2;
+                executed++;
+                break;
+
+            case 26: //(*INT*)
+                call_int(n,get_val(n,robot[n].ip,1),time_used);
+                executed++;
+                break;
+
+            case 27: //(*IPO,IN*)
+                time_used= 4;
+                put_val(n,robot[n].ip,2,in_port(n,get_val(n,robot[n].ip,1),time_used));
+                executed++;
+                break;
+
+            case 28: //(*OPO,OUT*)
+                time_used= 4;
+                out_port(n,get_val(n,robot[n].ip,1),get_val(n,robot[n].ip,2),time_used);
+                executed++;
+                break;
+
+            case 29: //(*DEL,DELAY*)
+                time_used= get_val(n,robot[n].ip,1);
+                executed++;
+                break;
+
+            case 30: //(*PUSH*)
+                push(n,get_val(n,robot[n].ip,1));
+                executed++;
+                break;
+
+            case 31: //(*POP*)
+                put_val(n,robot[n].ip,1,pop(n));
+                executed++;
+                break;
+
+            case 32: //(*ERR*)
+                robot_error(n,get_val(n,robot[n].ip,1),"");
+                time_used= 0;
+                executed++;
+                break;
+
+            case 33: //(*INC*)
+                put_val(n,robot[n].ip,1,get_val(n,robot[n].ip,1)+1);
+                executed++;
+                break;
+
+            case 34: //(*DEC*)
+                put_val(n,robot[n].ip,1,get_val(n,robot[n].ip,1)-1);
+                executed++;
+                break;
+
+            case 35: //(*SHL*)
+                put_val(n,robot[n].ip,1,get_val(n,robot[n].ip,1) shl get_val(n,robot[n].ip,2));
+                executed++;
+                break;
+
+            case 36: //(*SHR*)
+                put_val(n,robot[n].ip,1,get_val(n,robot[n].ip,1) shr get_val(n,robot[n].ip,2));
+                executed++;
+                break;
+
+            case 37: //(*ROL*)
+                put_val(n,robot[n].ip,1,rol(get_val(n,robot[n].ip,1),get_val(n,robot[n].ip,2)));
+                executed++;
+                break;
+
+            case 38: //(*ROR*)
+                put_val(n,robot[n].ip,1,ror(get_val(n,robot[n].ip,1),get_val(n,robot[n].ip,2)));
+                executed++;
+                break;
+
+            case 39: //(*JZ*)
+                time_used= 0;
+                if (robot[n].ram[64] && 8>0)
+                {
+                    jump(n,1,inc_ip);
+                }
+
+                executed++;
+                break;
+
+            case 40: //(*JNZ*)
+                time_used= 0;
+                if (robot[n].ram[64] && 8=0)
+                {
+                    jump(n,1,inc_ip);
+                }
+
+                executed++;
+                break;
+
+            case 41: //(*JAE,JGE*)
+                if (robot[n].ram[64] && 1>0) || (robot[n].ram[64] && 4>0)
+                    jump(n,1,inc_ip);
+                time_used= 0;
+                executed++;
+                break;
+
+            case 42: //(*JBE,JLE*)
+                if ((robot[n].ram[64] && 1>0) || (robot[n].ram[64] && 2>0))
+                {
+                    jump(n,1,inc_ip);
+                }
+
+                time_used= 0;
+                executed++;
+                break;
+
+            case 43: //(*SAL*)
+                put_val(n,robot[n].ip,1,sal(get_val(n,robot[n].ip,1),get_val(n,robot[n].ip,2)));
+                executed++;
+                break;
+
+            case 44: //(*SAR*)
+                put_val(n,robot[n].ip,1,sar(get_val(n,robot[n].ip,1),get_val(n,robot[n].ip,2)));
+                executed++;
+                break;
+
+            case 45: //(*NEG*)
+                put_val(n,robot[n].ip,1,0-get_val(n,robot[n].ip,1));
+                executed++;
+                break;
+            case 46: //(*JTL*)
+                loc = get_val(n,robot[n].ip,1);
+                if ((loc>=0) && (loc<=robot[n].plen))
+                {
+                    inc_ip= false;
+                    robot[n].ip = loc;
+                }
+                else
+                {
+                    robot_error(n,2,cstr(loc));
+                }
+                break;
+            default:
+                robot_error(n,6,"");
+                break;
+        }
+    }
+    robot[n].delay_left+=time_used;
+    if (inc_ip)
+    {
+        robot[n].ip++;
+    }
+
+    if (graphix && (n==0) && (step_mode>0))
+    {
+        update_debug_window();
+    }
+
+}
+
+void init_missile(double xx, double yy, double xxv, double yyv,int dir,int s,int blast,bool ob)
+{
+    int i,k;
+    double m ;
+
+    k =-1;
+    for (i =max_missiles; i >= 0; i--)
+    {
+        if (missile[i].a==0)
+        {
+            k =i;
+        }
+    }
+    if (k>=0)
+    {
+        //with missile[k]. do
+        missile[k].source = s;
+        missile[k].x = xx;
+        missile[k].lx = missile[k].x;
+        missile[k].y = yy;
+        missile[k].ly = missile[k].y;
+        missile[k].rad = 0;
+        missile[k].lrad = 0;
+        if (ob)
+        {
+            missile[k].mult = 1.25;
+        }
+        else
+        {
+            missile[k].mult = 1;
+        }
+        if (blast>0)
+        {
+            missile[k].max_rad = blast;
+            missile[k].a = 2;
+        }
+        else
+        {
+            if ((s>=0) && (s<=num_robots))
+            {
+                missile[k].mult = missile[k].mult*(robot[s].shotstrength);
+            }
+            m = missile[k].mult;
+            if (ob)
+            {
+                m = m+0.25;
+            }
+            missile[k].mspd = missile_spd*missile[k].mult;
+            if (insane_missiles)
+            {
+                missile[k].mspd =100+(50*insanity)*missile[k].mult;
+            }
+            if ((s>=0) && (s<=num_robots))
+            {
+                robot[s].heat+=round(20*m);
+                robot[s].shots_fired++;
+                robot[s].match_shots++;
+            }
+            missile[k].a = 1;
+            missile[k].hd = dir;
+            missile[k].max_rad =mis_radius;
+//          if debug_info then
+//              begin writeln(#13,zero_pad(game_cycle,5),' F ',s,': hd=',hd,'           ');
+//          repeat until keypressed; flushkey; end;
+        }
+    }
+}
+
+
+void damage(int n,int d,bool physical)
 {
     int i,k,h,dd;
     double m;
-    if ((n<0) || (n>num_robots) || (robotarray[n].health<=0))
+    if ((n<0) || (n>num_robots) || (robot[n].health<=0))
     {
         return;
     }
 
-    if (robotarray[n].config.shield<3)
+    if (robot[n].shield<3)
     {
-        robotarray[n].shields_up =false;
+        robot[n].shields_up =false;
     }
-    //with robotarray[n]^ do
+    //with robot[n]^ do
     h =0;
-    if ((robotarray[n].shields_up) && (!physical))
+    if ((robot[n].shields_up) && (!physical))
     {
         dd =d;
-        if ((robotarray[n].old_shields) && (robotarray[n].shield>=3))
+        if ((old_shields) && (robot[n].shield>=3))
         {
             d =0;
             h =0;
         }
         else
         {
-            switch (robotarray[n].shield)
+            switch (robot[n].shield)
             {
                 case 3: d =round(dd*2/3);
                     if (d<1)
@@ -193,32 +817,32 @@ double distance(int x1, int y1, int x2, int y2)
  //       repeat until keypressed; flushkey; end;
     if (d>0)
     {
-        d =round(d*robotarray[n].damageadj);
+        d =round(d*robot[n].damageadj);
         if (d<1)
         {
             d =1;
         }
     }
 
-    robotarray[n].health -=d;
-    robotarray[n].heat+=h);
-    robotarray[n].last_damage =0;
-    if (health<=0)
+    robot[n].health -=d;
+    robot[n].heat+=h;
+    robot[n].last_damage =0;
+    if (robot[n].health<=0)
     {
-        robotarray[n].health =0;
-        update_health(n);
-        robotarray[n].heat =500;
-        update_heat(n);
-        robotarray[n].health =0;
-        robotarray[n].kill_count;
-        robotarray[n].deaths;
-        update_lives(n);
+        robot[n].health =0;
+//        update_health(n);
+        robot[n].heat =500;
+//        update_heat(n);
+        robot[n].health =0;
+        kill_count = 0;
+        robot[n].deaths = 0;
+//        update_lives(n);
  //       if graphix && timing then time_delay(10);
  //       draw_robot(n);    //replace with new removal of robot from GUI
-        robotarray[n].heat =0;
-        update_heat(n);
-        init_missile(robotarray[n].x,robotarray[n].y,0,0,0,n,blast_circle,false);
-        if (robotarray[n].overburn)
+        robot[n].heat =0;
+        //update_heat(n);       //STUFF TO DO WITH GUI!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+        init_missile(robot[n].x,robot[n].y,0,0,0,n,blast_circle,false);
+        if (robot[n].overburn)
         {
             m =1.3;
         }
@@ -228,9 +852,9 @@ double distance(int x1, int y1, int x2, int y2)
         }
         for (i =0 ; i<num_robots;i++)
         {
-            if ((i!=n) && (robotarray[i].health>0))
+            if ((i!=n) && (robot[i].health>0))
             {
-                k =round(distance(robotarray[n].x,robotarray[n].y,robotarray[i].x,robotarray[i].y));
+                k =round(distance(robot[n].x,robot[n].y,robot[i].x,robot[i].y));
                 if (k<blast_radius)
                 {
                     damage(i,round(abs(blast_radius-k)*m),false);
@@ -239,56 +863,56 @@ double distance(int x1, int y1, int x2, int y2)
         }
     }
 }
-*/
+
 
 //Awaiting more members to be added to the robot class
-/*void do_robot(int n)
+void do_robot(int n)
 {
-    int i,j,k,l,tthd;
+    int i,k,tthd;
     double heat_mult,ttx,tty;
 
     if ((n<0) || (n>max_robots))
     {
         return;
     }
-    //with robotarray[n].^ do
+    //with robot[n].^ do
     //{--time slice--}
-    robotarray[n].time_left = time_slice;
-    if ((robotarray[n].time_left>robot_time_limit) && (robotarray[n].robot_time_limit>0))
+    robot[n].time_left = time_slice;
+    if ((robot[n].time_left>robot[n].robot_time_limit) && (robot[n].robot_time_limit>0))
     {
-        robotarray[n].time_left = robotarray[n].robot_time_limit;
+        robot[n].time_left = robot[n].robot_time_limit;
     }
 
-    if ((robotarray[n].time_left>robotarray[n].max_time) && (robotarray[n].max_time>0))
+    if ((robot[n].time_left>robot[n].max_time) && (robot[n].max_time>0))
     {
-        robotarray[n].time_left=robotarray[n].max_time;
+        robot[n].time_left=robot[n].max_time;
     }
 
     executed=0;
 
    //{--execute timeslice--}
-    while ((robotarray[n].time_left>0) && (!robotarray[n].cooling) && (executed<20+time_slice) && (robotarray[n].health>0))
+    while ((robot[n].time_left>0) && (!robot[n].cooling) && (executed<20+time_slice) && (robot[n].health>0))
     {
-        if (robotarray[n].delay_left<0)
+        if (robot[n].delay_left<0)
         {
-            robotarray[n].delay_left=0;
+            robot[n].delay_left=0;
         }
-        if (robotarray[n].delay_left>0)
+        if (robot[n].delay_left>0)
         {
-            robotarray[n].delay_left--;
-            time_left--;
+            robot[n].delay_left--;
+            robot[n].time_left--;
         }
-        if ((robotarray[n].time_left>=0) && (robotarray[n].delay_left=0))
+        if ((robot[n].time_left>=0) && (robot[n].delay_left=0))
         {
             execute_instruction(n);
         }
 
-        if (robotarray[n].heat>=shutdown)
+        if (robot[n].heat>=robot[n].shutdown)
         {
-            robotarray[n].cooling = true;
-            robotarray[n].shields_up = false;
+            robot[n].cooling = true;
+            robot[n].shields_up = false;
         }
-        if (robotarray[n].heat>=500)
+        if (robot[n].heat>=500)
         {
             damage(n,1000,true);
         }
@@ -296,251 +920,251 @@ double distance(int x1, int y1, int x2, int y2)
     }
 
     //{--fix up variables--}
-    robotarray[n].thd = (robotarray[n].thd+1024) && 255;
-    robotarray[n].hd = (robotarray[n].hd+1024) && 255;
-    robotarray[n].shift = (robotarray[n].shift+1024) && 255;
-    if (robotarray[n].tspd<-75)
+    robot[n].thd = (robot[n].thd+1024) && 255;
+    robot[n].hd = (robot[n].hd+1024) && 255;
+    robot[n].shift = (robot[n].shift+1024) && 255;
+    if (robot[n].tspd<-75)
     {
-       robotarray[n].tspd = -75;
+       robot[n].tspd = -75;
     }
-    if (robotarray[n].tspd>100)
+    if (robot[n].tspd>100)
     {
-        robotarray[n].tspd = 100;
+        robot[n].tspd = 100;
     }
-    if (robotarray[n].spd<-75)
+    if (robot[n].spd<-75)
     {
-        robotarray[n].spd=-75;
+        robot[n].spd=-75;
     }
-    if (robotarray[n].spd>100)
+    if (robot[n].spd>100)
     {
-        robotarray[n].spd=100;
+        robot[n].spd=100;
     }
-    if (robotarray[n].heat<0)
+    if (robot[n].heat<0)
     {
-        robotarray[n].heat=0;
+        robot[n].heat=0;
     }
-    if (robotarray[n].last_damage<INT_MAX)
+    if (robot[n].last_damage<maxint)
     {
-        robotarray[n].last_damage++;
+        robot[n].last_damage++;
     }
-    if (robotarray[n].last_hit<INT_MAX)
+    if (robot[n].last_hit<maxint)
     {
-        robotarray[n].last_hit++;
+        robot[n].last_hit++;
     }
 
     //{--update heat--}
-    if (robotarray[n].shields_up && ((game_cycle && 3)==0))
+    if (robot[n].shields_up && ((game_cycle && 3)==0))
     {
-        robotarray[n].heat++;
+        robot[n].heat++;
     }
-    if (!robotarray[n].shields_up)
+    if (!robot[n].shields_up)
     {
-        if (robotarray[n].heat>0)
+        if (robot[n].heat>0)
         {
-            switch (robotarray[n].heatsinks)//(*heat adjustments*)
+            switch (robot[n].heatsinks)////(*heat adjustments*)
             {
                 case 5:
                     if ((game_cycle && 1)==0) //?????
                     {
-                        robotarray[n].heat--;
+                        robot[n].heat--;
                     }
                 case 4:
                     if ((game_cycle % 3)==0)
                     {
-                        robotarray[n].heat--;
+                        robot[n].heat--;
                     }
                 case 3:
                     if ((game_cycle && 3)==0)
                     {
-                        robotarray[n].heat--;
+                        robot[n].heat--;
                     }
                 case 2:
                     if ((game_cycle && 7)==0)
                     {
-                        robotarray[n].heat--;
+                        robot[n].heat--;
                     }
             }
         }
 
         else if ((game_cycle && 3)==0)
         {
-            robotarray[n].heat++;
+            robot[n].heat++;
         }
 
-        if (robotarray[n].overburn && ((game_cycle % 3)==0))
+        if (robot[n].overburn && ((game_cycle % 3)==0))
         {
-            robotarray[n].heat++;
+            robot[n].heat++;
         }
 
-        if (robotarray[n].heat>0)
+        if (robot[n].heat>0)
         {
-            robotarray[n].heat;
+            robot[n].heat--;
         }
-        if ((robotarray[n].heat>0) && (game_cycle && 7==0) && (abs(tspd)<=25))
+        if ((robot[n].heat>0) && (game_cycle && 7==0) && (abs(robot[n].tspd)<=25))
         {
-            robotarray[n].heat--;
+            robot[n].heat--;
         }
-        if ((robotarray[n].heat<=shutdown-50) || (robotarray[n].heat<=0))
+        if ((robot[n].heat<=robot[n].shutdown-50) || (robot[n].heat<=0))
         {
-            robotarray[n].cooling = false;
+            robot[n].cooling = false;
         }
     }
 
-    if (robotarray[n].cooling)
+    if (robot[n].cooling)
     {
-        robotarray[n].tspd=0;
+        robot[n].tspd=0;
     }
 
     heat_mult=1;
-    if(robotarray[n].heat>=80 && robotarray[n].heat<=99)
+    if(robot[n].heat>=80 && robot[n].heat<=99)
     {
         heat_mult=0.98;
     }
-    if(robotarray[n].heat>=100 && robotarray[n].heat<=149)
+    if(robot[n].heat>=100 && robot[n].heat<=149)
     {
         heat_mult=0.95;
     }
-    if(robotarray[n].heat>=150 && robotarray[n].heat<=199)
+    if(robot[n].heat>=150 && robot[n].heat<=199)
     {
         heat_mult=0.85;
     }
-    if(robotarray[n].heat>=200 && robotarray[n].heat<=249)
+    if(robot[n].heat>=200 && robot[n].heat<=249)
     {
         heat_mult=0.75;
     }
-    if(robotarray[n].heat>=250 && robotarray[n].heat<=INT_MAX)
+    if(robot[n].heat>=250 && robot[n].heat<=maxint)
     {
         heat_mult=0.50;
     }
 
-    if (robotarray[n].overburn)
+    if (robot[n].overburn)
     {
         heat_mult = heat_mult*1.30;
     }
-    if ((robotarray[n].heat>=475) && ((game_cycle && 3)==0))
-    {
-        damage(n,1,true)
-    }
-    else if ((robotarray[n].heat>=450) && ((game_cycle && 7)==0))
+    if ((robot[n].heat>=475) && ((game_cycle && 3)==0))
     {
         damage(n,1,true);
     }
-    else if ((robotarray[n].heat>=400) && ((game_cycle && 15)==0))
+    else if ((robot[n].heat>=450) && ((game_cycle && 7)==0))
     {
         damage(n,1,true);
     }
-    else if ((robotarray[n].heat>=350) && ((game_cycle && 31)==0))
+    else if ((robot[n].heat>=400) && ((game_cycle && 15)==0))
     {
-        then damage(n,1,true);
+        damage(n,1,true);
     }
-    else if ((robotarray[n].heat>=300) && ((game_cycle && 63)==0))
+    else if ((robot[n].heat>=350) && ((game_cycle && 31)==0))
+    {
+        damage(n,1,true);
+    }
+    else if ((robot[n].heat>=300) && ((game_cycle && 63)==0))
     {
         damage(n,1,true);
     }
 
     //{--update robot in physical world--}
     //{-acceleration-}
-    if(abs(robotarray[n].spd-robotarray[n].tspd)<=acceleration)
+    if(abs(robot[n].spd-robot[n].tspd)<=acceleration)
     {
-        robotarray[n].spd = robotarray[n].tspd;
+        robot[n].spd = robot[n].tspd;
     }
 
     else
     {
-        if( robotarray[n].tspd>robotarray[n].spd)
+        if( robot[n].tspd>robot[n].spd)
         {
-            robotarray[n].spd += robotarray[n].acceleration;
+            robot[n].spd += acceleration;
         }
         else
         {
-            robotarray[n].spd -= robotarray[n].acceleration;
+            robot[n].spd -= acceleration;
         }
     }
    //{-turning-}
-    tthd = robotarray[n].hd + robotarray[n].shift;
-    if ((abs(robotarray[n].hd-robotarray[n].thd)<=turn_rate) || (abs(robotarray[n].hd-robotarray[n].thd)>=256-turn_rate))
+    tthd = robot[n].hd + robot[n].shift;
+    if ((abs(robot[n].hd-robot[n].thd)<=turn_rate) || (abs(robot[n].hd-robot[n].thd)>=256-turn_rate))
     {
-        robotarray[n].hd = robotarray[n].thd;
+        robot[n].hd = robot[n].thd;
     }
-    else if( robotarray[n].hd != robotarray[n].thd)
+    else if( robot[n].hd != robot[n].thd)
     {
         k = 0;
-        if (((robotarray[n].thd > robotarray[n].hd) && (abs(robotarray[n].hd-robotarray[n].thd)<=128)) ||
-                ((robotarray[n].thd<robotarray[n].hd) && (abs(robotarray[n].hd-robotarray[n].thd)>=128)))
+        if (((robot[n].thd > robot[n].hd) && (abs(robot[n].hd-robot[n].thd)<=128)) ||
+                ((robot[n].thd<robot[n].hd) && (abs(robot[n].hd-robot[n].thd)>=128)))
         {
             k = 1;
         }
         if (k == 1)
         {
-            hd =(hd+robotarray[n].turn_rate) && 255;
+            robot[n].hd =(robot[n].hd+turn_rate) && 255;
         }
         else
         {
-            hd = (hd+256-robotarray[n].turn_rate) && 255;
+            robot[n].hd = (robot[n].hd+256-turn_rate) && 255;
         }
     }
-    robotarray[n].hd = robotarray[n].hd && 255;
-    if(keepshift)
+    robot[n].hd = robot[n].hd && 255;
+    if(robot[n].keepshift)
     {
-        shift = (tthd-hd+1024) && 255;
+        robot[n].shift = (tthd-robot[n].hd+1024) && 255;
     }
 
     //{-moving-}
-    speed = robotarray[n].spd/100*(max_vel*heat_mult*speedadj);
-    xv = sint[hd]*speed;
-    yv =-cost[hd]*speed;
-    if ((hd==0) || (hd==128))
+    robot[n].speed = robot[n].spd/100*(max_vel*heat_mult*robot[n].speedadj);
+    robot[n].xv = sint[robot[n].hd]*robot[n].speed;
+    robot[n].yv =-cost[robot[n].hd]*robot[n].speed;
+    if ((robot[n].hd==0) || (robot[n].hd==128))
     {
-        xv = 0;
+        robot[n].xv = 0;
     }
 
-    if ((hd=64) || (hd=192))
+    if ((robot[n].hd=64) || (robot[n].hd=192))
     {
-        yv = 0;
+        robot[n].yv = 0;
     }
-    if (xv!=0)
+    if (robot[n].xv!=0)
     {
-        ttx = x+xv;
+        ttx = robot[n].x+robot[n].xv;
     }
     else
     {
-        ttx = x;
+        ttx = robot[n].x;
     }
 
-    if (yv!=0) then
+    if (robot[n].yv!=0)
     {
-        tty = y+yv;
+        tty = robot[n].y+robot[n].yv;
     }
     else
     {
-        tty = y;
+        tty = robot[n].y;
     }
 
     if ((ttx<0) || (tty<0) || (ttx>1000) || (tty>1000))
     {
-        ram[8]++;
-        tspd=0;
-        if (abs(speed)>=max_vel/2)
+        robot[n].ram[8]++;
+        robot[n].tspd=0;
+        if (abs(robot[n].speed)>=max_vel/2)
         {
             damage(n,1,true);
         }
-        spd=0;
+        robot[n].spd=0;
         //{ttx=x; tty=y;}
     }
 
     for (i =0; i < num_robots;i++)
     {
-        if ((i!=n) && (robotarray[i].armor>0) && (distance(ttx,tty,robotarray[i].x,robotarray[i].y)<crash_range))
+        if ((i!=n) && (robot[i].health>0) && (distance(ttx,tty,robot[i].x,robot[i].y)<crash_range))
         {
-            tspd=0;
-            spd=0;
-            ttx=x;
-            tty=y;
-            robotarray[i].tspd=0;
-            robotarray[i].spd=0;
-            ram[8]++;
-            robotarray[i].ram++;
-            if (abs(speed)>=max_vel/2)
+            robot[n].tspd=0;
+            robot[n].spd=0;
+            ttx=robot[n].x;
+            tty=robot[n].y;
+            robot[i].tspd=0;
+            robot[i].spd=0;
+            robot[n].ram[8]++;
+            robot[i].ram[8]++;
+            if (abs(robot[n].speed)>=max_vel/2)
             {
                 damage(n,1,true);
                 damage(i,1,true);
@@ -564,47 +1188,47 @@ double distance(int x1, int y1, int x2, int y2)
     {
         tty=1000;
     }
-    meters = meters+distance(robotarray[n].x,robotarray[n].y,ttx,tty);
-    if (meters>=maxint)
+    robot[n].meters = robot[n].meters+distance(robot[n].x,robot[n].y,ttx,tty);
+    if (robot[n].meters>=maxint)
     {
-        meters = meters-maxint;
+        robot[n].meters = robot[n].meters-maxint;
     }
 
-    ram[9]=trunc(meters);
-    robotarray[n].x=ttx;
-    robotarray[n].y=tty;
+    robot[n].ram[9]=trunc(robot[n].meters);
+    robot[n].x=ttx;
+    robot[n].y=tty;
 
    //{--draw robot--}
-   if (robotarray[n].health<0)
+   if (robot[n].health<0)
    {
-       robotarray[n].health = 0;
+       robot[n].health = 0;
    }
 
-   if (robotarray[n].heat<0)
+   if (robot[n].heat<0)
    {
-       robotarray[n].heat = 0;
+       robot[n].heat = 0;
    }
    if (graphix)
    {
-        if (robotarray[n].health!=larmor)
+        if (robot[n].health!=robot[n].larmor)
         {
-            update_armor(n);
+            //update_armor(n);                                                  //UPDATE THE GUI TO MATCH!!!!
         }
 
-        if (heat / 5.0 !=lheat / 5.0)
+        if (robot[n].heat / 5.0 !=robot[n].lheat / 5.0)
         {
-            update_heat(n);
+            //update_heat(n);                                               //UPDATE THE GUI TO MATCH!!!!
         }
-        draw_robot(n);
+        //draw_robot(n);                                                    //UPDATE THE GUI TO MATCH!!!!
    }
 
-   lheat = heat;
-   larmor = armor;
+   robot[n].lheat = robot[n].heat;
+   robot[n].larmor = robot[n].health;
 
    //{--Cycle complete, inc counter--}
-   cycles_lived++;
+   robot[n].cycles_lived++;
 }
-*/
+
 
 //Displays an error if it occurs taking in a string and prints it accordingly.
 //It is just used for debugging.
@@ -684,7 +1308,7 @@ void init()
     game_cycle = 0;
     game_delay = default_delay;
     time_slice = default_slice;
-/*    for (int i = 0; i < max_missiles;i++)
+    for (int i = 0; i < max_missiles;i++)
     {
         missile[i].a = 0;
         missile[i].source = -1;
@@ -694,7 +1318,7 @@ void init()
         missile[i].ly = 0;
         missile[i].mult = 1;
     }
-*/
+
     registered = false;
     reg_name = "Unregistered";
     reg_num = 65535;
@@ -732,7 +1356,7 @@ void init()
     {
         for (int i = 0; i<num_robots; i++)     //check what this is
         {
- //           robotarray[i].errorlog = robotarray[i].base_name(fn)+'.ERR';
+//            robot[i].errorlog = robot[i].base_name(robot[i].fn)+".ERR";
         }
     }
 
@@ -795,7 +1419,7 @@ void init()
     //{--Just to avoid floating pointers--}
     for ( int i = 0; i<max_robots ;i++)
     {
-//        robotarray[i] = new Robot(/*Whatever we want to use to make a placeholder*/);
+        robot[i] = Robot();
     }
 
     srand((unsigned)time(0));
