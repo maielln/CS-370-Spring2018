@@ -104,10 +104,14 @@ double sint[256],cost[256];
 //string rtrim(s1 string);
 //string btrim(string s1);
 double distance(int x1, int y1, int x2, int y2);
-//void damage(int n,int d,bool physical);
-//void do_robot(int n)
+void damage(int n,int d,bool physical);
+void robot_error(int n,int i,string ov);
+void do_robot(int n);
 void prog_error(int n, string ss);
-//void init_missile(double xx, double yy, double xxv, double yyv,int dir,int s,int blast,bool ob);
+void execute_instruction(int n);
+void init_missile(double xx, double yy, double xxv, double yyv,int dir,int s,int blast,bool ob);
+string addrear(string b,int l);
+string mnemonic(int n,int m);
 
 /*string ltrim(string s1)
 {
@@ -133,9 +137,257 @@ string btrim(string s1)
 }
 */
 
+string operand(int n,int m)
+{
+
+    string s;
+    s = n;
+
+    switch (m && 7)
+    {
+        case 1:s = "@"+s;
+            break;
+        case 12:s = ":"+s;
+            break;
+        case 13:s = "$"+s;
+            break;
+        case 14:s = "!"+s;
+            break;
+        default: s = n;
+            break;
+    }
+    if (m && 8>0)
+    {
+        s = "["+s+"]";
+    }
+    return s;
+}
+
+string mnemonic(int n,int m)
+{
+    string s;
+    s = n;
+    if (m==0)
+    {
+        switch (n)
+        {
+            case 0:s="NOP";
+                break;
+            case 1:s="ADD";
+                break;
+            case 2:s="SUB";
+                break;
+            case 3:s="OR";
+                break;
+            case 4:s="AND";
+                break;
+            case 5:s="XOR";
+                break;
+            case 6:s="NOT";
+                break;
+            case 7:s="MPY";
+                break;
+            case 8:s="DIV";
+                break;
+            case 9:s="MOD";
+                break;
+            case 10:s="RET";
+                break;
+            case 11:s="CALL";
+                break;
+            case 12:s="JMP";
+                break;
+            case 13:s="JLS";
+            break;
+            case 14:s="JGR";
+                break;
+            case 15:s="JNE";
+                break;
+            case 16:s="JE";
+                break;
+            case 17:s="SWAP";
+                break;
+            case 18:s="DO";
+                break;
+            case 19:s="LOOP";
+                break;
+            case 20:s="CMP";
+                break;
+            case 21:s="TEST";
+                break;
+            case 22:s="MOV";
+                break;
+            case 23:s="LOC";
+                break;
+            case 24:s="GET";
+                break;
+            case 25:s="PUT";
+                break;
+            case 26:s="INT";
+                break;
+            case 27:s="IPO";
+                break;
+            case 28:s="OPO";
+                break;
+            case 29:s="DELAY";
+                break;
+            case 30:s="PUSH";
+                break;
+            case 31:s="POP";
+                break;
+            case 32:s="ERR";
+                break;
+            case 33:s="INC";
+                break;
+            case 34:s="DEC";
+                break;
+            case 35:s="SHL";
+                break;
+            case 36:s="SHR";
+                break;
+            case 37:s="ROL";
+                break;
+            case 38:s="ROR";
+                break;
+            case 39:s="JZ";
+                break;
+            case 40:s="JNZ";
+                break;
+            case 41:s="JGE";
+                break;
+            case 42:s="JLE";
+                break;
+            case 43:s="SAL";
+                break;
+            case 44:s="SAR";
+                break;
+            case 45:s="NEG";
+                break;
+            case 46:s="JTL";
+                break;
+            default: s="XXX";
+                break;
+        }
+    }
+    else
+    {
+        s = operand(n,m);
+    }
+
+    return s;
+}
+
+string addrear(string b,int l)
+{
+    while (b.length()< l)
+    {
+        b = b+' ';
+    }
+    return b;
+}
+
 double distance(int x1, int y1, int x2, int y2)
 {
     return pow((pow(x2-x1,2) + pow(y2-y1,2)),.5);
+}
+
+void log_error(int n,int i,string ov)
+{
+    int j,k;
+    string s;
+    if (!logging_errors)
+    {
+        return;
+    }
+    //with robot[n]^ do
+    switch (i)
+    {
+        case 1:s="Stack full - Too many CALLs?";
+            break;
+        case 2:s="Label not found. Hmmm.";
+            break;
+        case 3:s="Can""t assign value - Tisk tisk.";
+            break;
+        case 4:s="Illegal memory reference";
+            break;
+        case 5:s="Stack empty - Too many RETs?";
+            break;
+        case 6:s="Illegal instruction. How bizarre.";
+            break;
+        case 7:s="Return out of range - Woops!";
+            break;
+        case 8:s="Divide by zero";
+            break;
+        case 9:s="Unresolved !label. WTF?";
+            break;
+        case 10:s="Invalid Interrupt Call";
+            break;
+        case 11:s="Invalid Port Access";
+            break;
+        case 12:s="Com Queue empty";
+            break;
+        case 13:s="No mine-layer, silly.";
+            break;
+        case 14:s="No mines left";
+            break;
+        case 15:s="No shield installed - Arm the photon torpedoes instead. :-)";
+            break;
+        case 16:s="Invalid Microcode in instruction.";
+            break;
+        default: s="Unkown error";
+            break;
+    }
+
+    cout<<robot[n].errorlog<<"<"<<i<<"> "<<s<<" (Line #"<<robot[n].ip<<") [Cycle: "<<game_cycle<<", Match: "<<played<<"/"<<matches<<"]"<<endl;
+    cout<<robot[n].errorlog<<" "<<mnemonic(robot[n].code[robot[n].ip].op[0],robot[n].code[robot[n].ip].op[3] && 15)<<"  "<<
+                      operand(robot[n].code[robot[n].ip].op[1]<<(robot[n].code[robot[n].ip].op[3]<<4) && 15)<<", "<<
+                      operand(robot[n].code[robot[n].ip].op[2]<<(robot[n].code[robot[n].ip].op[3]<<8) && 15));
+    if (ov!="")
+    {
+        cout<<robot[n].errorlog<<"    (Values: "<<ov<<")"<<endl;
+    }
+    else
+    {
+        cout<<robot[n].errorlog<<endl;
+    }
+    cout<<robot[n].errorlog<<" AX="<<addrear((string)(robot[n].ram[65])+",",7);
+    cout<<robot[n].errorlog<<" BX="<<addrear((string)(robot[n].ram[66])+",",7);
+    cout<<robot[n].errorlog<<" CX="<<addrear((string)(robot[n].ram[67])+",",7);
+    cout<<robot[n].errorlog<<" DX="<<addrear((string)(robot[n].ram[68])+",",7);
+    cout<<robot[n].errorlog<<" EX="<<addrear((string)(robot[n].ram[69])+",",7);
+    cout<<robot[n].errorlog<<" FX="<<addrear((string)(robot[n].ram[70])+",",7);
+    cout<<robot[n].errorlog<<" Flags="<<robot[n].ram[64]<<endl;
+    cout<<robot[n].errorlog<<" AX="<<addrear(robot[n].ram[65]+",",7);
+    cout<<robot[n].errorlog<<" BX="<<addrear(robot[n].ram[66]+",",7);
+    cout<<robot[n].errorlog<<" CX="<<addrear(robot[n].ram[67]+",",7);
+    cout<<robot[n].errorlog<<" DX="<<addrear(robot[n].ram[68]+",",7);
+    cout<<robot[n].errorlog<<" EX="<<addrear(robot[n].ram[69]+",",7);
+    cout<<robot[n].errorlog<<" FX="<<addrear(robot[n].ram[70]+",",7);
+    cout<<robot[n].errorlog<<" Flags="<<robot[n].ram[64]<<endl;
+    cout<<robot[n].errorlog<<endl;
+}
+
+void robot_error(int n,int i,string ov)
+{
+    if (graph_check(n) && (step_mode<=0))
+    //with robot[n]. do
+    {
+        if (stats_mode==0)
+        {
+/*            robot_graph(n);
+            setfillstyle(1,0);
+            bar(66,56,154,64);
+            setcolor(robot_color(n));
+            outtextxy(66,56,addrear((string)(i),7)+hex(i));
+            chirp;
+*/
+        }
+        if (logging_errors)
+        {
+            log_error(n,i,ov);
+        }
+        robot[n].error_count++;
+    }
 }
 
 void execute_instruction(int n)
@@ -144,7 +396,6 @@ void execute_instruction(int n)
     int time_used,loc;
     bool inc_ip;
 
-    char c;
 
     //with robot[n]^ do
 
@@ -157,7 +408,7 @@ void execute_instruction(int n)
     time_used= 1;
     inc_ip= true;
     loc= 0;
-    if ((robot[n].ip>plen) || (robot[n].ip<0))
+    if ((robot[n].ip>robot[n].plen) || (robot[n].ip<0))
     {
         robot[n].ip= 0;
     }
@@ -165,7 +416,7 @@ void execute_instruction(int n)
     if (invalid_microcode(n,robot[n].ip))
     {
         time_used= 1;
-        robot_error(n,16,hex(code[robot[n].ip].op[max_op]));
+        robot_error(n,16,hex(robot[n].code[robot[n].ip].op[max_op]));
     }
     else
     {
@@ -174,7 +425,7 @@ void execute_instruction(int n)
             step_count++;
             update_cycle_window();
             update_debug_window();
-            if ((step_count mod step_mode)==0)
+            if ((step_count % step_mode)==0)
             {
                 step_loop= true;
             }
@@ -183,43 +434,44 @@ void execute_instruction(int n)
                 step_loop= false;
             }
 
-            while (step_loop && (!(quit || gameover || bout_over)))
+            while (step_loop && (!(quit || gameover() || bout_over)))
             {
                 if (keypressed) //with robot[0]^ do
                 {
-                    c= upcase(readkey);
-                    case c of
-                        case 'X':
+                    const char c= upcase(readkey);
+                    switch (c)
+                    {
+                        case 88:
                             temp_mode= step_mode;
                             step_mode= 0;
                             step_loop= false;
-                            close_debug_window;
+                            close_debug_window();
                             break;
-                        case ' ':
+                        case 32:
                             step_count= 0;
                             step_loop= false;
                             break;
-                        case '1':
-                        case '2':
-                        case '3':
-                        case '4':
-                        case '5':
-                        case '6':
-                        case '7':
-                        case '8':
-                        case '9':
+                        case 49:
+                        case 50:
+                        case 51:
+                        case 52:
+                        case 53:
+                        case 54:
+                        case 55:
+                        case 56:
+                        case 57:
                             step_mode= value(c);
                             step_count= 0;
                             step_loop= false;
                             break;
-                        case '0':
+                        case 48:
                             step_mode= 10;
                             step_count= 0;
                             step_loop= false;
                             break;
-                        case '-':
-                        case '_':
-                            if (mem_watch>0)
+                        case 45:
+                        case 95:
+                            if (robot[n].mem_watch>0)
                             {
                                 setcolor(0);
                                 for (i= 0; i < 9;i++)
@@ -230,8 +482,8 @@ void execute_instruction(int n)
                                     update_debug_memory();
                             }
                             break;
-                        case '+':
-                        case '=':
+                        case 43:
+                        case 61:
                             if (mem_watch<1014)
                             {
                                 setcolor(0);
@@ -243,8 +495,8 @@ void execute_instruction(int n)
                                 update_debug_memory();
                             }
                             break;
-                        case '[':
-                        case '{':
+                        case 91:
+                        case 123:
                             if (mem_watch>0)
                             {
                                 setcolor(0);
@@ -262,9 +514,9 @@ void execute_instruction(int n)
                             }
 
                         break;
-                        case ']':
-                        case '}':
-                            if mem_watch<1014 then
+                        case 93:
+                        case 125:
+                            if (mem_watch<1014)
                             {
                                 setcolor(0);
                                 for (i= 0; i < 9;i++)
@@ -280,20 +532,21 @@ void execute_instruction(int n)
                                 update_debug_memory();
                             }
                             break;
-                        case 'G':
+                        case 71:
                             toggle_graphix();
                             temp_mode= step_mode;
                             step_mode= 0;
                             step_loop= false;
                             break;
-                        default process_keypress(c);
+                        default: process_keypress(c);
+                    }
                 }
             }
         }
     }
 
 
-    if (! (((code[robot[n].ip].op[max_op] && 7) > 0)&& ( code[robot[n].ip].op[max_op]<1)))
+    if (! (((robot[n].code[robot[n].ip].op[max_op] && 7) > 0)&& ( robot[n].code[robot[n].ip].op[max_op]<1)))
     {
         time_used= 0;
     }
@@ -336,7 +589,7 @@ void execute_instruction(int n)
                 break;
 
             case 7: //(*MPY*)
-                put_val(n,ip,1,get_val(n,robot[n].ip,1)*get_val(n,robot[n].ip,2));
+                put_val(n,robot[n].ip,1,get_val(n,robot[n].ip,1)*get_val(n,robot[n].ip,2));
                 time_used= 10;
                 executed++;
                 break;
@@ -359,7 +612,7 @@ void execute_instruction(int n)
                 j= get_val(n,robot[n].ip,2);
                 if (j!=0)
                 {
-                    put_val(n,robot[n].ip,1,get_val(n,robot[n].ip,1) mod j)
+                    put_val(n,robot[n].ip,1,get_val(n,robot[n].ip,1) % j)
                 }
                 else
                 {
@@ -373,13 +626,13 @@ void execute_instruction(int n)
                 ip= pop(n);
                 if ((robot[n].ip<0) || (robot[n].ip>robot[n].plen))
                 {
-                    robot_error(n,7,cstr(ip));
+                    robot_error(n,7,(string)(ip));
                 }
                 executed++;
                 break;
 
             case 11: //(*GSB*)
-                loc= find_label(n,get_val(n,robot[n].ip,1),robot[n].code[ip].op[max_op] shr (1*4));
+                loc= find_label(n,get_val(n,robot[n].ip,1),robot[n].code[ip].op[max_op]<<(1*4));
                 if (loc>=0)
                 {
                     push(n,ip);
@@ -388,7 +641,7 @@ void execute_instruction(int n)
                 }
                 else
                 {
-                    robot_error(n,2,cstr(get_val(n,robot[n].ip,1)));
+                    robot_error(n,2,(string)(get_val(n,robot[n].ip,1)));
                 }
                 executed++;
                 break;
@@ -438,19 +691,18 @@ void execute_instruction(int n)
             case 17: //(*SWAP, XCHG*)
                 robot[n].ram[4]= get_val(n,robot[n].ip,1);
                 put_val(n,robot[n].ip,1,get_val(n,robot[n].ip,2));
-                put_val(n,robot[n].ip,2,ram[4]);
+                put_val(n,robot[n].ip,2,robot[n].ram[4]);
                 time_used= 3;
                 executed++;
                 break;
 
             case 18: //(*DO*)
-                ram[67]= get_
-                val(robot[n].n,ip,1);
+                ram[67]= get_val(robot[n].n,ip,1);
                 executed++;
                 break;
 
             case 19: //(*LOOP*)
-                dec(robot[n].ram[67]);
+                robot[n].ram[67]--;
                 if (robot[n].ram[67]>0)
                 {
                     jump(n,1,inc_ip);
@@ -514,14 +766,14 @@ void execute_instruction(int n)
                     put_val(n,robot[n].ip,1,robot[n].ram[k]);
                 }
 
-                else if ((k>max_ram) && (k<=(Max_ram+1)+(((max_code+1) shl 3)-1)))  //NOTE HERE CHECK HOW TO DO SHL!!!!!!!!!!!!
+                else if ((k>max_ram) && (k<=(max_ram+1)+(((max_code+1) >> 3)-1)))  //NOTE HERE CHECK HOW TO DO SHL!!!!!!!!!!!!
                 {
                         j= k-max_ram-1;
-                        put_val(n,robot[n].ip,1,code[j shr 2].op[j && 3]);
+                        put_val(n,robot[n].ip,1,robot[n].code[j << 2].op[j && 3]);
                 }
                 else
                 {
-                    robot_error(n,4,cstr(k));
+                    robot_error(n,4,(string)(k));
                 }
                 time_used= 2;
                 executed++;
@@ -536,7 +788,7 @@ void execute_instruction(int n)
 
                 else
                 {
-                    robot_error(n,4,cstr(k));
+                    robot_error(n,4,(string)(k));
                 }
                 time_used= 2;
                 executed++;
@@ -591,12 +843,12 @@ void execute_instruction(int n)
                 break;
 
             case 35: //(*SHL*)
-                put_val(n,robot[n].ip,1,get_val(n,robot[n].ip,1) shl get_val(n,robot[n].ip,2));
+                put_val(n,robot[n].ip,1,get_val(n,robot[n].ip,1)>>get_val(n,robot[n].ip,2));
                 executed++;
                 break;
 
             case 36: //(*SHR*)
-                put_val(n,robot[n].ip,1,get_val(n,robot[n].ip,1) shr get_val(n,robot[n].ip,2));
+                put_val(n,robot[n].ip,1,get_val(n,robot[n].ip,1)<<get_val(n,robot[n].ip,2));
                 executed++;
                 break;
 
@@ -670,7 +922,7 @@ void execute_instruction(int n)
                 }
                 else
                 {
-                    robot_error(n,2,cstr(loc));
+                    robot_error(n,2,(string)(loc));
                 }
                 break;
             default:
