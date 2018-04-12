@@ -112,6 +112,7 @@ void execute_instruction(int n);
 void init_missile(double xx, double yy, double xxv, double yyv,int dir,int s,int blast,bool ob);
 string addrear(string b,int l);
 string mnemonic(int n,int m);
+string operand(int n,int m);
 
 /*string ltrim(string s1)
 {
