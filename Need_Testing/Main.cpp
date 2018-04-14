@@ -113,6 +113,20 @@ void init_missile(double xx, double yy, double xxv, double yyv,int dir,int s,int
 string addrear(string b,int l);
 string mnemonic(int n,int m);
 string operand(int n,int m);
+bool graph_check(int n);
+bool invalid_microcode(int n,int ip);
+int max_shown();
+void update_debug_window();
+void update_debug_system();
+void update_debug_registers();
+void update_debug_flags();
+void update_debug_memory();
+void update_debug_code();
+void update_debug_window();
+int rol(int n,int k);
+int ror(int n,int k);
+int sal(int n,int k);
+int sar(int n,int k);
 
 /*string ltrim(string s1)
 {
@@ -140,11 +154,10 @@ string btrim(string s1)
 
 string operand(int n,int m)
 {
-
     string s;
     s = n;
 
-    switch (m && 7)
+    switch (m & 7)
     {
         case 1:s = "@"+s;
             break;
@@ -162,6 +175,113 @@ string operand(int n,int m)
         s = "["+s+"]";
     }
     return s;
+}
+
+int rol(int n,int k)
+{
+/*  asm                     //THE NEXT FEW FUNCTIONS NEED TO KNOW HOW TO WORK WITH ASSEMBLY!!!!!
+    cld
+  mov   cx,     k
+  rep   rol     n,      1
+*/
+ return n;
+}
+
+int ror(int n,int k)
+{
+/*    asm
+    cld
+    mov   cx,     k
+    rep   ror     n,      1
+    end;
+*/
+    return n;
+}
+
+int sal(int n,int k)
+{
+/*    asm
+    cld
+    mov   cx,     k
+    cmp   cx,     0
+    jle   @2
+    @1:
+    sal   n,      1
+    loop  @1
+    @2:
+*/
+    return n;
+}
+
+int sar(int n,int k)
+{
+/*    asm
+    cld
+    mov   cx,     k
+    cmp   cx,     0
+    jle   @2
+    @1:
+    sar   n,      1
+    loop  @1
+    @2:
+*/
+    return n;
+}
+
+void update_debug_bars()
+{
+    //THE FOLLOWING COUPLE FUNCTIONS ARE SHELLS TO BE FILLED OUT BY GUI PEOPLE
+}
+
+void update_debug_system()
+{
+
+}
+
+void update_debug_registers()
+{
+
+}
+
+void update_debug_flags()
+{
+
+}
+
+void update_debug_memory()
+{
+
+}
+
+void update_debug_code()
+{
+
+}
+
+void update_debug_window()
+{
+    if (graphix && (step_mode>0))
+    {
+
+        //{armour + heat}
+        update_debug_bars();
+
+        //{system variables}
+        update_debug_system();
+
+        //{registers}
+        update_debug_registers();
+
+        //{flag register}
+        update_debug_flags();
+
+        //{memory}
+        update_debug_memory();
+
+        //{code}
+        update_debug_code();
+
+    }
 }
 
 string mnemonic(int n,int m)
@@ -280,7 +400,7 @@ string mnemonic(int n,int m)
 
 string addrear(string b,int l)
 {
-    while (b.length()< l)
+    while ((int)(b.length())< l)
     {
         b = b+' ';
     }
@@ -292,9 +412,47 @@ double distance(int x1, int y1, int x2, int y2)
     return pow((pow(x2-x1,2) + pow(y2-y1,2)),.5);
 }
 
+int max_shown()
+{
+    int max_show = 0;
+    switch (stats_mode)
+    {
+        case 1:max_show = 12;
+        case 2:max_show = 32;
+        default: max_show =6;
+    }
+    return max_show;
+}
+
+bool invalid_microcode(int n,int ip)
+{
+    bool invalid;
+    int i,k;
+    invalid = false;
+    for( i = 0;i < 2; i++)
+    {
+        k = (robot[n].code[ip].op[max_op] >> (i << 2)) & 7;
+        if (!((k == 0) || (k == 1) || (k ==2) || (k ==4)))
+        {
+            invalid = true;
+        }
+    }
+    return invalid;
+}
+
+bool graph_check(int n)
+{
+    bool ok;
+    ok = true;
+    if ((!graphix) || (n<0) || (n>num_robots) || (n>=max_shown()))
+    {
+        ok = false;
+    }
+    return ok;
+}
+
 void log_error(int n,int i,string ov)
 {
-    int j,k;
     string s;
     if (!logging_errors)
     {
@@ -340,9 +498,9 @@ void log_error(int n,int i,string ov)
     }
 
     cout<<robot[n].errorlog<<"<"<<i<<"> "<<s<<" (Line #"<<robot[n].ip<<") [Cycle: "<<game_cycle<<", Match: "<<played<<"/"<<matches<<"]"<<endl;
-    cout<<robot[n].errorlog<<" "<<mnemonic(robot[n].code[robot[n].ip].op[0],robot[n].code[robot[n].ip].op[3] && 15)<<"  "<<
-                      operand(robot[n].code[robot[n].ip].op[1]<<(robot[n].code[robot[n].ip].op[3]<<4) && 15)<<", "<<
-                      operand(robot[n].code[robot[n].ip].op[2]<<(robot[n].code[robot[n].ip].op[3]<<8) && 15));
+    cout<<robot[n].errorlog<<" "<<mnemonic(robot[n].code[robot[n].ip].op[0],robot[n].code[robot[n].ip].op[3] & 15)<<"  "<<
+                      operand(robot[n].code[robot[n].ip].op[1]<<(robot[n].code[robot[n].ip].op[3]<<4) & 15)<<", "<<
+                      operand(robot[n].code[robot[n].ip].op[2]<<(robot[n].code[robot[n].ip].op[3]<<8) & 15));
     if (ov!="")
     {
         cout<<robot[n].errorlog<<"    (Values: "<<ov<<")"<<endl;
@@ -351,12 +509,12 @@ void log_error(int n,int i,string ov)
     {
         cout<<robot[n].errorlog<<endl;
     }
-    cout<<robot[n].errorlog<<" AX="<<addrear((string)(robot[n].ram[65])+",",7);
-    cout<<robot[n].errorlog<<" BX="<<addrear((string)(robot[n].ram[66])+",",7);
-    cout<<robot[n].errorlog<<" CX="<<addrear((string)(robot[n].ram[67])+",",7);
-    cout<<robot[n].errorlog<<" DX="<<addrear((string)(robot[n].ram[68])+",",7);
-    cout<<robot[n].errorlog<<" EX="<<addrear((string)(robot[n].ram[69])+",",7);
-    cout<<robot[n].errorlog<<" FX="<<addrear((string)(robot[n].ram[70])+",",7);
+    cout<<robot[n].errorlog<<" AX="<<addrear((robot[n].ram[65])+",",7);
+    cout<<robot[n].errorlog<<" BX="<<addrear((robot[n].ram[66])+",",7);
+    cout<<robot[n].errorlog<<" CX="<<addrear((robot[n].ram[67])+",",7);
+    cout<<robot[n].errorlog<<" DX="<<addrear((robot[n].ram[68])+",",7);
+    cout<<robot[n].errorlog<<" EX="<<addrear((robot[n].ram[69])+",",7);
+    cout<<robot[n].errorlog<<" FX="<<addrear((robot[n].ram[70])+",",7);
     cout<<robot[n].errorlog<<" Flags="<<robot[n].ram[64]<<endl;
     cout<<robot[n].errorlog<<" AX="<<addrear(robot[n].ram[65]+",",7);
     cout<<robot[n].errorlog<<" BX="<<addrear(robot[n].ram[66]+",",7);
@@ -393,7 +551,7 @@ void robot_error(int n,int i,string ov)
 
 void execute_instruction(int n)
 {
-    int i,j,k;
+    int j,k;
     int time_used,loc;
     bool inc_ip;
 
@@ -424,7 +582,7 @@ void execute_instruction(int n)
         if (graphix && (step_mode>0) && (n=0)) //{if stepping enabled...}
         {
             step_count++;
-            update_cycle_window();
+//            update_cycle_window();        //THIS FUNCTION UPDATES THE GRAPHICS IN THE GUI!!!!!!
             update_debug_window();
             if ((step_count % step_mode)==0)
             {
@@ -439,7 +597,7 @@ void execute_instruction(int n)
             {
                 if (keypressed) //with robot[0]^ do
                 {
-                    const char c= upcase(readkey);
+/*                    const char c= upcase(readkey);                //GUI STUFF TO DO LATER!!!!!
                     switch (c)
                     {
                         case 88:
@@ -540,14 +698,14 @@ void execute_instruction(int n)
                             step_loop= false;
                             break;
                         default: process_keypress(c);
-                    }
-                }
+                   }
+*/                 }
             }
         }
     }
 
 
-    if (! (((robot[n].code[robot[n].ip].op[max_op] && 7) > 0)&& ( robot[n].code[robot[n].ip].op[max_op]<1)))
+    if (! (((robot[n].code[robot[n].ip].op[max_op] & 7) > 0)&& ( robot[n].code[robot[n].ip].op[max_op]<1)))
     {
         time_used= 0;
     }
@@ -570,12 +728,12 @@ void execute_instruction(int n)
                 break;
 
             case 3: //(*OR*)
-                put_val(n,robot[n].ip,1,get_val(n,robot[n].ip,1) || get_val(n,robot[n].ip,2));
+                put_val(n,robot[n].ip,1,get_val(n,robot[n].ip,1) | get_val(n,robot[n].ip,2));
                 executed++;
                 break;
 
             case 4: //(*AND*)
-                put_val(n,robot[n].ip,1,get_val(n,robot[n].ip,1) && get_val(n,robot[n].ip,2));
+                put_val(n,robot[n].ip,1,get_val(n,robot[n].ip,1) & get_val(n,robot[n].ip,2));
                 executed++;
                 break;
 
@@ -599,7 +757,7 @@ void execute_instruction(int n)
                 j= get_val(n,robot[n].ip,2);
                 if (j!=0)
                 {
-                    put_val(n,robot[n].ip,1,get_val(n,robot[n].ip,1) div j);
+                    put_val(n,robot[n].ip,1,get_val(n,robot[n].ip,1) / j);
                 }
                 else
                 {
@@ -624,19 +782,19 @@ void execute_instruction(int n)
             break;
 
             case 10: //(*RET*)
-                ip= pop(n);
+                robot[n].ip= pop(n);
                 if ((robot[n].ip<0) || (robot[n].ip>robot[n].plen))
                 {
-                    robot_error(n,7,(string)(ip));
+                    robot_error(n,7,(robot[n].ip + ""));
                 }
                 executed++;
                 break;
 
             case 11: //(*GSB*)
-                loc= find_label(n,get_val(n,robot[n].ip,1),robot[n].code[ip].op[max_op]<<(1*4));
+                loc= find_label(n,get_val(n,robot[n].ip,1),robot[n].code[robot[n].ip].op[max_op]<<(1*4));
                 if (loc>=0)
                 {
-                    push(n,ip);
+                    push(n,robot[n].ip);
                     inc_ip= false;
                     robot[n].ip= loc;
                 }
@@ -653,7 +811,7 @@ void execute_instruction(int n)
                 break;
 
             case 13: //(*JLS,JB*)
-                if (robot[n].ram[64] && 2>0)
+                if ((robot[n].ram[64] & 2)>0)
                 {
                     jump(n,1,inc_ip);
                 }
@@ -663,7 +821,7 @@ void execute_instruction(int n)
                 break;
 
             case 14: //(*JGR,JA*)
-                if (robot[n].ram[64] && 4>0)
+                if ((robot[n].ram[64] & 4)>0)
                 {
                     jump(n,1,inc_ip);
                 }
@@ -673,14 +831,14 @@ void execute_instruction(int n)
                 break;
 
             case 15: //(*JNE*)
-                if (robot[n].ram[64] && 1==0)
+                if ((robot[n].ram[64] & 1)==0)
                     jump(n,1,inc_ip);
                 time_used= 0;
                 executed++;
                 break;
 
             case 16: //(*JEQ,JE*)
-                if (robot[n].ram[64] && 1>0)
+                if ((robot[n].ram[64] & 1)>0)
                 {
                     jump(n,1,inc_ip);
                 }
@@ -698,7 +856,7 @@ void execute_instruction(int n)
                 break;
 
             case 18: //(*DO*)
-                ram[67]= get_val(robot[n].n,ip,1);
+                robot[n].ram[67]= get_val(n,robot[n].ip,1);
                 executed++;
                 break;
 
@@ -713,38 +871,38 @@ void execute_instruction(int n)
                 break;
 
             case 20: //(*CMP*)
-                k= get_val(n,robot[n].ip,1)-get_val(n,robot[n].ip,2);
-                robot[n].ram[64]= robot[n].ram[64] && 65520;
+                k = get_val(n,robot[n].ip,1)-get_val(n,robot[n].ip,2);
+                robot[n].ram[64]= robot[n].ram[64] & 65520;
                 if (k==0)
                 {
-                    ram[64]= robot[n].ram[64] || 1;
+                    robot[n].ram[64]= robot[n].ram[64] | 1;
                 }
                 if (k<0)
                 {
-                    ram[64]= robot[n].ram[64] || 2;
+                    robot[n].ram[64]= robot[n].ram[64] | 2;
                 }
                 if (k>0)
                 {
-                    robot[n].ram[64]= robot[n].ram[64] || 4;
+                    robot[n].ram[64]= robot[n].ram[64] | 4;
                 }
                 if ((get_val(n,robot[n].ip,2)=0) && (k=0))
                 {
-                    robot[n].ram[64]= robot[n].ram[64] || 8;
+                    robot[n].ram[64]= robot[n].ram[64] | 8;
                 }
 
                 executed++;
                 break;
 
             case 21: //(*TEST*)
-                k = get_val(n,robot[n].ip,1) && get_val(n,robot[n].ip,2);
-                robot[n].ram[64]= robot[n].ram[64] && 65520;
+                k = get_val(n,robot[n].ip,1) & get_val(n,robot[n].ip,2);
+                robot[n].ram[64]= robot[n].ram[64] & 65520;
                 if (k==get_val(n,robot[n].ip,2))
                 {
-                    robot[n].ram[64]= robot[n].ram[64] || 1;
+                    robot[n].ram[64]= robot[n].ram[64] | 1;
                 }
                 if (k==0)
                 {
-                    robot[n].ram[64]= robot[n].ram[64] || 8;
+                    robot[n].ram[64]= robot[n].ram[64] | 8;
                 }
                 executed++;
                 break;
@@ -755,33 +913,33 @@ void execute_instruction(int n)
                 break;
 
             case 23: //(*LOC*)
-                put_val(n,ip,1,robot[n].code[ip].op[2]);
+                put_val(n,robot[n].ip,1,robot[n].code[robot[n].ip].op[2]);
                 time_used= 2;
                 executed++;
                 break;
 
             case 24: //(*GET*)
-                k= get_val(n,ip,2);
+                k= get_val(n,robot[n].ip,2);
                 if ((k>=0) && (k<=max_ram))
                 {
                     put_val(n,robot[n].ip,1,robot[n].ram[k]);
                 }
 
-                else if ((k>max_ram) && (k<=(max_ram+1)+(((max_code+1) >> 3)-1)))  //NOTE HERE CHECK HOW TO DO SHL!!!!!!!!!!!!
+                else if ((k>max_ram) && (k<=(max_ram+1)+(((max_code+1) >> 3)-1)))
                 {
                         j= k-max_ram-1;
-                        put_val(n,robot[n].ip,1,robot[n].code[j << 2].op[j && 3]);
+                        put_val(n,robot[n].ip,1,robot[n].code[j << 2].op[j & 3]);
                 }
                 else
                 {
-                    robot_error(n,4,(string)(k));
+                    robot_error(n,4,(k+""));
                 }
                 time_used= 2;
                 executed++;
                 break;
 
             case 25: //(*PUT*)
-                k = get_val(n,ip,2);
+                k = get_val(n,robot[n].ip,2);
                 if ((k>=0) && (k<=max_ram))
                 {
                     robot[n].ram[k]= get_val(n,robot[n].ip,1);
@@ -789,7 +947,7 @@ void execute_instruction(int n)
 
                 else
                 {
-                    robot_error(n,4,(string)(k));
+                    robot_error(n,4,(k + ""));
                 }
                 time_used= 2;
                 executed++;
@@ -865,7 +1023,7 @@ void execute_instruction(int n)
 
             case 39: //(*JZ*)
                 time_used= 0;
-                if (robot[n].ram[64] && 8>0)
+                if ((robot[n].ram[64] & 8)>0)
                 {
                     jump(n,1,inc_ip);
                 }
@@ -875,7 +1033,7 @@ void execute_instruction(int n)
 
             case 40: //(*JNZ*)
                 time_used= 0;
-                if (robot[n].ram[64] && 8=0)
+                if ((robot[n].ram[64] & 8)==0)
                 {
                     jump(n,1,inc_ip);
                 }
@@ -884,14 +1042,14 @@ void execute_instruction(int n)
                 break;
 
             case 41: //(*JAE,JGE*)
-                if (robot[n].ram[64] && 1>0) || (robot[n].ram[64] && 4>0)
+                if (((robot[n].ram[64] & 1)>0) || ((robot[n].ram[64] & 4)>0))
                     jump(n,1,inc_ip);
                 time_used= 0;
                 executed++;
                 break;
 
             case 42: //(*JBE,JLE*)
-                if ((robot[n].ram[64] && 1>0) || (robot[n].ram[64] && 2>0))
+                if (((robot[n].ram[64] & 1)>0) || ((robot[n].ram[64] & 2)>0))
                 {
                     jump(n,1,inc_ip);
                 }
@@ -923,7 +1081,8 @@ void execute_instruction(int n)
                 }
                 else
                 {
-                    robot_error(n,2,(string)(loc));
+                    string temp = loc + "";
+                    robot_error(n,2,temp);
                 }
                 break;
             default:
@@ -1173,9 +1332,9 @@ void do_robot(int n)
     }
 
     //{--fix up variables--}
-    robot[n].thd = (robot[n].thd+1024) && 255;
-    robot[n].hd = (robot[n].hd+1024) && 255;
-    robot[n].shift = (robot[n].shift+1024) && 255;
+    robot[n].thd = (robot[n].thd+1024) & 255;
+    robot[n].hd = (robot[n].hd+1024) & 255;
+    robot[n].shift = (robot[n].shift+1024) & 255;
     if (robot[n].tspd<-75)
     {
        robot[n].tspd = -75;
@@ -1206,7 +1365,7 @@ void do_robot(int n)
     }
 
     //{--update heat--}
-    if (robot[n].shields_up && ((game_cycle && 3)==0))
+    if (robot[n].shields_up && ((game_cycle & 3)==0))
     {
         robot[n].heat++;
     }
@@ -1217,7 +1376,7 @@ void do_robot(int n)
             switch (robot[n].heatsinks)////(*heat adjustments*)
             {
                 case 5:
-                    if ((game_cycle && 1)==0) //?????
+                    if ((game_cycle & 1)==0) //?????
                     {
                         robot[n].heat--;
                     }
@@ -1227,19 +1386,19 @@ void do_robot(int n)
                         robot[n].heat--;
                     }
                 case 3:
-                    if ((game_cycle && 3)==0)
+                    if ((game_cycle & 3)==0)
                     {
                         robot[n].heat--;
                     }
                 case 2:
-                    if ((game_cycle && 7)==0)
+                    if ((game_cycle & 7)==0)
                     {
                         robot[n].heat--;
                     }
             }
         }
 
-        else if ((game_cycle && 3)==0)
+        else if ((game_cycle & 3)==0)
         {
             robot[n].heat++;
         }
@@ -1253,7 +1412,7 @@ void do_robot(int n)
         {
             robot[n].heat--;
         }
-        if ((robot[n].heat>0) && (game_cycle && 7==0) && (abs(robot[n].tspd)<=25))
+        if ((robot[n].heat>0) && ((game_cycle & 7)==0) && (abs(robot[n].tspd)<=25))
         {
             robot[n].heat--;
         }
@@ -1294,23 +1453,23 @@ void do_robot(int n)
     {
         heat_mult = heat_mult*1.30;
     }
-    if ((robot[n].heat>=475) && ((game_cycle && 3)==0))
+    if ((robot[n].heat>=475) && ((game_cycle & 3)==0))
     {
         damage(n,1,true);
     }
-    else if ((robot[n].heat>=450) && ((game_cycle && 7)==0))
+    else if ((robot[n].heat>=450) && ((game_cycle & 7)==0))
     {
         damage(n,1,true);
     }
-    else if ((robot[n].heat>=400) && ((game_cycle && 15)==0))
+    else if ((robot[n].heat>=400) && ((game_cycle & 15)==0))
     {
         damage(n,1,true);
     }
-    else if ((robot[n].heat>=350) && ((game_cycle && 31)==0))
+    else if ((robot[n].heat>=350) && ((game_cycle & 31)==0))
     {
         damage(n,1,true);
     }
-    else if ((robot[n].heat>=300) && ((game_cycle && 63)==0))
+    else if ((robot[n].heat>=300) && ((game_cycle & 63)==0))
     {
         damage(n,1,true);
     }
@@ -1349,17 +1508,17 @@ void do_robot(int n)
         }
         if (k == 1)
         {
-            robot[n].hd =(robot[n].hd+turn_rate) && 255;
+            robot[n].hd =(robot[n].hd+turn_rate) & 255;
         }
         else
         {
-            robot[n].hd = (robot[n].hd+256-turn_rate) && 255;
+            robot[n].hd = (robot[n].hd+256-turn_rate) & 255;
         }
     }
-    robot[n].hd = robot[n].hd && 255;
+    robot[n].hd = robot[n].hd & 255;
     if(robot[n].keepshift)
     {
-        robot[n].shift = (tthd-robot[n].hd+1024) && 255;
+        robot[n].shift = (tthd-robot[n].hd+1024) & 255;
     }
 
     //{-moving-}
