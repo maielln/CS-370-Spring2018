@@ -127,6 +127,14 @@ int rol(int n,int k);
 int ror(int n,int k);
 int sal(int n,int k);
 int sar(int n,int k);
+bool gameover();
+int get_val(int n,int c,int o);
+int get_from_ram(int n,int i,int j);
+int find_label(int n,int l,int m);
+void put_val(int n,int c,int o,int v);
+int pop(int n);
+void push(int n,int v);
+void jump(int n,int o, bool inc_ip);
 
 /*string ltrim(string s1)
 {
@@ -398,6 +406,217 @@ string mnemonic(int n,int m)
     return s;
 }
 
+void jump(int n,int o, bool inc_ip)
+{
+    int loc;
+    //with robot[n]. do
+
+    loc = find_label(n,get_val(n,robot[n].ip,o),robot[n].code[robot[n].ip].op[max_op] >> (o*4));
+    if ((loc>=0) && (loc<=robot[n].plen))
+    {
+        inc_ip = false;
+        robot[n].ip = loc;
+    }
+    else
+    {
+        robot_error(n,2,(loc+""));
+    }
+}
+
+void push(int n,int v)
+{
+    //with robot[n]. do
+
+    if ((robot[n].ram[71] >= stack_base) && (robot[n].ram[71] < (stack_base + stack_size)))
+    {
+        robot[n].ram[robot[n].ram[71]] = v;
+        robot[n].ram[71]++;
+    }
+    else
+    {
+        robot_error(n,1,(robot[n].ram[71]+""));
+    }
+}
+
+int pop(int n)
+{
+    int k;
+
+    //with robot[n]. do
+
+    if ((robot[n].ram[71] > stack_base) && (robot[n].ram[71] <= (stack_base + stack_size)))
+    {
+        robot[n].ram[71]--;
+        k = robot[n].ram[robot[n].ram[71]];
+    }
+   else
+   {
+       robot_error(n,5,(robot[n].ram[71]+""));
+   }
+
+    return k;
+}
+
+
+void put_val(int n,int c,int o,int v)
+{
+    int i,j,k;
+
+    k = 0;
+    i = 0;
+    j = 0;
+    //with robot[n]. do
+
+    j = (robot[n].code[c].op[max_op] >> (4*o)) & 15;
+    i = robot[n].code[c].op[o];
+    if ((j & 7)==1)
+    {
+        if ((i<0) || (i>max_ram))
+        {
+            robot_error(n,4,i+"");
+        }
+
+        else
+        {
+            if ((j & 8)>0)
+            {
+                i = robot[n].ram[i];
+                if ((i<0) || (i>max_ram))
+                {
+                    robot_error(n,4,i+"");
+                }
+                else
+                {
+                    robot[n].ram[i] = v;
+                }
+            }
+            else
+            {
+                robot[n].ram[i] = v;
+            }
+        }
+    }
+    else
+    {
+        robot_error(n,3,"");
+    }
+
+
+}
+
+int find_label(int n,int l,int m)
+{
+    int i,j,k;
+    k = -1;
+    //with robot[n]. do
+
+    if (m==3)
+    {
+        robot_error(n,9,"");
+    }
+    else
+    {
+        if (m==4)
+        {
+            k = l;
+        }
+
+        else
+        {
+            for (i = robot[n].plen;  i >= 0; i--)
+            {
+                j = robot[n].code[i].op[max_op] & 15;
+                if ((j==2) && (robot[n].code[i].op[0]==l))
+                {
+                    k = i;
+                }
+            }
+        }
+    }
+
+    return k;
+}
+int get_from_ram(int n,int i,int j)
+{
+    int k,l;
+    //with robot[n]. do
+    if ((i<0) || (i>(max_ram+1)+(((max_code+1) << 3)-1)))
+    {
+       k = 0;
+       robot_error(n,4,(i+""));
+    }
+    else
+    {
+        if (i<=max_ram)
+        {
+            k = robot[n].ram[i];
+        }
+        else
+        {
+            l = i-max_ram-1;
+            k = robot[n].code[l >> 2].op[l & 3];
+        }
+    }
+
+    return k;
+}
+
+int get_val(int n,int c,int o)
+{
+    int i,j,k;
+    k = 0;
+    //with robot[n]. do
+
+    j = (robot[n].code[c].op[max_op] >> (4*o)) & 15;
+    i = robot[n].code[c].op[o];
+    if ((j & 7)==1)
+    {
+        k = get_from_ram(n,i,j);
+    }
+    else
+    {
+        k = i;
+    }
+
+    if ((j & 8)>0)
+    {
+        k = get_from_ram(n,k,j);
+    }
+
+    return k;
+}
+
+bool gameover()
+{
+    int n,k;
+
+    if ((game_cycle>=game_limit) && (game_limit>0))
+    {
+        return true;
+    }
+    if ((game_cycle & 31)== 0)
+    {
+        k = 0;
+        for (n = 0; n<num_robots;n++)
+        {
+            if (robot[n].health>0)
+            {
+                k++;
+            }
+        }
+
+        if (k<=1)
+        {
+            return true;
+        }
+        else
+        {
+            return false;
+        }
+    }
+    return false;
+}
+
 string addrear(string b,int l)
 {
     while ((int)(b.length())< l)
@@ -595,7 +814,7 @@ void execute_instruction(int n)
 
             while (step_loop && (!(quit || gameover() || bout_over)))
             {
-                if (keypressed) //with robot[0]^ do
+                if (/*keypressed FIX WITH GUI*/false) //with robot[0]^ do
                 {
 /*                    const char c= upcase(readkey);                //GUI STUFF TO DO LATER!!!!!
                     switch (c)
@@ -771,7 +990,7 @@ void execute_instruction(int n)
                 j= get_val(n,robot[n].ip,2);
                 if (j!=0)
                 {
-                    put_val(n,robot[n].ip,1,get_val(n,robot[n].ip,1) % j)
+                    put_val(n,robot[n].ip,1,get_val(n,robot[n].ip,1) % j);
                 }
                 else
                 {
@@ -800,7 +1019,7 @@ void execute_instruction(int n)
                 }
                 else
                 {
-                    robot_error(n,2,(string)(get_val(n,robot[n].ip,1)));
+                    robot_error(n,2,(get_val(n,robot[n].ip,1)+""));
                 }
                 executed++;
                 break;
@@ -885,7 +1104,7 @@ void execute_instruction(int n)
                 {
                     robot[n].ram[64]= robot[n].ram[64] | 4;
                 }
-                if ((get_val(n,robot[n].ip,2)=0) && (k=0))
+                if ((get_val(n,robot[n].ip,2)==0) && (k==0))
                 {
                     robot[n].ram[64]= robot[n].ram[64] | 8;
                 }
@@ -1166,7 +1385,7 @@ void init_missile(double xx, double yy, double xxv, double yyv,int dir,int s,int
             missile[k].max_rad =mis_radius;
 //          if debug_info then
 //              begin writeln(#13,zero_pad(game_cycle,5),' F ',s,': hd=',hd,'           ');
-//          repeat until keypressed; flushkey; end;
+//          repeat until /*keypressed FIX WITH GUI*/false; flushkey; end;
         }
     }
 }
@@ -1226,7 +1445,7 @@ void damage(int n,int d,bool physical)
     }
  //   if debug_info then
  //       begin writeln(#13,zero_pad(game_cycle,5),' D ',n,': ',health,'-',d,'=',health-d,'           ');
- //       repeat until keypressed; flushkey; end;
+ //       repeat until /*keypressed FIX WITH GUI*/false; flushkey; end;
     if (d>0)
     {
         d =round(d*robot[n].damageadj);
