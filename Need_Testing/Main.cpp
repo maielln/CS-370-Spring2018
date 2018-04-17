@@ -135,6 +135,11 @@ void put_val(int n,int c,int o,int v);
 int pop(int n);
 void push(int n,int v);
 void jump(int n,int o, bool inc_ip);
+void call_int(int n,int int_num, int time_used);
+double find_angle(double xx,double yy,double tx,double ty);
+void reset_software(int n);
+void com_transmit(int n,int chan,int data);
+int com_receive(int n);
 
 /*string ltrim(string s1)
 {
@@ -404,6 +409,314 @@ string mnemonic(int n,int m)
     }
 
     return s;
+}
+
+double find_angle(double xx,double yy,double tx,double ty)
+{
+    int v,z;
+    double q;
+    q=0;
+    v=abs(round(tx-xx));
+    if (v==0)
+    {
+        //{v=0.001;} commented out in original
+        if ((tx==xx) && (ty>yy))
+        {
+            q = pi;
+        }
+        if ((tx==xx) && (ty<yy))
+        {
+            q = 0;
+        }
+    }
+    else
+    {
+        z=abs(round(ty-yy));
+        q=abs(atan(z/v));
+        if ((tx>xx) && (ty>yy))
+        {
+            q=pi/2+q;
+        }
+        if ((tx>xx) && (ty<yy))
+        {
+            q = pi/2-q;
+        }
+        if ((tx<xx) && (ty<yy))
+        {
+            q=pi+pi/2+q;
+        }
+        if ((tx<xx) && (ty>yy))
+        {
+            q=pi+pi/2-q;
+        }
+        if ((tx=xx) && (ty>yy))
+        {
+            q=pi/2;
+        }
+        if ((tx=xx) && (ty<yy))
+        {
+            q=0;
+        }
+        if ((tx<xx) && (ty=yy))
+        {
+            q=pi+pi/2;
+        }
+        if ((tx>xx) && (ty=yy))
+        {
+            q=pi/2;
+        }
+    }
+    return q;
+}
+
+void com_transmit(int n,int chan,int data)
+{
+    int i;
+
+    for (i=0; i < num_robots; i++)
+    {
+        //with robot[i]. do
+        if ((robot[i].health > 0) && (i!=n) && (robot[i].channel==chan))
+        {
+            if ((robot[i].ram[10]<0) || (robot[i].ram[10]>max_queue))
+            {
+                robot[i].ram[10] = 0;
+            }
+            if ((robot[i].ram[11]<0) or (robot[i].ram[11]>max_queue))
+            {
+                robot[i].ram[11] = 0;
+            }
+            robot[i].ram[robot[i].ram[11]+com_queue] = data;
+            robot[i].ram[11]++;
+            if (robot[i].ram[11]>max_queue)
+            {
+                robot[i].ram[11] = 0;
+            }
+            if (robot[i].ram[11]==robot[i].ram[10])
+            {
+                robot[i].ram[10]++;
+            }
+            if (robot[i].ram[10]>max_queue)
+            {
+                robot[i].ram[10] = 0;
+            }
+        }
+    }
+}
+
+int com_receive(int n)
+{
+    int k;
+
+    k = 0;
+    //with robot[n]. do
+
+    if (robot[n].ram[10]!=robot[n].ram[11])
+    {
+        if ((robot[n].ram[10]<0) || (robot[n].ram[10]>max_queue))
+        {
+            robot[n].ram[10] = 0;
+        }
+        if ((robot[n].ram[11]<0) || (robot[n].ram[11]>max_queue))
+        {
+            robot[n].ram[11] = 0;
+        }
+        k = robot[n].ram[robot[n].ram[10]+com_queue];
+        robot[n].ram[10]++;
+        if (robot[n].ram[10]>max_queue)
+        {
+            robot[n].ram[10] = 0;
+        }
+    }
+    else
+    {
+        robot_error(n,12,"");
+    }
+
+    return k;
+}
+
+void reset_software(int n)
+{
+    int i;
+
+    //with robot[n]. do
+    for (i = 0; i < max_ram;i++)
+    {
+        robot[n].ram[i] = 0;
+    }
+    robot[n].ram[71] = 768;
+    robot[n].thd = robot[n].hd;
+    robot[n].tspd = 0;
+    robot[n].scanarc = 8;
+    robot[n].shift = 0;
+    robot[n].err = 0;
+    robot[n].overburn = false;
+    robot[n].keepshift = false;
+    robot[n].ip = 0;
+    robot[n].accuracy = 0;
+    robot[n].meters = 0;
+    robot[n].delay_left = 0;
+    robot[n].time_left = 0;
+    robot[n].shields_up = false;
+}
+
+void call_int(int n,int int_num, int time_used)
+{
+    int i,j,k;
+
+ //with robot[n]^ do
+
+    switch (int_num)
+    {
+        case 0:damage(n,1000,true);
+        case 1:
+            reset_software(n);
+            time_used = 10;
+        break;
+        case 2:
+            time_used = 5;
+            robot[n].ram[69] = round(robot[n].x);
+            robot[n].ram[70] = round(robot[n].y);
+        break;
+        case 3:
+            time_used = 2;
+            if (robot[n].ram[65]==0)
+            {
+                robot[n].keepshift = false;
+            }
+            else
+            {
+                robot[n].keepshift = true;
+            }
+
+            robot[n].ram[70] = robot[n].shift & 255;
+        break;
+        case 4:
+            if (robot[n].ram[65]==0)
+            {
+                robot[n].overburn = false;
+            }
+            else
+            {
+                robot[n].overburn = true;
+            }
+        break;
+        case 5:
+            time_used = 2;
+            robot[n].ram[70] = robot[n].transponder;
+        break;
+        case 6:
+            time_used = 2;
+            robot[n].ram[69] = game_cycle >> 16;
+            robot[n].ram[70] = game_cycle & 65535;
+        break;
+        case 7:
+            j = robot[n].ram[69];
+            k = robot[n].ram[70];
+            if (j<0)
+            {
+                j = 0;
+            }
+            if (j>1000)
+            {
+                j = 1000;
+            }
+            if (k<0)
+            {
+                k = 0;
+            }
+            if (k>1000)
+            {
+                k = 1000;
+            }
+            robot[n].ram[65] = (int)(round(find_angle(round(robot[n].x),round(robot[n].y),j,k)/pi*128+256)) & 255;
+            time_used = 32;
+        break;
+        case 8:
+            robot[n].ram[70] = robot[n].ram[5];
+            time_used = 1;
+        break;
+        case 9:
+            robot[n].ram[69] = robot[n].ram[6];
+            robot[n].ram[70] = robot[n].ram[7];
+            time_used = 2;
+        break;
+        case 10:
+            k = 0;
+            for (i = 0; i < num_robots;i++)
+            {
+                if (robot[i].health>0)
+                {
+                    k++;
+                }
+            }
+
+            robot[n].ram[68] = k;
+            robot[n].ram[69] = played;
+            robot[n].ram[70] = matches;
+            time_used = 4;
+        break;
+        case 11:
+            robot[n].ram[68] = round(robot[n].speed*100);
+            robot[n].ram[69] = robot[n].last_damage;
+            robot[n].ram[70] = robot[n].last_hit;
+            time_used = 5;
+        break;
+        case 12:
+            robot[n].ram[70] = robot[n].ram[8];
+            time_used = 1;
+        break;
+        case 13:
+            robot[n].ram[8] = 0;
+            time_used = 1;
+        break;
+        case 14:
+            com_transmit(n,robot[n].channel,robot[n].ram[65]);
+            time_used = 1;
+        break;
+        case 15:
+            if (robot[n].ram[10]!=robot[n].ram[11])
+            {
+                robot[n].ram[70] = com_receive(n);
+            }
+            else
+            {
+                robot_error(n,12,"");
+            }
+
+            time_used = 1;
+        break;
+        case 16:
+            if (robot[n].ram[11]>=robot[n].ram[10])
+            {
+                 robot[n].ram[70] = robot[n].ram[11]-robot[n].ram[10];
+            }
+
+            else
+            {
+                robot[n].ram[70] = max_queue+1-robot[n].ram[10]+robot[n].ram[11];
+            }
+            time_used = 1;
+        break;
+        case 17:
+            robot[n].ram[10] = 0;
+            robot[n].ram[11] = 0;
+            time_used = 1;
+        break;
+        case 18:
+            robot[n].ram[68] = robot[n].kills;
+            robot[n].ram[69] = robot[n].kills-robot[n].startkills;
+            robot[n].ram[70] = robot[n].deaths;
+            time_used = 3;
+        break;
+        case 19:
+                robot[n].ram[9] = 0;
+                robot[n].meters = 0;
+        break;
+        default: robot_error(n,10,int_num+"");
+    }
+
 }
 
 void jump(int n,int o, bool inc_ip)
