@@ -52,6 +52,7 @@ void check_registration();
 void viewport(int x1,int y1,int x2,int y2);
 void main_viewport();
 void make_tables();
+//FINISH FUNCTIONS BELOW HERE!!!!!!!!!!!!!!!!!!!!!!!!!!!
 int robot_color(int n);
 void box(int x1,int y1,int x2,int y2);
 void hole(int x1,int y1,int x2,int y2);
@@ -397,6 +398,46 @@ void make_tables()
     }
 }
 
+int robot_color(int n)
+{
+    int k;
+    k = 7;
+    switch (n % 14)
+    {
+        case 0:k = 10;
+            break;
+        case 1:k = 12;
+            break;
+        case 2:k = 9;
+            break;
+        case 3:k = 11;
+            break;
+        case 4:k = 13;
+            break;
+        case 5:k = 14;
+            break;
+        case 6:k = 7;
+            break;
+        case 7:k = 6;
+            break;
+        case 8:k = 2;
+            break;
+        case 9:k = 4;
+            break;
+        case 10:k = 1;
+            break;
+        case 11:k = 3;
+            break;
+        case 12:k = 5;
+            break;
+        case 13:k = 15;
+            break;
+        default: k = 15;
+            break;
+    }
+    return k;
+}
+
 double abs(double x)
 {
     if(x<0)
@@ -464,6 +505,130 @@ double find_angle(double xx,double yy,double tx,double ty)
     return q;
 }
 
+void box(int x1,int y1,int x2,int y2)    //GUI PEOPLE (Draws a box at coordinates)
+{
+
+}
+
+void hole(int x1,int y1,int x2,int y2)    //GUI PEOPLE (Don't know exactly what this does )
+{
+/*    i:integer;
+    begin
+    if not graphix then exit;
+    if x2<x1 then begin i:=x1; x1:=x2; x2:=i; end;
+    if y2<y1 then begin i:=y1; y1:=y2; y2:=i; end;
+    setfillstyle(1,0);
+    setcolor(0);
+    bar(x1,y1,x2,y2);
+    setcolor(8);
+    line(x1,y1,x2-1,y1);
+    line(x1,y1,x1,y2-1);
+    setcolor(15);
+    line(x1+1,y2,x2,y2);
+    line(x2,y1+1,x2,y2);
+    putpixel(x1,y2,7);
+    putpixel(x2,y1,7);
+    */
+}
+
+void chirp()        //GUI PEOPLE!!!! (sound)
+{
+
+}
+
+void click()        //GUI PEOPLE!!!! (shooting/explosion sound)
+{
+
+}
+
+int hex2int(string s)
+{
+    uint16_t w;
+    int i,j;
+
+    i = -1; w = 0;
+    while (i<s.length())
+    {
+        i++;
+        switch ((int)(s[i]))
+        {
+            case 48: w = (w << 4) | 0;
+                break;
+            case 49: w = (w << 4) | 1;
+                break;
+            case 50: w = (w << 4) | 2;
+                break;
+            case 51: w = (w << 4) | 3;
+                break;
+            case 52: w = (w << 4) | 4;
+                break;
+            case 53: w = (w << 4) | 5;
+                break;
+            case 54: w = (w << 4) | 6;
+                break;
+            case 55: w = (w << 4) | 7;
+                break;
+            case 56: w = (w << 4) | 8;
+                break;
+            case 57: w = (w << 4) | 9;
+                break;
+            case 65: w = (w << 4) | 10;
+                break;
+            case 66: w = (w << 4) | 11;
+                break;
+            case 67: w = (w << 4) | 12;
+                break;
+            case 68: w = (w << 4) | 13;
+                break;
+            case 69: w = (w << 4) | 14;
+                break;
+            case 70: w = (w << 4) | 15;
+                break;
+            default: i = s.length();
+        }
+    }
+
+    return w;
+}
+
+int str2int(string s)
+{
+    long i,j,k;
+    bool neg;
+    neg = false;
+    s = btrim(ucase(s));
+    if (s == "")
+    {
+        k = 0;
+    }
+    else
+    {
+        if (s[1]='-')
+        {
+            neg = true;
+            s = rstr(s,s.length()-1);
+        }
+        k = 0;
+        if (lstr(s,2)=="0X")
+        {
+            k = hex2int(rstr(s,s.length()-2));
+        }
+        else if (rstr(s,1)=="H")
+        {
+            k = hex2int(lstr(s,s.length()-1));
+        }
+        else
+        {
+            k = value(s);
+        }
+        if (neg)
+        {
+            k = 0-k;
+        }
+    }
+    return k;
+}
+
 int find_anglei(double xx,double yy,double tx,double ty)
 {
     int i;
@@ -474,6 +639,41 @@ int find_anglei(double xx,double yy,double tx,double ty)
     }
     i = i & 255;
     return i;
+}
+
+string bin(int n)
+{
+    int i;
+    string bin_string;
+
+    bin_string = "";
+    for (i = 0; i <= 15; i++)
+    {
+        if ((n % 2) == 0)
+        {
+            bin_string =  '0' + bin_string;
+        }
+        else
+        {
+            bin_string =  '1' + bin_string;
+        }
+
+        n = n/2;
+    }
+    return bin_string;
+}
+
+string decimal(int num,int length )
+{
+    string dec_string;
+    int i;
+    dec_string = "";
+    for (i = 1; i <=length; i++)
+    {
+        dec_string = (char)((num % 10)+48) + dec_string;
+        num = num / 10;
+    }
+    return dec_string;
 }
 
 int main(void)
