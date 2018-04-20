@@ -1,10 +1,14 @@
 #include "fOpen.h"
-//constructor
 
 using namespace std;
 
-//Constructor that takes in a character array of a valid Directory in the computer
-//otherwise it throws an error.
+/*
+File opening class
+Contributors: Mark Yetter, William Csont
+Written in C++ (gcc compiler) in the spring of 2018
+Purpose: to allow a program to open and read the contents of a file, as well as print into a different file.
+*/
+
 fOpen::fOpen()
 {
     OPENFILENAME ofn ;
@@ -61,7 +65,7 @@ fOpen::fOpen()
 	fclose (roboFile);
 }
 
-//The given file will read it into a buffer which is a string
+
 void fOpen::read_file_to_buffer(FILE *f)
 {
     long file_size = 0;
@@ -105,7 +109,6 @@ void fOpen::read_file_to_buffer(FILE *f)
 }
 
 
-//finds the position of the line
 int fOpen::findLine (int lNum)
 {
     int index = 0, position = 0;
@@ -128,18 +131,7 @@ int fOpen::findLine (int lNum)
     return position+1;
 }
 
-//writes a line from the file
-void fOpen::writeLine (string line, FILE *f)
-{
-    const char * cLine = line.c_str();
 
-    fputs(cLine, f);
-    fputs("\r\n", f);
-
-    return;
-}
-
-//Checks if the given array of characters is a valid extension
 bool fOpen::isValidExt(char directory[])
 {
     int directSize = 0,i = 0;
@@ -180,6 +172,7 @@ bool fOpen::isValidExt(char directory[])
     return ext == "AT2" ||ext == "TXT";
 }
 
+
 string fOpen::ucase(string s)
 {
     for(int i = 0; i < (int)(s.length()); i++)
@@ -192,14 +185,29 @@ string fOpen::ucase(string s)
     return s;
 }
 
-//returns buffer
+
 string fOpen::getBuffer ()
 {
     return buffer;
 }
+
 
 string fOpen::getInPath()
 {
     return inPathStr;
 }
 
+
+void fOpen::writeLine(string inString)
+{
+    string outPath = inPathStr.substr (0, (inPathStr.length()-4));
+
+    outPath += "Output.txt";
+
+    ofstream outFile;
+    outFile.open(outPath, ios::out | ios::app | ios::binary);
+
+    outFile << inString;
+
+    outFile.close();
+}
