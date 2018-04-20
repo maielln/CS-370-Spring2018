@@ -62,6 +62,64 @@ int hex2int(string s);
 int str2int(string s);
 string bin(int n);
 string decimal(int num,int length );
+string ltrim(string s1);
+string rtrim(string s1);
+string btrim(string s1);
+string lstr(string s1, int l);
+string rstr(string s1,int l);
+
+string ltrim(string s1)
+{
+    int i;
+    while ((s1.length()>0) && (s1[0]==' ') || ((int)(s1[0])==8) || ((int)(s1[0])==9))
+    {
+        s1 = s1.substr(1,s1.length()-1);
+    }
+
+    return s1;
+}
+
+
+string rtrim(string s1)
+{
+    int i;
+
+    while ((s1.length()>0) && ((s1[s1.length()-1] == ' ') || ((int)(s1[s1.length()-1]) == 8)
+         || (((int)(s1[s1.length()-1]) ==9))))
+    {
+        s1 = s1.substr(0,s1.length()-2);
+    }
+    return s1;
+}
+
+string btrim(string s1)
+{
+    return ltrim(rtrim(s1));
+}
+
+string lstr(string s1, int l)
+{
+    if (s1.length()<=l)
+    {
+        return s1;
+    }
+    else
+    {
+        return s1.substr(0,l);
+    }
+}
+
+string rstr(string s1,int l)
+{
+    if (s1.length()<=l)
+    {
+        return s1;
+    }
+    else
+    {
+        return s1.substr(s1.length()-2+1,l);
+    }
+}
 
 void textxy(int x,int y, string s)  //GUI PEOPLE NEED TO DO THIS (prints string to screen at cord. x & y)
 {
