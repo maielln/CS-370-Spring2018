@@ -3917,7 +3917,7 @@ void execute_instruction(int n)
                 break;
 
             case 26: //(*INT*)
-                call_int(n,get_val(n,robot[n].ip,1),time_used);
+                call_int(n,get_val(n,robot[n].ip,1),&time_used);
                 executed++;
                 break;
 
