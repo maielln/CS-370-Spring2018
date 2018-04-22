@@ -4,7 +4,20 @@
 #include <math.h>
 #include <chrono>
 #include <thread>
-
+#include <SDL.h>
+#include <SDL_image.h>
+#include <stdio.h>
+#include <string>
+#include <iostream>
+#include <SDL_mixer.h>
+#include "helloworld.cpp"
+#include "fOpen.cpp"
+#include "fOpen.h"
+#include <SDL_ttf.h>
+#include <vector>
+#include <windows.h>
+#include <sstream>
+#include <ctime>
 #define pi 3.1415926535897932384626433
 
 using namespace std;
@@ -67,6 +80,904 @@ string rtrim(string s1);
 string btrim(string s1);
 string lstr(string s1, int l);
 string rstr(string s1,int l);
+
+
+//***GUI pointers/variables ***///
+
+//the name of the window we create
+SDL_Window* gWindow = NULL;
+SDL_Window* nWindow = NULL; // the selector window
+SDL_Window* aWindow = NULL; // arena window
+
+//the "screen" created by the window
+SDL_Surface* gWindowSurface = NULL;
+SDL_Surface* nWindowSurface = NULL;
+SDL_Surface* aWindowSurface = NULL; //arena surface
+
+//our images
+SDL_Surface* titleScreen = NULL;
+SDL_Surface* playButton = NULL;
+SDL_Surface* exitButton = NULL;
+SDL_Surface* playButtonClick = NULL;
+SDL_Surface* exitButtonClick = NULL;
+//on click default = 0, click = 1
+
+//button arrays
+SDL_Rect buttonParams [TOTAL_BUTTONS];
+SDL_Rect buttonPos [TOTAL_BUTTONS];
+// 0: play
+// 1: exit
+
+//mouse handler
+SDL_Point MPos[TOTAL_BUTTONS];
+// 0: play
+// 1: exit
+
+//sound effect
+Mix_Chunk *onClick = NULL;
+
+//text
+SDL_Color textColor = {255, 255, 255, 255};
+SDL_Surface *message = NULL;
+SDL_Renderer *renderer;
+SDL_Texture *SurfaceToTexture( SDL_Surface* surf );
+SDL_Texture *messageTexture = NULL;
+SDL_Rect textRect;
+TTF_Font* font = TTF_OpenFont("arial.ttf", 25);
+
+
+//selector SDL stuff
+const int TOTAL_R_BUTTONS = 6;
+
+SDL_Surface* selectRButton [TOTAL_R_BUTTONS];
+SDL_Surface* selectRButtonClick [TOTAL_R_BUTTONS];
+SDL_Surface* selectBG = NULL;
+
+SDL_Rect rButtonParam[TOTAL_R_BUTTONS];
+SDL_Rect rCButtonParam[TOTAL_R_BUTTONS];
+
+SDL_Rect rButtonPos[TOTAL_R_BUTTONS];
+
+SDL_Event* S[TOTAL_R_BUTTONS];  //mouse handler for the select screen
+SDL_Point SPos[TOTAL_R_BUTTONS];
+
+
+//arena stuff
+const int MAX_ROBOTS = 2;
+
+SDL_Rect robPos [2];
+SDL_Rect arenaPos;
+
+const int rob1 = 0; //becky
+const int rob2 = 1; //steve
+
+SDL_Surface* arena = NULL;
+SDL_Surface* robot1 = NULL;
+SDL_Surface* robot2 = NULL;
+
+
+//shapes button 
+const int TOTAL_SHAPES = 10; 
+SDL_Surface* shapes[10] = NULL;
+int cycle = 0; 
+
+SDL_Rect shapeParam[TOTAL_R_BUTTONS];
+SDL_Rect shapePos[TOTAL_R_BUTTONS]; 
+
+//GUI definitions
+bool initSDL(); //turn on SDL *important*
+bool loadMedia(); //load images *IMPORTANT*
+bool mouseHandle(SDL_Event* M); 
+
+
+//NOTE: probably need to add "loadrobotimg" function
+//***GUI FUNCTIONS START HERE **** //
+bool initSDL() {
+	/* Desc: This fucntion initializes the SDL
+		Libraries used in this program, as well as creating
+		the window and surface we will use. Our audio is
+		also initalized. */
+
+	bool success = true;
+	//initalize audio and vid
+	if( SDL_Init( SDL_INIT_VIDEO | SDL_INIT_AUDIO) < 0 )
+	{
+		printf( "SDL could not initialize! SDL_Error: %s\n", SDL_GetError() );
+		success = false;
+	}
+	else
+	{
+		//Create window
+		gWindow = SDL_CreateWindow( "ATRobots: Revised", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_SHOWN );
+
+
+		if( gWindow == NULL )
+		{
+			printf( "Window could not be created! SDL_Error: %s\n", SDL_GetError() );
+			success = false;
+		}
+		else
+		{
+			//Get window surface
+			gWindowSurface = SDL_GetWindowSurface( gWindow );
+
+		}
+	}
+					//freq, format, channels, sample size
+	if( Mix_OpenAudio( 44100, MIX_DEFAULT_FORMAT, 2, 2048 ) < 0 ) {
+
+		printf( "SDL_mixer could not initialize! SDL_mixer Error: %s\n", Mix_GetError() );
+		success = false;
+	}
+
+	//turn on text
+
+	if (TTF_Init() == -1) {
+
+		cout << "ttf init error: " << TTF_GetError();
+	}
+
+
+
+
+	return success;
+}
+
+bool loadMedia() {
+	/* Desc: This fucntion loads in the files needed to
+		format the screen and sound effects. The buttons
+		are clipped from a sprite sheet. The audio is loaded. */
+	int xMax, yMax, xMin, yMin, xRange, yRange;
+	bool success = true;
+
+	//title image loaded
+	titleScreen = SDL_LoadBMP("mainmenu.bmp");
+	if (titleScreen == NULL) {
+		printf("Title Image could not be loaded");
+		success = false;
+	}
+
+	//set buttons
+	playButton = SDL_LoadBMP("play.bmp");
+	if (playButton == NULL) {
+		printf("Play image could not be loaded");
+		success = false;
+	}
+
+	playButtonClick = SDL_LoadBMP("playClick.bmp");
+	if (playButtonClick == NULL) {
+		printf("play click could not be loaded");
+		success = false;
+	}
+
+	exitButton = SDL_LoadBMP("exit.bmp");
+	if (exitButton == NULL) {
+		printf("exit image could not be loaded");
+		success = false;
+	}
+
+	exitButtonClick = SDL_LoadBMP("exitClick.bmp");
+	if (exitButtonClick == NULL) {
+		printf("exit image click could not be loaded");
+		success = false;
+	}
+
+
+	//set param and pos for each button
+	//0: play
+	//1: exit
+	//2: play click
+	//3: exit click
+	for (int cnt = 0; cnt < TOTAL_BUTTONS; cnt++) {
+		buttonParams[cnt].w = BUTTON_WIDTH;
+		buttonParams[cnt].h = BUTTON_HEIGHT;
+
+		buttonPos[cnt].x = 300;
+		buttonPos[cnt].y = 300;
+
+		if (cnt > 0) {
+		buttonPos[cnt].y = buttonPos[cnt-1].y + 100;
+		}
+	}
+
+
+	//load images for the select screen
+	selectRButton[0] = SDL_LoadBMP("r0.bmp");
+	if (exitButtonClick == NULL) {
+		printf("r 0 could not be loaded ");
+		success = false;
+	}
+
+	selectRButton[1] = SDL_LoadBMP("r1.bmp");
+	if (exitButtonClick == NULL) {
+		printf("r 1 could not be loaded ");
+		success = false;
+	}
+
+
+	for (int cnt = 0; cnt < TOTAL_R_BUTTONS; cnt++) {
+		rButtonParam[cnt].w = 75;
+		rButtonParam[cnt].h = 75;
+
+		rButtonPos[cnt].x = 100;
+		rButtonPos[cnt].y = 100;
+
+		if (cnt > 0) {
+			if (cnt > 0) {
+			rButtonPos[cnt].y = rButtonPos[cnt-1].y + 100;
+
+			if (cnt > 4) {
+				rButtonPos[cnt].x = rButtonPos[cnt-1].x + 200;
+			}
+
+		}
+    }
+}
+
+
+
+
+	selectRButtonClick[0] = SDL_LoadBMP("r0click.bmp");
+	if (exitButtonClick == NULL) {
+		printf("r 0 click could not be loaded ");
+		success = false;
+	}
+
+	selectRButtonClick[1] = SDL_LoadBMP("r1click.bmp");
+	if (exitButtonClick == NULL) {
+		printf("r 1 click could not be loaded ");
+		success = false;
+	}
+
+
+	for (int cnt = 0; cnt < TOTAL_R_BUTTONS; cnt++) {
+		rCButtonParam[cnt].w = 75;
+		rCButtonParam[cnt].h = 75;
+
+		rButtonPos[cnt].x = 100;
+		rButtonPos[cnt].y = 100;
+
+		if (cnt > 0) {
+			rButtonPos[cnt].y = rButtonPos[cnt-1].y + 100;
+
+			if (cnt > 4) {
+				rButtonPos[cnt].x = rButtonPos[cnt-1].x + 200;
+			}
+
+		}
+
+
+
+	}
+
+
+	//load select screen background
+	selectBG = SDL_LoadBMP("selectBG.bmp");
+	if (selectBG == NULL) {
+		printf("Select bg not loaded");
+		success = false;
+	}
+
+	arena = SDL_LoadBMP("arena.bmp");
+	if (arena == NULL) {
+		printf("arena Image could not be loaded");
+		success = false;
+	}
+
+	//set buttons
+	robot1 = SDL_LoadBMP("becky.bmp");
+	if (robot1 == NULL) {
+		printf("Play image could not be loaded");
+		success = false;
+	}
+
+	robot2 = SDL_LoadBMP("steve.bmp");
+	if (robot2 == NULL) {
+		printf("play click could not be loaded");
+		success = false;
+	}
+
+
+	arenaPos.x = 50;
+	arenaPos.y = 50;
+
+    xMin = 50;
+    yMin = 50;
+    xMax = 600;
+    yMax = 550;
+
+    xRange = xMax - xMin;
+    yRange = yMax - yMin;
+
+	//RNG for robots
+	//position has to be within arena
+	//pos cannot be ==
+
+    int pos = 5;
+    srand (time(NULL));
+	for (int cnt = 0; cnt < 2; cnt++) {
+
+
+		pos = xMin + (int)(xRange * rand()) / ((RAND_MAX + 1.0));
+		cout << pos << endl;
+		robPos[cnt].x = pos;
+
+		pos = yMin + (int)(yRange * rand()) / ((RAND_MAX + 1.0));
+		cout << pos << endl;;
+		robPos[cnt].y = pos;
+
+	}
+
+	//load audio
+	onClick = Mix_LoadWAV("ring.wav");
+	if (onClick == NULL) {
+		printf( "Failed to load scratch sound effect! SDL_mixer Error: %s\n", Mix_GetError() );
+		success = false;
+	}
+
+	string getShape; 
+	
+	for (int cnt = 0; cnt < 10; cnt++) {
+		switch (cnt) {
+			case 0: getShape = "circle"; 
+			case 1: getShape = "star"; 
+			case 2: getShape = ""; 
+			case 3: getShape = ""; 
+			case 4: getShape = ""; 
+			case 5: getShape = ""; 
+			case 6: getShape = ""; 
+			case 7: getShape = ""; 
+			case 8: getShape = ""; 
+			case 9: getShape = ""; 
+			default: getShape = "fail"; 
+		}
+		
+		shapes[cnt] = SDL_LoadBMP(getShape + ".bmp"); 
+		
+		if (cnt < TOTAL_R_BUTTONS) {
+			shapeParam[cnt].w = 16;
+			shapeParam[cnt].h = 16;
+
+			shapePos[cnt].x = 130;
+			shapePos[cnt].y = 100;
+
+			if (cnt > 0) {
+				rButtonPos[cnt].y = rButtonPos[cnt-1].y + 100;
+
+				if (cnt > 4) {
+					rButtonPos[cnt].x = rButtonPos[cnt-1].x + 200;
+				}
+
+			}	
+		}
+		
+		
+		
+	}
+
+	return success;
+}
+
+bool mouseHandle (SDL_Event* M) {
+	/* Desc: this fucntion handles the position and actions
+		of the mouse. The mouse is located, and on click a new button
+		is shown to create a "flash" effect. A sound effect is
+		also played. */
+
+	bool quitter = false;
+	MPos[0].x = buttonPos[0].x;
+	MPos[0].y = buttonPos[0].y;
+	MPos[1].x = buttonPos[1].x;
+	MPos[1].y = buttonPos[1].y;
+
+	//play button
+	if( M->type == SDL_MOUSEMOTION || M->type == SDL_MOUSEBUTTONDOWN || M->type == SDL_MOUSEBUTTONUP )
+	{
+		//Get mouse position
+		int x, y;
+		SDL_GetMouseState( &x, &y );
+
+
+		bool inside = true;
+		//left
+		if (x < MPos[0].x)  {
+			inside = false;
+			//printf("left");
+		}
+
+		if (x > MPos[0].x + BUTTON_WIDTH) {
+			inside = false;
+			//printf("right");
+		}
+
+		if (y < MPos[0].y)  {
+			inside = false;
+			//printf("above");
+		}
+
+		if (y > MPos[0].y + BUTTON_HEIGHT) {
+			inside = false;
+			//printf("below");
+		}
+
+		if (inside) {
+			switch (M->type) {
+			case SDL_MOUSEBUTTONDOWN:
+				Mix_PlayChannel(-1, onClick, 0);
+				SDL_BlitSurface(playButtonClick, &buttonParams[0], gWindowSurface, &buttonPos[0]);
+				selectMenu(); 
+				break;
+
+				case SDL_MOUSEBUTTONUP:
+				SDL_BlitSurface(playButton, &buttonParams[0], gWindowSurface, &buttonPos[0]);
+				break;
+
+                }
+
+
+            }
+
+		}
+
+	//exit button
+	if( M->type == SDL_MOUSEMOTION || M->type == SDL_MOUSEBUTTONDOWN || M->type == SDL_MOUSEBUTTONUP )
+	{
+		//Get mouse position
+		int x, y;
+		SDL_GetMouseState( &x, &y );
+
+
+		bool inside = true;
+		//left
+		if (x < MPos[1].x)  {
+			inside = false;
+		}
+
+		if (x > MPos[1].x + BUTTON_WIDTH) {
+			inside = false;
+		}
+
+		if (y < MPos[1].y)  {
+			inside = false;
+		}
+
+		if (y > MPos[1].y + BUTTON_HEIGHT) {
+			inside = false;
+		}
+
+		if (inside) {
+			switch (M->type) {
+			case SDL_MOUSEBUTTONDOWN:
+				SDL_BlitSurface(exitButtonClick, &buttonParams[1], gWindowSurface, &buttonPos[1]);
+				Mix_PlayChannel(-1, onClick, 0);
+				break;
+
+				case SDL_MOUSEBUTTONUP:
+				SDL_BlitSurface(exitButton, &buttonParams[1], gWindowSurface, &buttonPos[1]);
+				quitter = true;
+				break;
+                }
+
+
+            }
+
+		}
+
+		return quitter;
+
+	}
+
+bool mouseHandleS(SDL_Event* S, int cycle) {
+/*  Desc: this fucntion handles the position and actions
+		of the mouse. The mouse is located, and on click a new button
+		is shown to create a "flash" effect. A sound effect is
+		also played. */
+
+	bool quitter = false;
+
+
+	//don't really know why i had to do this, but it's leftover from the gui
+	for (int cnt = 0; cnt < TOTAL_R_BUTTONS; cnt++) {
+
+		SPos[cnt].x = rButtonPos[cnt].x;
+		SPos[cnt].y = rButtonPos[cnt].y;
+	}
+
+	//r1 button
+	if( S->type == SDL_MOUSEMOTION || S->type == SDL_MOUSEBUTTONDOWN || S->type == SDL_MOUSEBUTTONUP )
+	{
+		//Get mouse position
+		int x, y;
+		SDL_GetMouseState( &x, &y );
+
+		bool inside = true;
+		//left
+		if (x < SPos[0].x)  {
+			inside = false;
+			//printf("left");
+		}
+
+		if (x > SPos[0].x + BUTTON_WIDTH) {
+			inside = false;
+			//printf("right");
+		}
+
+		if (y < SPos[0].y)  {
+			inside = false;
+			//printf("above");
+		}
+
+		if (y > SPos[0].y + BUTTON_HEIGHT) {
+			inside = false;
+			//printf("below");
+		}
+
+		if (inside) {
+			switch (S->type) {
+			case SDL_MOUSEBUTTONDOWN:
+				SDL_BlitSurface(selectRButton[0], &rButtonParam[0], nWindowSurface, &rButtonPos[0]);
+				displayText(0);
+				break;
+
+				 case SDL_MOUSEBUTTONUP:
+
+				break;
+
+                }
+
+
+            }
+
+		}
+
+
+	 //r2
+	 if( S->type == SDL_MOUSEMOTION || S->type == SDL_MOUSEBUTTONDOWN || S->type == SDL_MOUSEBUTTONUP )
+	{
+		//Get mouse position
+		int x, y;
+		SDL_GetMouseState( &x, &y );
+
+		bool inside = true;
+		//left
+		if (x < SPos[1].x)  {
+			inside = false;
+
+		}
+
+		if (x > SPos[1].x + BUTTON_WIDTH) {
+			inside = false;
+
+		}
+
+		if (y < SPos[1].y)  {
+			inside = false;
+
+		}
+
+		if (y > SPos[1].y + BUTTON_HEIGHT) {
+			inside = false;
+
+		}
+
+		if (inside) {
+			switch (S->type) {
+			case SDL_MOUSEBUTTONDOWN:
+				SDL_BlitSurface(selectRButtonClick[1], &rCButtonParam[1], nWindowSurface, &rButtonPos[1]);
+				displayText(1);
+				break;
+
+				case SDL_MOUSEBUTTONUP:
+				SDL_BlitSurface(selectRButton[1], &rButtonParam[1], nWindowSurface, &rButtonPos[1]);
+				break;
+
+                }
+
+
+            }
+
+		}
+
+	
+	for (int cnt = 0; cnt < TOTAL_R_BUTTONS; cnt++) {
+		//may need another position array?????
+		SPos[cnt].x = shapePos[cnt].x;
+		SPos[cnt].y = shapePos[cnt].y;
+	}
+	
+	//shapes1
+	if( S->type == SDL_MOUSEMOTION || S->type == SDL_MOUSEBUTTONDOWN || S->type == SDL_MOUSEBUTTONUP ) {
+		//Get mouse position
+		int x, y;
+		SDL_GetMouseState( &x, &y );
+
+		bool inside = true;
+		//left
+		if (x < SPos[0].x)  {
+			inside = false;
+			//printf("left");
+		}
+
+		if (x > SPos[0].x + BUTTON_WIDTH) {
+			inside = false;
+			//printf("right");
+		}
+
+		if (y < SPos[0].y)  {
+			inside = false;
+			//printf("above");
+		}
+
+		if (y > SPos[0].y + BUTTON_HEIGHT) {
+			inside = false;
+			//printf("below");
+		}
+
+		if (inside) {
+			switch (S->type) {
+			case SDL_MOUSEBUTTONDOWN:
+				cycleShapes(cycle); 
+				break;
+
+				 case SDL_MOUSEBUTTONUP:
+
+				break;
+
+                }
+
+
+            }
+		
+	}
+		
+	//shapes2 
+	if( S->type == SDL_MOUSEMOTION || S->type == SDL_MOUSEBUTTONDOWN || S->type == SDL_MOUSEBUTTONUP ) {
+		//Get mouse position
+		int x, y;
+		SDL_GetMouseState( &x, &y );
+
+		bool inside = true;
+		//left
+		if (x < SPos[0].x)  {
+			inside = false;
+			//printf("left");
+		}
+
+		if (x > SPos[0].x + BUTTON_WIDTH) {
+			inside = false;
+			//printf("right");
+		}
+
+		if (y < SPos[0].y)  {
+			inside = false;
+			//printf("above");
+		}
+
+		if (y > SPos[0].y + BUTTON_HEIGHT) {
+			inside = false;
+			//printf("below");
+		}
+
+		if (inside) {
+			switch (S->type) {
+			case SDL_MOUSEBUTTONDOWN:
+				cycleShapes(cycle); 
+				break;
+
+				 case SDL_MOUSEBUTTONUP:
+
+				break;
+
+                }
+
+
+            }
+		
+	}
+		
+	
+		return quitter;
+
+
+}
+	
+void startMenu() {
+	//Brings up the start menu and 
+	//handles the mouse and clicking 
+	int cnt = 0;
+	bool quit = false;
+	SDL_Event M;
+	
+	
+	//load title screen
+	SDL_BlitSurface(titleScreen, NULL, gWindowSurface, NULL);
+
+	//display buttons
+    SDL_BlitSurface(playButton, &buttonParams[cnt], gWindowSurface, &buttonPos[cnt]);
+    cnt++;
+    SDL_BlitSurface(exitButton, &buttonParams[cnt], gWindowSurface, &buttonPos[cnt]);
+
+	while (!quit) {
+		while(SDL_PollEvent( &M ) != 0 )
+			{
+
+				quit = mouseHandle(&M);
+
+				if( M.type == SDL_QUIT )
+				{
+					quit = true;
+				}
+
+			}
+			//Update the screen
+			SDL_UpdateWindowSurface( gWindow );
+	}
+	
+	return; 
+	
+	
+	
+}
+
+void selectMenu() {
+	SDL_Event S;
+	bool quit = false;
+	string fileName;
+	
+	closeStartMenu(); 
+
+	nWindow = SDL_CreateWindow("Select Your Robot", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_SHOWN);
+
+	nWindowSurface = SDL_GetWindowSurface(nWindow);
+	SDL_BlitSurface(selectBG, NULL, nWindowSurface, NULL);
+
+
+	for (int cnt = 0; cnt < 2; cnt++) {
+		SDL_BlitSurface(selectRButton[cnt], &rButtonParam[cnt], nWindowSurface, &rButtonPos[cnt]);
+
+	}
+	
+	for (int cnt = 0; cnt < 2; cnt++) {
+		SDL_BlitSurface(shapes[cycle], &shapeParam[cnt], nWindowSurface, &shapePos[cnt]);
+		
+	} 
+
+	SDL_UpdateWindowSurface( nWindow );
+
+	
+	while (!quit) {
+			while(SDL_PollEvent( &S ) != 0 )
+				{
+
+					quit = mouseHandleS(&S, cycle);
+					if (quit == true) {
+
+						break;
+					}
+
+
+				}
+				//Update the screen
+				SDL_UpdateWindowSurface( nWindow );
+		}
+	
+		return; 
+	
+}
+
+void cycleShapes() {
+	cycle++; 
+	
+	if (cycle > 9) {
+		cycle = 0; 
+		
+	}
+	
+	SDL_BlitSurface(shapes[cycle], &shapeParam[cycle], nWindowSurface, &shapePos[cycle]); 
+		
+}
+
+void closeStartMenu() {
+	//closes main menu 
+	SDL_FreeSurface(titleScreen);
+	SDL_FreeSurface(playButton);
+	SDL_FreeSurface(exitButton);
+	SDL_FreeSurface(playButtonClick);
+	SDL_FreeSurface(exitButtonClick);
+	titleScreen = NULL;
+	playButton = NULL;
+	exitButton = NULL;
+	playButtonClick = NULL;
+	exitButtonClick = NULL;
+
+	//free music
+	Mix_FreeChunk (onClick);
+	onClick = NULL;
+
+	SDL_DestroyWindow( gWindow );
+	gWindow = NULL;
+}
+
+void closeSelectMenu() {
+	
+SDL_FreeSurface(nWindowSurface);
+
+	for (int cnt = 0; cnt > TOTAL_R_BUTTONS; cnt++) {
+		SDL_FreeSurface(selectRButton[cnt]);
+		SDL_FreeSurface(selectRButtonClick[cnt]);
+		SDL_FreeSurface(selectBG);
+
+	}
+
+	SDL_DestroyWindow( nWindow );
+	nWindow = NULL;
+}
+
+void arena () {
+	aWindow = SDL_CreateWindow("FIGHT!!!!!!", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_SHOWN);
+
+	aWindowSurface = SDL_GetWindowSurface(aWindow);
+	
+	SDL_BlitSurface(arena, NULL, aWindowSurface, &arenaPos);
+	SDL_BlitSurface(robot1, NULL, aWindowSurface, &robPos[0]);
+	SDL_BlitSurface(robot2, NULL, aWindowSurface,  &robPos[1]);
+	SDL_UpdateWindowSurface(aWindow);
+	
+	//the assets for the arena are loaded in 
+	//just visuals, where do we get our info?
+	
+	
+}
+
+
+void closeArena() {
+	
+	SDL_FreeSurface(robot1);
+	SDL_FreeSurface(robot2); 
+	SDL_FreeSurface(arena); 
+
+	SDL_DestroyWindow( aWindow );
+	aWindow = NULL;
+}
+
+//takes the file path from fOpen and produces the robot 
+//name as a string 
+string disect(string path) {
+	string fileName = "";
+	int length = path.length();
+	int lastBack = 0;
+	int dotCnt;
+
+	for (int cnt = 3; cnt < length; cnt++) {
+
+		if (path[cnt] == '.') {
+			dotCnt = cnt;
+
+		}
+
+		if (path[cnt] == '\\') {
+			lastBack = cnt;
+		}
+
+	}
+
+
+	for (int cnt = lastBack + 1; cnt < dotCnt; cnt++) {
+		if (path[cnt] == '.') {
+			break;
+		}
+
+		fileName += path[cnt];
+
+	}
+
+
+return fileName;
+}
+//***GUI FUNCTIONS END HERE **** //
+
+
+
 
 string ltrim(string s1)
 {
