@@ -31,6 +31,30 @@ int com_receive(int n);
 int in_port(int n,int p);
 int scan(int n);
 void out_port(int n,int p,int v, int* time_used);
+void update_heat(int n);
+void update_cycle_window();
+void graph_mode(bool on);
+void init_robot(int n);
+void init_robot(int n);
+void shutdown();
+void init();
+void init_mine(int n,int detectrange,int sizeN);
+void score_robots();
+void toggle_graphix();
+void write_report();
+int count_missiles();
+void update_heat(int n);
+void update_cycle_window();
+void graph_mode(bool on);
+void init_robot(int n);
+void init_robot(int n);
+void shutdown();
+void init();
+void init_mine(int n,int detectrange,int sizeN);
+void score_robots();
+void toggle_graphix();
+void write_report();
+int count_missiles();
 
 //FULLY PORTED ATR2.PAS
 #include <iostream>
@@ -521,30 +545,46 @@ begin
     end;
   end;
 end;
-{
-  procedure update_heat(n:integer); //takes in variables to change the heat based on the action the robot is performing
-  begin
-   if graph_check(n) {FIFI} and (step_mode<=0) {/FIFI} then
-   with robot[n]^ do
-    begin
-     robot_graph(n);
-     if heat>5 then
-      case stats_mode of
-       1:bar(030,23,029+(heat div 5),28);
-       2:bar(127,03,126+(heat div 20),08);
-       else bar(30,35,29+(heat div 5),40);
-      end;
-     setfillstyle(1,8);
-     if heat<500 then
-      case stats_mode of
-       1:bar(030+(heat div 5),23,129,28);
-       2:bar(127+(heat div 20),03,151,08);
-       else bar(30+(heat div 5),35,129,40);
-      end;
-    end;
-  end;
 
-  void robot_error(int n,int i,string ov)
+//This NEEDS TO BE FILLED OUT BY GUI!!!!
+void update_heat(int n) //takes in variables to change the heat based on the action the robot is performing
+{
+/*    if (graph_check(n) && (step_mode<=0))
+    {
+        //with robot[n]^ do
+
+        robot_graph(n);
+        if (robot[n].heat>5)
+        {
+            switch (stats_mode)
+            {
+                case 1:bar(30,23,29+(heat / 5),28);
+                break;
+                case 2:bar(127,3,126+(heat / 20),8);
+                break;
+                default: bar(30,35,29+(heat / 5),40);
+                break;
+            }
+        }
+
+        setfillstyle(1,8);
+        if (robot[n].heat<500)
+        {
+            switch (stats_mode)
+            {
+                case 1:bar(030+(heat / 5),23,129,28);
+                break;
+                case 2:bar(127+(heat / 20),3,151,8);
+                break;
+                default: bar(30+(heat / 5),35,129,40);
+                break;
+            }
+        }
+    }
+    */
+}
+
+void robot_error(int n,int i,string ov)
 {
     if (graph_check(n) && (step_mode<=0))
     //with robot[n]. do
@@ -583,21 +623,24 @@ end;
     end;
   end;
 
-  procedure update_cycle_window; //changes the info of the current match on screen
-  begin
-   if not graphix then
-    begin
-     write(#13+'Match ',played,'/',matches,', Cycle: ',zero_pad(game_cycle,9));
-    end
-   else
-    begin
-     viewport(480,440,635,475);
-     setfillstyle(1,0);
-     bar(59,2,154,10);
-     setcolor(7);
-     outtextxy(75,03,zero_pad(game_cycle,9));
-    end;
-  end;
+//changes the info of the current match on screen
+void update_cycle_window()
+{
+/*
+    if (!graphix)
+    {
+        cout<<"Match "<<played<<"/"<<matches<<", Cycle: "<<zero_pad(game_cycle,9);
+    }
+    else
+    {
+        viewport(480,440,635,475);
+        setfillstyle(1,0);
+        bar(59,2,154,10);
+        setcolor(7);
+        outtextxy(75,03,zero_pad(game_cycle,9));
+    }
+*/
+}
 
   procedure setscreen; //draws the screeen and everything in it
   var
@@ -680,24 +723,29 @@ end;
      end;
   end;
 
-  procedure graph_mode(on:boolean); //graphics again, used inbetween matches to clear the graph
-  begin
-   if on and (not graphix) then
-    begin
-     Graph_VGA;
-     cleardevice;
-     setscreen;
-     graphix:=true;
-    end
-   else
-    if (not on) and graphix then
-     begin
-      closegraph;
-      graphix:=false;
-     end;
-  end;
+//graphics again, used inbetween matches to clear the graph
+void graph_mode(bool on)
+{
 
-  void prog_error(int n, string ss)
+/*    if (on && (!graphix))   //Turns on
+    {
+        Graph_VGA;
+        cleardevice();
+        setscreen();
+        graphix = true;
+    }
+    else
+    {
+        if ((!on) && graphix)   //closes the GUI
+        {
+            closegraph();
+            graphix = false;
+        }
+    }
+*/
+}
+
+ void prog_error(int n, string ss)
  {
      string s;
  
@@ -1865,44 +1913,60 @@ robot_config(n);
 end;
 end;
 
-procedure init_robot(n:integer);
-var
-i,j,k,l:integer;
-begin
-with robot[n]^ do
-begin
-wins:=0; trials:=0; kills:=0; deaths:=0; shots_fired:=0; match_shots:=0;
-hits:=0; damage_total:=0; cycles_lived:=0; error_count:=0;
-plen:=0; max_time:=0;
-name:=''; fn:='';
-speed:=0;
-arc_count:=0;
-sonar_count:=0;
-robot_time_limit:=0;
-scanrange:=1500;
-shotstrength:=1;
-damageadj:=1;
-speedadj:=1;
-mines:=0;
-with config do
-begin
-scanner:=5;
-weapon:=2;
-armor:=2;
-engine:=2;
-heatsinks:=1;
-shield:=0;
-mines:=0;
-end;
-for i:=0 to max_ram do ram[i]:=0;
-ram[71] := 768;
-for i:=0 to max_code do
-for k:=0 to max_op do
-code[i].op[k]:=0;
-reset_hardware(n);
-reset_software(n);
-end;
-end;
+void init_robot(int n)
+{
+    int i,j,k,l;
+
+    //with robot[n]. do
+
+    robot[n].wins = 0;
+    robot[n].trials = 0;
+    robot[n].kills = 0;
+    robot[n].deaths = 0;
+    robot[n].shots_fired = 0;
+    robot[n].match_shots = 0;
+    robot[n].hits = 0;
+    robot[n].damage_total = 0;
+    robot[n].cycles_lived = 0;
+    robot[n].error_count = 0;
+    robot[n].plen = 0;
+    robot[n].max_time = 0;
+    robot[n].name = "";
+    robot[n].fn = "";
+    robot[n].speed = 0;
+    robot[n].arc_count = 0;
+    robot[n].sonar_count = 0;
+    robot[n].robot_time_limit = 0;
+    robot[n].scanrange = 1500;
+    robot[n].shotstrength = 1;
+    robot[n].damageadj = 1;
+    robot[n].speedadj = 1;
+    robot[n].mines = 0;
+    //with config do
+
+    robot[n].config.scanner = 5;
+    robot[n].config.weapon = 2;
+    robot[n].config.health = 2;
+    robot[n].config.engine = 2;
+    robot[n].config.heatsinks = 1;
+    robot[n].config.shield = 0;
+
+    for (i = 0; i<max_ram; i++)
+    {
+        robot[n].ram[i] = 0;
+    }
+    robot[n].ram[71]  =  768;
+    for (i = 0; i<max_code; i++)
+    {
+        for (k = 0; k < max_op; k++)
+        {
+            robot[n].code[i].op[k] = 0;
+        }
+    }
+
+   reset_hardware(n);
+   reset_software(n);
+}
 
 procedure create_robot(n:integer; filename:string);
 var
@@ -1932,33 +1996,44 @@ end;
 end;
 end;
 
-procedure shutdown;
-var
-i,j,k:integer;
-begin
-graph_mode(false);
-if show_cnotice then
-begin
-textcolor(3);
-write  (progname,' ',version,' ');
-writeln(cnotice1);
-writeln(cnotice2);
-writeln(cnotice3);
-end;
-textcolor(7);
-if not registered then begin textcolor(4); writeln('Unregistered version'); end
-              else writeln('Registered to: ',reg_name);
-textcolor(7);
-writeln;
-if logging_errors then
-for i:=0 to num_robots do
-with robot[i]^ do
-begin
-writeln('Robot error-log created: ',base_name(fn)+'.ERR');
-close(errorlog);
-end;
-halt;
-end;
+void shutdown()
+{
+    int i,j,k;
+    graph_mode(false);
+    if (show_cnotice)
+    {
+//        textcolor(3);
+        cout<<progname<<" "<<version<<" ";
+        cout<<cnotice1<<endl;
+        cout<<cnotice2<<endl;
+        cout<<cnotice3<<endl;
+    }
+//    textcolor(7);
+    if (!registered)
+    {
+//        textcolor(4);
+        cout<<"Unregistered version"<<endl;
+    }
+    else
+    {
+        cout<<"Registered to: "<<reg_name<<endl;
+    }
+//    textcolor(7);
+    cout<<endl;
+    if (logging_errors)
+    {
+        for (i = 0; i < num_robots; i++)
+        {
+            //with robot[i]^ do
+            cout<<"Robot error-log created: "<<(base_name(robot[i].fn)+".ERR")<<endl;
+//            close(errorlog);
+        }
+
+    }
+    string wait;
+    cout<<"Enter any key to continue: ";
+    cin>>wait;
+}
 
 procedure delete_compile_report;
 begin
@@ -2059,99 +2134,169 @@ if not found then prog_error(8,s);
 end;
 
 
-procedure init;
-var
-i:integer;
-begin
-if debugging_compiler or compile_by_line or show_code then
-begin write('!!! Warning !!! Compiler Debugging enabled !!!'); flushkey; readkey; writeln; end;
-{FIFI}
-step_mode:=0; {stepping disabled}
-{/FIFI}
-logging_errors:=false; stats_mode:=0;
-insane_missiles:=false; insanity:=0;
-delay_per_sec:=0; windoze:=true;
-graphix:=false; no_gfx:=false;
-sound_on:=true; timing:=true;
-matches:=1; played:=0; old_shields:=false;
-quit:=false; compile_only:=false;
-show_arcs:=false; debug_info:=false;
-show_cnotice:=true;
-show_source:=true;
-report:=false;
-kill_count:=0;
-maxcode:=max_code;
-make_tables;
-randomize;
-num_robots:=-1;
-game_limit:=100000;
-game_cycle:=0;
-game_delay:=default_delay;
-time_slice:=default_slice;
-for i:=0 to max_missiles do
-with missile[i] do
-begin a:=0; source:=-1; x:=0; y:=0; lx:=0; ly:=0; mult:=1; end;
+void init()
+{
+    int i;
 
-registered:=false;
-reg_name:='Unregistered';
-reg_num:=$FFFF;
-check_registration;
+    if (debugging_compiler || compile_by_line || show_code)
+    {
+        cout<<"!!! Warning !!! Compiler Debugging enabled !!!";
+        flushkey();
+        readkey();
+        cout<<endl;
+    }
 
-writeln; textcolor(3);
-write  (progname,' ',version,' ');
-writeln(cnotice1);
-writeln(cnotice2);
-textcolor(7);
-if not registered then begin textcolor(4); writeln('Unregistered version'); end
-              else writeln('Registered to: ',reg_name);
-textcolor(7);
-writeln;
-{create_robot(0,'SDUCK');}
+    step_mode = 0; //{stepping disabled}
+    logging_errors = false;
+    stats_mode = 0;
+    insane_missiles = false;
+    insanity = 0;
+    delay_per_sec = 0;
+    windoze = true;
+    graphix = false;
+    no_gfx = false;
+    sound_on = true;
+    timing = true;
+    matches = 1;
+    played = 0;
+    old_shields = false;
+    quit = false;
+    compile_only = false;
+    show_arcs = false;
+    debug_info = false;
+    show_cnotice = true;
+    show_source = true;
+    report = false;
+    kill_count = 0;
+    maxcode = max_code;
+    make_tables();
+    randomize();
+    num_robots = -1;
+    game_limit = 100000;
+    game_cycle = 0;
+    game_delay = default_delay;
+    time_slice = default_slice;
+    for (i = 0; i < max_missiles; i++)
+    //with missile[i]. do
+    {
+        missile[i].a = 0;
+        missile[i].source = -1;
+        missile[i].x = 0;
+        missile[i].y = 0;
+        missile[i].lx = 0;
+        missile[i].ly = 0;
+        missile[i].mult = 1;
+    }
 
-delete_compile_report;
-if paramcount>0 then
-for i:=1 to paramcount do
-parse_param(btrim(ucase(paramstr(i))))
-else prog_error(5,'');
-{FIFI}
-temp_mode:=step_mode;  {store initial step_mode}
-{/FIFI}
-if logging_errors then
-for i:=0 to num_robots do
-with robot[i]^ do
-begin
-assign(errorlog,base_name(fn)+'.ERR');
-rewrite(errorlog);
-end;
-if compile_only then write_compile_report;
-if num_robots<1 then prog_error(4,'');
+    registered = false;
+    reg_name = "Unregistered";
+    reg_num = 65535;
+    check_registration();
 
-if not no_gfx then graph_mode(true);
+    cout<<endl;
+    textcolor(3);
+    cout<<progname<<" "<<version<<" "<<cnotice1<<endl<<cnotice2<<endl;
+//    textcolor(7);
+    if (!registered)
+    {
+//        textcolor(4);
+        cout<<"Unregistered version"<<endl;
+    }
+    else
+    {
+        cout<<"Registered to: "<<reg_name<<endl;
+    }
+//    textcolor(7);
+    cout<<endl;
+    //{create_robot(0,'SDUCK');}
 
-{--fix ups--}
-if matches>100000 then matches:=100000;
-if matches<1 then matches:=1;
-if game_delay>1000 then game_delay:=1000;
-if game_delay<0 then game_delay:=0;
-if time_slice>100 then time_slice:=100;
-if time_slice<1 then time_slice:=1;
-if game_limit<0 then game_limit:=0;
-if game_limit>100000 then game_limit:=100000;
-if maxcode<1 then maxcode:=1; {0 based, so actually 2 lines}
-if maxcode>max_code then maxcode:=max_code;
+    delete_compile_report();
+    if (paramcount>0)
+    {
+        for (i = 1; i <= paramcount;i++)
+        {
+            parse_param(btrim(ucase(paramstr(i))));
+        }
+    }
 
-{--Just to avoid floating pointers--}
-for i:=num_robots+1 to max_robots+2 do
-robot[i]:=robot[0];
-robot[-1]:=robot[0];
-robot[-2]:=robot[0];
+    else
+    {
+        prog_error(5,"");
+    }
 
-if not graphix then
-begin
-writeln('Freemem: ',memavail);
-writeln;
-end;
-end;
+    temp_mode = step_mode;  //{store initial step_mode}
+
+    if (logging_errors)
+    {
+        for (i = 0; i < num_robots; i++)
+        //with robot[i]^ do
+        {
+//            assign(errorlog,base_name(fn)+'.ERR');
+//            rewrite(errorlog);
+        }
+    }
+
+    if (compile_only)
+    {
+        write_compile_report();
+    }
+    if (num_robots<1)
+    {
+        prog_error(4,"");
+    }
+
+    if (!no_gfx)
+    {
+        graph_mode(true);
+    }
+
+    //{--fix ups--}
+    if (matches>100000)
+    {
+        matches = 100000;
+    }
+    if (matches<1)
+    {
+        matches = 1;
+    }
+    if (game_delay>1000)
+    {
+        game_delay = 1000;
+    }
+    if (game_delay<0)
+    {
+        game_delay = 0;
+    }
+    if (time_slice>100)
+    {
+        time_slice = 100;
+    }
+    if (time_slice<1)
+    {
+        time_slice = 1;
+    }
+    if (game_limit<0)
+    {
+        game_limit = 0;
+    }
+    if (game_limit>100000)
+    {
+        game_limit = 100000;
+    }
+    if (maxcode<1)
+    {
+        maxcode = 1; //{0 based, so actually 2 lines}
+    }
+    if (maxcode>max_code)
+    {
+        maxcode = max_code;
+    }
+
+    if (!graphix)
+    {
+        cout<<"Freemem: "/*<<memavail*/<<endl<<endl;
+    }
+}
 
 procedure draw_robot(n:integer);
 var
@@ -2425,37 +2570,45 @@ int find_label(int n,int l,int m)
 }
 
 
-procedure init_mine(n,detectrange,size:integer);
-var
-i,j,k:integer;
-begin
-with robot[n]^ do
-begin
-k:=-1;
-for i:=0 to max_mines do
-if ((mine[i].x<0) or (mine[i].x>1000) or (mine[i].y<0) or (mine[i].y>1000)
-  or (mine[i].yield<=0)) and (k<0) then k:=i;
-if k>=0 then
-begin
-mine[k].x:=x;
-mine[k].y:=y;
-mine[k].detect:=detectrange;
-mine[k].yield:=size;
-mine[k].detonate:=false;
-click;
-end;
-end;
-end;
+void init_mine(int n,int detectrange,int sizeN)
+{
+    int i,j,k;
+    //with robot[n]. do
+    k = -1;
+    for (i = 0; i < max_mines; i++)
+    {
+        if (((robot[n].mine[i].x<0) || (robot[n].mine[i].x>1000) || (robot[n].mine[i].y<0) || (robot[n].mine[i].y>1000)
+                || (robot[n].mine[i].yield<=0)) && (k<0))
+        {
+                    k = i;
+        }
+    }
 
-function count_missiles:integer;
-var
-i,k:integer;
-begin
-k:=0;
-for i:=0 to max_missiles do
-if missile[i].a>0 then inc(k);
-count_missiles:=k;
-end;
+    if (k>=0)
+    {
+        robot[n].mine[k].x = robot[n].x;
+        robot[n].mine[k].y = robot[n].y;
+        robot[n].mine[k].detect = detectrange;
+        robot[n].mine[k].yield = sizeN;
+        robot[n].mine[k].detonate = false;
+        click();
+    }
+}
+
+int count_missiles()
+{
+    int i,k;
+    k = 0;
+    for (i = 0; i < max_missiles; i++)
+    {
+        if (missile[i].a>0)
+        {
+            k++;
+        }
+    }
+
+    return k;
+}
 
 void init_missile(double xx, double yy, double xxv, double yyv,int dir,int s,int blast,bool ob)
 {
@@ -3470,17 +3623,19 @@ bool gameover()
     return false;
 }
 
-procedure toggle_graphix;
-begin
-graph_mode(not graphix);
-if not graphix then
-begin
-textcolor(7);
-writeln('Match ',played,'/',matches,', Battle in progress...');
-writeln;
-end
-else setscreen;
-end;
+void toggle_graphix()
+{
+    graph_mode(!graphix);
+    if (!graphix)
+    {
+//        textcolor(7);
+        cout<<"Match "<<played<<"/"<<matches<<", Battle in progress..."<<endl<<endl;
+    }
+    else
+    {
+        setscreen();
+    }
+}
 
 bool invalid_microcode(int n,int ip)
 {
@@ -4671,20 +4826,27 @@ writeln;
 end;
 end;
 
-procedure score_robots; //adjusts the score
-var
-n,i,j,k,l:integer;
-begin
-k:=0; n:=-1;
-for i:=0 to num_robots do
-begin
-inc(robot[i]^.trials);
-if robot[i]^.armor>0 then begin inc(k); n:=i; end;
-end;
-if (k=1) and (n>=0) then
-with robot[n]^ do
-begin inc(wins); won:=true; end;
-end;
+void score_robots()
+{
+    int n,i,j,k,l;
+
+    k = 0;
+    n = -1;
+    for (i = 0; i < num_robots; i++)
+    {
+        robot[i].trials++;
+        if (robot[i].health>0)
+        {
+            k++;
+            n = i;
+        }
+    }
+    if ((k=1) && (n>=0))
+    {
+        robot[n].wins++;
+        robot[n].won = true;
+    }
+}
 
 procedure init_bout; //just sets up the initial match, not necessary
 var
@@ -4831,27 +4993,34 @@ score_robots;
 show_statistics;
 end;
 
-procedure write_report;
-var
-i,j,k:integer;
-f:text;
-begin
-assign(f,main_filename+report_ext);
-rewrite(f);
-writeln(f,num_robots+1);
-for i:=0 to num_robots do
-with robot[i]^ do
-case report_type of
-2:writeln(f,wins,' ',trials,' ',kills,' ',deaths,' ',fn,' ');
-3:writeln(f,wins,' ',trials,' ',kills,' ',deaths,' ',armor,' ',
-           heat,' ',shots_fired,' ',fn,' ');
-4:writeln(f,wins,' ',trials,' ',kills,' ',deaths,' ',armor,' ',
-           heat,' ',shots_fired,' ',hits,' ',damage_total,' ',
-           cycles_lived,' ',error_count,' ',fn,' ');
-else writeln(f,wins,' ',trials,' ',fn,' ');
-end;
-close(f);
-end;
+void write_report()
+{
+    int i,j,k;
+    //f:text;
+
+    /*assign(f,main_filename+report_ext);
+    rewrite(f);
+    writeln(f,num_robots+1);*/
+    for (i = 0; i < num_robots; i++)
+    //with robot[i]. do
+    {
+
+        switch (report_type)
+        {
+            case 2:cout<<robot[i].wins<<" "<<robot[i].trials<<" "<<robot[i].kills<<" "<<robot[i].deaths<<" "<<robot[i].fn<<" "<<endl;
+            break;
+            case 3:cout<<robot[i].wins<<" "<<robot[i].trials<<" "<<robot[i].kills<<" "<<robot[i].deaths<<" "<<robot[i].health<<" "<<
+                        robot[i].heat<<" "<<robot[i].shots_fired<<" "<<robot[i].fn<<" "<<endl;
+            break;
+            case 4:cout<<robot[i].wins<<" "<<robot[i].trials<<" "<<robot[i].kills<<" "<<robot[i].deaths<<" "<<robot[i].health<<" "<<
+                        robot[i].heat<<" "<<robot[i].shots_fired<<" "<<robot[i].hits<<" "<<robot[i].damage_total<<" "<<
+                        robot[i].cycles_lived<<" "<<robot[i].error_count<<" "<<robot[i].fn<<" "<<endl;
+            break;
+            default: cout<<robot[i].wins<<" "<<robot[i].trials<<" "<<robot[i].fn<<" "<<endl;
+        }
+    }
+    /*close(f);*/
+}
 
 procedure begin_window;
 var
