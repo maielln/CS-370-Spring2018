@@ -1222,6 +1222,7 @@ int rol(int n,int k)
     mov   cx,     k
     rep   rol     n,      1
 */
+ n = ~(~0U << 16) & ((n << 1) + (n & (1 << 15) >> 1)); //need to look back at this (copied from confer)
  return n;
 }
 
@@ -1233,6 +1234,7 @@ int ror(int n,int k)
     rep   ror     n,      1
     end;
 */
+    n = ~(~0U << 16) & (((unsigned) n >> 1) + ((n & 1 << 0) << 15));
     return n;
 }
 
