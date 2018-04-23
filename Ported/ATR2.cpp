@@ -4369,12 +4369,18 @@ int main(void)
     w = 0;
     for(i = 0; i < num_robots; i++){
      //need robot[i]^
-       if (packet_robot[i]*.wins = w)begin inc(k); end;
-       if wins>w then begin k = 1; n = i; w = wins; end;
-      end;
+       if (packet_robot[i]*.wins = w)
+          k++;
+       if (wins > w) 
+       {
+          k = 1; 
+          n = i; 
+          w = wins;
+        } 
+      }
     cout<<"Robot           Wins  Matches  Kills  Deaths    Shots"<<endl;
     cout<<"~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"<<endl;
-    for i = 0 to num_robots do
+    for (i = 0; i < num_robots; i++)
      with robot[i]^ do
       {
 //       textcolor(robot_color(i)); //GUI
@@ -4385,15 +4391,17 @@ int main(void)
       }
 //    textcolor(15); //GUI
     cout<<endl;
-    if k=1 then writeln('Robot #',n+1,' (',robot[n]*.fn,') wins the bout! (score: ',w,'/',matches,')')
-           else writeln('There is no clear victor!');
-    writeln;
-   end
-  else if graphix then
-   begin {matches=1 also}
+    if (k = 1)
+        //writeln('Robot #',n+1,' (',robot[n]*.fn,') wins the bout! (score: ',w,'/',matches,')')
+    else
+        //writeln('There is no clear victor!');
+    //writeln;
+  if (graphix)
+  {
     graph_mode(false);
-    show_statistics;
-   end;
-  if report then write_report;
+    show_statistics();
+  }
+  if (report) 
+    write_report();
   shutdown();
 }
