@@ -1171,6 +1171,26 @@ string space(uint8_t i)
     return s;
 }
 
+
+string cutStr(string s)
+{
+    int i=0;
+    string a = "";
+    
+    for (i=0;i<s.length();i++)
+    {
+        if (s[i] == ',')
+        {
+            break;
+        }
+        
+        a += s[i];
+    }
+    
+    return a;
+}
+
+
 string repchar(char c,uint8_t i)
 {
     string s;
