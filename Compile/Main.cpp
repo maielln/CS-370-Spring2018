@@ -1,15 +1,186 @@
-//Main, for debugging purposes
+/*
+Program ported from ATR2.pas and ATR2FUNC.pas
+Written in c++ (gcc compiler)
+Written in Spring of 2018
+Contributors: Mark Yetter, Niccole Maiello, William Csont, Eric, Tyler
+*/
 
-//FULLY PORTED ATR2.PAS
+
+
 #define _USE_MATH_DEFINES
 
 #include <iostream>
 #include <ctime>
 #include <string>
 #include <cmath>
-#include "atr2func.cpp"
+
+#include <math.h>
+#include <chrono>
+#include <thread>
+//#include <SDL.h>
+//#include <SDL_image.h>
+//#include <stdio.h>
+//#include <SDL_mixer.h>
+//#include "helloworld.cpp"
+#include <fOpen.h>
+//#include <SDL_ttf.h>
+#include <vector>
+#include <windows.h>
+#include <sstream>
+#include <ctime>
+#define pi 3.1415926535897932384626433
 
 using namespace std;
+
+//------------------------------------------------ATR2FUNC HEADER---------------------------------------------------
+long delay_per_sec;
+bool registered,graphix,sound_on;
+string reg_name;
+uint16_t reg_num;            //ORIGIONALLY TYPE :word!!!!!!!!!!!
+double sint[256],cost[256];
+
+string addrear(string b,int l);
+double distance(int x1, int y1, int x2, int y2);
+int rol(int n,int k);
+int ror(int n,int k);
+int sal(int n,int k);
+int sar(int n,int k);
+double abso(double x);
+void textxy(int x,int y, string s);
+void coltextxy(int x,int y,string s,uint8_t c);
+char hexnum(uint8_t num);
+string hexb(uint8_t num);
+string hex(uint16_t num );
+double valuer(string i);
+long value(string i);
+string cstrr(double i);
+string cstr(long i);
+string zero_pad(long n,long l);
+string zero_pads(string s ,long l);
+string addfront(string b,int l);
+string ucase(string s);
+string lcase(string s);
+string space(uint8_t i);
+string repchar(char c,uint8_t i);
+string ltrim(string s1);
+string rtrim(string s1);
+string btrim(string s1);
+string lstr(string s1,int  l);
+string rstr(string s1,int l);
+void FlushKey();
+void calibrate_timing();
+void time_delay(int n); //{n=milliseconds}
+void check_registration();
+void viewport(int x1,int y1,int x2,int y2);
+void main_viewport();
+void make_tables();
+//FINISH FUNCTIONS BELOW HERE!!!!!!!!!!!!!!!!!!!!!!!!!!!
+int robot_color(int n);
+void box(int x1,int y1,int x2,int y2);
+void hole(int x1,int y1,int x2,int y2);
+void chirp();
+void click();
+int hex2int(string s);
+int str2int(string s);
+string bin(int n);
+string decimal(int num,int length );
+string ltrim(string s1);
+string rtrim(string s1);
+string btrim(string s1);
+string lstr(string s1, int l);
+string rstr(string s1,int l);
+
+
+//***GUI pointers/variables ***///GUI HAS BEEN COMMENTED OUT FOR DEBUGGING BECAUSE FUCK SDL
+/*
+//the name of the window we create
+SDL_Window* gWindow = NULL;
+SDL_Window* nWindow = NULL; // the selector window
+SDL_Window* aWindow = NULL; // arena window
+
+//the "screen" created by the window
+SDL_Surface* gWindowSurface = NULL;
+SDL_Surface* nWindowSurface = NULL;
+SDL_Surface* aWindowSurface = NULL; //arena surface
+
+//our images
+SDL_Surface* titleScreen = NULL;
+SDL_Surface* playButton = NULL;
+SDL_Surface* exitButton = NULL;
+SDL_Surface* playButtonClick = NULL;
+SDL_Surface* exitButtonClick = NULL;
+//on click default = 0, click = 1
+
+//button arrays
+SDL_Rect buttonParams [TOTAL_BUTTONS];
+SDL_Rect buttonPos [TOTAL_BUTTONS];
+// 0: play
+// 1: exit
+
+//mouse handler
+SDL_Point MPos[TOTAL_BUTTONS];
+// 0: play
+// 1: exit
+
+//sound effect
+Mix_Chunk *onClick = NULL;
+
+//text
+SDL_Color textColor = {255, 255, 255, 255};
+SDL_Surface *message = NULL;
+SDL_Renderer *renderer;
+SDL_Texture *SurfaceToTexture( SDL_Surface* surf );
+SDL_Texture *messageTexture = NULL;
+SDL_Rect textRect;
+TTF_Font* font = TTF_OpenFont("arial.ttf", 25);
+
+
+//selector SDL stuff
+const int TOTAL_R_BUTTONS = 6;
+
+SDL_Surface* selectRButton [TOTAL_R_BUTTONS];
+SDL_Surface* selectRButtonClick [TOTAL_R_BUTTONS];
+SDL_Surface* selectBG = NULL;
+
+SDL_Rect rButtonParam[TOTAL_R_BUTTONS];
+SDL_Rect rCButtonParam[TOTAL_R_BUTTONS];
+
+SDL_Rect rButtonPos[TOTAL_R_BUTTONS];
+
+SDL_Event* S[TOTAL_R_BUTTONS];  //mouse handler for the select screen
+SDL_Point SPos[TOTAL_R_BUTTONS];
+
+
+//arena stuff
+const int MAX_ROBOTS = 2;
+
+SDL_Rect robPos [2];
+SDL_Rect arenaPos;
+
+const int rob1 = 0; //becky
+const int rob2 = 1; //steve
+
+SDL_Surface* arena = NULL;
+SDL_Surface* robot1 = NULL;
+SDL_Surface* robot2 = NULL;
+
+
+//shapes button
+const int TOTAL_SHAPES = 10;
+SDL_Surface* shapes[10] = NULL;
+int cycle = 0;
+
+SDL_Rect shapeParam[TOTAL_R_BUTTONS];
+SDL_Rect shapePos[TOTAL_R_BUTTONS];
+
+//GUI definitions
+bool initSDL(); //turn on SDL *important*
+bool loadMedia(); //load images *IMPORTANT*
+bool mouseHandle(SDL_Event* M);
+*/
+
+//------------------------------------------------------END ATR2FUNC HEADER-------------------------------------------------
+
 
 void damage(int n,int d,bool physical);
 void robot_error(int n,int i,string ov);
@@ -106,8 +277,7 @@ double mine_circle = trunc(mine_blast*screen_scale)+1;
 double blast_circle = trunc(blast_radius*screen_scale)+1;
 double mis_radius = trunc(hit_range/2)+1;
 int max_robot_lines = 8;
-// Gray50 : FillPatternType = ($AA, $55, $AA, $55,
-//                             $AA, $55, $AA, $55); GUI can deal with this, I can't
+// Gray50 : FillPatternType = ($AA, $55, $AA, $55, $AA, $55, $AA, $55); GUI can deal with this, I can't
 
 struct op_rec
 {
@@ -116,7 +286,7 @@ struct op_rec
 
 struct prog_type
 {
-    op_rec a[max_code];
+    op_rec code[max_code];
 };
 
 struct config_rec //CONFIG FOR EACH BOT
@@ -136,12 +306,12 @@ struct robot_rec //ROBOTS
         bool is_locked;
         int mem_watch;
         double x,y,lx,ly,xv,yv,speed,shotstrength,damageadj,speedadj,meter;
-        int hd,thd,lhd,spd,tspd,health,larmor,heat,lheat,ip,plen,scanarc,accuracy,shift,err,delay_left,robot_time_limit, max_time,time_left,lshift,arc_count,sonar_count,scanrange,last_damage,last_hit,transponder,shutdown,channel,lendarc,endarc,lstartarc,startarc,mines;
+        int hd,thd,lhd,spd,tspd,armor,larmor,heat,lheat,ip,plen,scanarc,accuracy,shift,err,delay_left,robot_time_limit, max_time,time_left,lshift,arc_count,sonar_count,scanrange,last_damage,last_hit,transponder,shutdown,channel,lendarc,endarc,lstartarc,startarc,mines;
         int tx,ltx,ty,lty;
         long wins,trials,kills,deaths,startkills,shots_fired,match_shots,hits,damage_total,cycles_lived,error_count;
         config_rec config;
         string name;
-        string fn[255];
+        string fn;
         bool shields_up,lshields,overburn,keepshift,cooling,won;
         prog_type code;
         int ram[max_ram];
@@ -161,14 +331,17 @@ struct robot_ptr
 
 struct missile_rec
 {
-        double x,y,lx,ly,mult,mspd;
+        double x,y,lx,ly,xv,yv,mult,mspd;
         int source, a, hd, rad, lrad, max_rad;
 };
+
+robot_rec robot[max_robots];
+
 
 //ROBOT VARIABLES
 int num_robots;
 robot_ptr robots[max_robots + 2];
-missile_rec missiles[max_missiles];
+missile_rec missile[max_missiles];
 
 //COMPILER VARIABLES
 string f; //I believe this is the contents of the file
@@ -194,6 +367,1492 @@ long matches,played,executed;
 //GENERAL SETTINGS
 bool quit,report,show_cnotice;
 int kill_count,report_type;
+
+
+//-----------------------------------------------------ATR2FUNC FUNCTIONS------------------------------------------------
+//***GUI FUNCTIONS START HERE **** //
+//bool initSDL()
+//{
+	/* Desc: This fucntion initializes the SDL
+		Libraries used in this program, as well as creating
+		the window and surface we will use. Our audio is
+		also initalized. *//*
+
+	bool success = true;
+	//initalize audio and vid
+	if( SDL_Init( SDL_INIT_VIDEO | SDL_INIT_AUDIO) < 0 )
+	{
+		printf( "SDL could not initialize! SDL_Error: %s\n", SDL_GetError() );
+		success = false;
+	}
+	else
+	{
+		//Create window
+		gWindow = SDL_CreateWindow( "ATRobots: Revised", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_SHOWN );
+
+
+		if( gWindow == NULL )
+		{
+			printf( "Window could not be created! SDL_Error: %s\n", SDL_GetError() );
+			success = false;
+		}
+		else
+		{
+			//Get window surface
+			gWindowSurface = SDL_GetWindowSurface( gWindow );
+
+		}
+	}
+					//freq, format, channels, sample size
+	if( Mix_OpenAudio( 44100, MIX_DEFAULT_FORMAT, 2, 2048 ) < 0 ) {
+
+		printf( "SDL_mixer could not initialize! SDL_mixer Error: %s\n", Mix_GetError() );
+		success = false;
+	}
+
+	//turn on text
+
+	if (TTF_Init() == -1) {
+
+		cout << "ttf init error: " << TTF_GetError();
+	}
+
+
+
+
+	return success;*/
+//}
+
+//bool loadMedia() {
+	/* Desc: This fucntion loads in the files needed to
+		format the screen and sound effects. The buttons
+		are clipped from a sprite sheet. The audio is loaded. *//*
+	int xMax, yMax, xMin, yMin, xRange, yRange;
+	bool success = true;
+
+	//title image loaded
+	titleScreen = SDL_LoadBMP("mainmenu.bmp");
+	if (titleScreen == NULL) {
+		printf("Title Image could not be loaded");
+		success = false;
+	}
+
+	//set buttons
+	playButton = SDL_LoadBMP("play.bmp");
+	if (playButton == NULL) {
+		printf("Play image could not be loaded");
+		success = false;
+	}
+
+	playButtonClick = SDL_LoadBMP("playClick.bmp");
+	if (playButtonClick == NULL) {
+		printf("play click could not be loaded");
+		success = false;
+	}
+
+	exitButton = SDL_LoadBMP("exit.bmp");
+	if (exitButton == NULL) {
+		printf("exit image could not be loaded");
+		success = false;
+	}
+
+	exitButtonClick = SDL_LoadBMP("exitClick.bmp");
+	if (exitButtonClick == NULL) {
+		printf("exit image click could not be loaded");
+		success = false;
+	}
+
+
+	//set param and pos for each button
+	//0: play
+	//1: exit
+	//2: play click
+	//3: exit click
+	for (int cnt = 0; cnt < TOTAL_BUTTONS; cnt++) {
+		buttonParams[cnt].w = BUTTON_WIDTH;
+		buttonParams[cnt].h = BUTTON_HEIGHT;
+
+		buttonPos[cnt].x = 300;
+		buttonPos[cnt].y = 300;
+
+		if (cnt > 0) {
+		buttonPos[cnt].y = buttonPos[cnt-1].y + 100;
+		}
+	}
+
+
+	//load images for the select screen
+	selectRButton[0] = SDL_LoadBMP("r0.bmp");
+	if (exitButtonClick == NULL) {
+		printf("r 0 could not be loaded ");
+		success = false;
+	}
+
+	selectRButton[1] = SDL_LoadBMP("r1.bmp");
+	if (exitButtonClick == NULL) {
+		printf("r 1 could not be loaded ");
+		success = false;
+	}
+
+
+	for (int cnt = 0; cnt < TOTAL_R_BUTTONS; cnt++) {
+		rButtonParam[cnt].w = 75;
+		rButtonParam[cnt].h = 75;
+
+		rButtonPos[cnt].x = 100;
+		rButtonPos[cnt].y = 100;
+
+		if (cnt > 0) {
+			if (cnt > 0) {
+			rButtonPos[cnt].y = rButtonPos[cnt-1].y + 100;
+
+			if (cnt > 4) {
+				rButtonPos[cnt].x = rButtonPos[cnt-1].x + 200;
+			}
+
+		}
+    }
+}
+
+
+
+
+	selectRButtonClick[0] = SDL_LoadBMP("r0click.bmp");
+	if (exitButtonClick == NULL) {
+		printf("r 0 click could not be loaded ");
+		success = false;
+	}
+
+	selectRButtonClick[1] = SDL_LoadBMP("r1click.bmp");
+	if (exitButtonClick == NULL) {
+		printf("r 1 click could not be loaded ");
+		success = false;
+	}
+
+
+	for (int cnt = 0; cnt < TOTAL_R_BUTTONS; cnt++) {
+		rCButtonParam[cnt].w = 75;
+		rCButtonParam[cnt].h = 75;
+
+		rButtonPos[cnt].x = 100;
+		rButtonPos[cnt].y = 100;
+
+		if (cnt > 0) {
+			rButtonPos[cnt].y = rButtonPos[cnt-1].y + 100;
+
+			if (cnt > 4) {
+				rButtonPos[cnt].x = rButtonPos[cnt-1].x + 200;
+			}
+
+		}
+
+
+
+	}
+
+
+	//load select screen background
+	selectBG = SDL_LoadBMP("selectBG.bmp");
+	if (selectBG == NULL) {
+		printf("Select bg not loaded");
+		success = false;
+	}
+
+	arena = SDL_LoadBMP("arena.bmp");
+	if (arena == NULL) {
+		printf("arena Image could not be loaded");
+		success = false;
+	}
+
+	//set buttons
+	robot1 = SDL_LoadBMP("becky.bmp");
+	if (robot1 == NULL) {
+		printf("Play image could not be loaded");
+		success = false;
+	}
+
+	robot2 = SDL_LoadBMP("steve.bmp");
+	if (robot2 == NULL) {
+		printf("play click could not be loaded");
+		success = false;
+	}
+
+
+	arenaPos.x = 50;
+	arenaPos.y = 50;
+
+    xMin = 50;
+    yMin = 50;
+    xMax = 600;
+    yMax = 550;
+
+    xRange = xMax - xMin;
+    yRange = yMax - yMin;
+
+	//RNG for robots
+	//position has to be within arena
+	//pos cannot be ==
+
+    int pos = 5;
+    srand (time(NULL));
+	for (int cnt = 0; cnt < 2; cnt++) {
+
+
+		pos = xMin + (int)(xRange * rand()) / ((RAND_MAX + 1.0));
+		cout << pos << endl;
+		robPos[cnt].x = pos;
+
+		pos = yMin + (int)(yRange * rand()) / ((RAND_MAX + 1.0));
+		cout << pos << endl;;
+		robPos[cnt].y = pos;
+
+	}
+
+	//load audio
+	onClick = Mix_LoadWAV("ring.wav");
+	if (onClick == NULL) {
+		printf( "Failed to load scratch sound effect! SDL_mixer Error: %s\n", Mix_GetError() );
+		success = false;
+	}
+
+	string getShape;
+
+	for (int cnt = 0; cnt < 10; cnt++) {
+		switch (cnt) {
+			case 0: getShape = "circle";
+			case 1: getShape = "star";
+			case 2: getShape = "";
+			case 3: getShape = "";
+			case 4: getShape = "";
+			case 5: getShape = "";
+			case 6: getShape = "";
+			case 7: getShape = "";
+			case 8: getShape = "";
+			case 9: getShape = "";
+			default: getShape = "fail";
+		}
+
+		shapes[cnt] = SDL_LoadBMP(getShape + ".bmp");
+
+		if (cnt < TOTAL_R_BUTTONS) {
+			shapeParam[cnt].w = 16;
+			shapeParam[cnt].h = 16;
+
+			shapePos[cnt].x = 130;
+			shapePos[cnt].y = 100;
+
+			if (cnt > 0) {
+				rButtonPos[cnt].y = rButtonPos[cnt-1].y + 100;
+
+				if (cnt > 4) {
+					rButtonPos[cnt].x = rButtonPos[cnt-1].x + 200;
+				}
+
+			}
+		}
+
+
+
+	}
+
+	return success;*/
+//}
+
+//bool mouseHandle (/*SDL_Event* M*/) {
+	/* Desc: this fucntion handles the position and actions
+		of the mouse. The mouse is located, and on click a new button
+		is shown to create a "flash" effect. A sound effect is
+		also played. *//*
+
+	bool quitter = false;
+	MPos[0].x = buttonPos[0].x;
+	MPos[0].y = buttonPos[0].y;
+	MPos[1].x = buttonPos[1].x;
+	MPos[1].y = buttonPos[1].y;
+
+	//play button
+	if( M->type == SDL_MOUSEMOTION || M->type == SDL_MOUSEBUTTONDOWN || M->type == SDL_MOUSEBUTTONUP )
+	{
+		//Get mouse position
+		int x, y;
+		SDL_GetMouseState( &x, &y );
+
+
+		bool inside = true;
+		//left
+		if (x < MPos[0].x)  {
+			inside = false;
+			//printf("left");
+		}
+
+		if (x > MPos[0].x + BUTTON_WIDTH) {
+			inside = false;
+			//printf("right");
+		}
+
+		if (y < MPos[0].y)  {
+			inside = false;
+			//printf("above");
+		}
+
+		if (y > MPos[0].y + BUTTON_HEIGHT) {
+			inside = false;
+			//printf("below");
+		}
+
+		if (inside) {
+			switch (M->type) {
+			case SDL_MOUSEBUTTONDOWN:
+				Mix_PlayChannel(-1, onClick, 0);
+				SDL_BlitSurface(playButtonClick, &buttonParams[0], gWindowSurface, &buttonPos[0]);
+				selectMenu();
+				break;
+
+				case SDL_MOUSEBUTTONUP:
+				SDL_BlitSurface(playButton, &buttonParams[0], gWindowSurface, &buttonPos[0]);
+				break;
+
+                }
+
+
+            }
+
+		}
+
+	//exit button
+	if( M->type == SDL_MOUSEMOTION || M->type == SDL_MOUSEBUTTONDOWN || M->type == SDL_MOUSEBUTTONUP )
+	{
+		//Get mouse position
+		int x, y;
+		SDL_GetMouseState( &x, &y );
+
+
+		bool inside = true;
+		//left
+		if (x < MPos[1].x)  {
+			inside = false;
+		}
+
+		if (x > MPos[1].x + BUTTON_WIDTH) {
+			inside = false;
+		}
+
+		if (y < MPos[1].y)  {
+			inside = false;
+		}
+
+		if (y > MPos[1].y + BUTTON_HEIGHT) {
+			inside = false;
+		}
+
+		if (inside) {
+			switch (M->type) {
+			case SDL_MOUSEBUTTONDOWN:
+				SDL_BlitSurface(exitButtonClick, &buttonParams[1], gWindowSurface, &buttonPos[1]);
+				Mix_PlayChannel(-1, onClick, 0);
+				break;
+
+				case SDL_MOUSEBUTTONUP:
+				SDL_BlitSurface(exitButton, &buttonParams[1], gWindowSurface, &buttonPos[1]);
+				quitter = true;
+				break;
+                }
+
+
+            }
+
+		}
+
+		return quitter;*/
+
+//}
+
+//bool mouseHandleS(/*SDL_Event* S, int cycle*/) {
+/*  Desc: this fucntion handles the position and actions
+		of the mouse. The mouse is located, and on click a new button
+		is shown to create a "flash" effect. A sound effect is
+		also played. *//*
+
+	bool quitter = false;
+
+
+	//don't really know why i had to do this, but it's leftover from the gui
+	for (int cnt = 0; cnt < TOTAL_R_BUTTONS; cnt++) {
+
+		SPos[cnt].x = rButtonPos[cnt].x;
+		SPos[cnt].y = rButtonPos[cnt].y;
+	}
+
+	//r1 button
+	if( S->type == SDL_MOUSEMOTION || S->type == SDL_MOUSEBUTTONDOWN || S->type == SDL_MOUSEBUTTONUP )
+	{
+		//Get mouse position
+		int x, y;
+		SDL_GetMouseState( &x, &y );
+
+		bool inside = true;
+		//left
+		if (x < SPos[0].x)  {
+			inside = false;
+			//printf("left");
+		}
+
+		if (x > SPos[0].x + BUTTON_WIDTH) {
+			inside = false;
+			//printf("right");
+		}
+
+		if (y < SPos[0].y)  {
+			inside = false;
+			//printf("above");
+		}
+
+		if (y > SPos[0].y + BUTTON_HEIGHT) {
+			inside = false;
+			//printf("below");
+		}
+
+		if (inside) {
+			switch (S->type) {
+			case SDL_MOUSEBUTTONDOWN:
+				SDL_BlitSurface(selectRButton[0], &rButtonParam[0], nWindowSurface, &rButtonPos[0]);
+				displayText(0);
+				break;
+
+				 case SDL_MOUSEBUTTONUP:
+
+				break;
+
+                }
+
+
+            }
+
+		}
+
+
+	 //r2
+	 if( S->type == SDL_MOUSEMOTION || S->type == SDL_MOUSEBUTTONDOWN || S->type == SDL_MOUSEBUTTONUP )
+	{
+		//Get mouse position
+		int x, y;
+		SDL_GetMouseState( &x, &y );
+
+		bool inside = true;
+		//left
+		if (x < SPos[1].x)  {
+			inside = false;
+
+		}
+
+		if (x > SPos[1].x + BUTTON_WIDTH) {
+			inside = false;
+
+		}
+
+		if (y < SPos[1].y)  {
+			inside = false;
+
+		}
+
+		if (y > SPos[1].y + BUTTON_HEIGHT) {
+			inside = false;
+
+		}
+
+		if (inside) {
+			switch (S->type) {
+			case SDL_MOUSEBUTTONDOWN:
+				SDL_BlitSurface(selectRButtonClick[1], &rCButtonParam[1], nWindowSurface, &rButtonPos[1]);
+				displayText(1);
+				break;
+
+				case SDL_MOUSEBUTTONUP:
+				SDL_BlitSurface(selectRButton[1], &rButtonParam[1], nWindowSurface, &rButtonPos[1]);
+				break;
+
+                }
+
+
+            }
+
+		}
+
+
+	for (int cnt = 0; cnt < TOTAL_R_BUTTONS; cnt++) {
+		//may need another position array?????
+		SPos[cnt].x = shapePos[cnt].x;
+		SPos[cnt].y = shapePos[cnt].y;
+	}
+
+	//shapes1
+	if( S->type == SDL_MOUSEMOTION || S->type == SDL_MOUSEBUTTONDOWN || S->type == SDL_MOUSEBUTTONUP ) {
+		//Get mouse position
+		int x, y;
+		SDL_GetMouseState( &x, &y );
+
+		bool inside = true;
+		//left
+		if (x < SPos[0].x)  {
+			inside = false;
+			//printf("left");
+		}
+
+		if (x > SPos[0].x + BUTTON_WIDTH) {
+			inside = false;
+			//printf("right");
+		}
+
+		if (y < SPos[0].y)  {
+			inside = false;
+			//printf("above");
+		}
+
+		if (y > SPos[0].y + BUTTON_HEIGHT) {
+			inside = false;
+			//printf("below");
+		}
+
+		if (inside) {
+			switch (S->type) {
+			case SDL_MOUSEBUTTONDOWN:
+				cycleShapes(cycle);
+				break;
+
+				 case SDL_MOUSEBUTTONUP:
+
+				break;
+
+                }
+
+
+            }
+
+	}
+
+	//shapes2
+	if( S->type == SDL_MOUSEMOTION || S->type == SDL_MOUSEBUTTONDOWN || S->type == SDL_MOUSEBUTTONUP ) {
+		//Get mouse position
+		int x, y;
+		SDL_GetMouseState( &x, &y );
+
+		bool inside = true;
+		//left
+		if (x < SPos[0].x)  {
+			inside = false;
+			//printf("left");
+		}
+
+		if (x > SPos[0].x + BUTTON_WIDTH) {
+			inside = false;
+			//printf("right");
+		}
+
+		if (y < SPos[0].y)  {
+			inside = false;
+			//printf("above");
+		}
+
+		if (y > SPos[0].y + BUTTON_HEIGHT) {
+			inside = false;
+			//printf("below");
+		}
+
+		if (inside) {
+			switch (S->type) {
+			case SDL_MOUSEBUTTONDOWN:
+				cycleShapes(cycle);
+				break;
+
+				 case SDL_MOUSEBUTTONUP:
+
+				break;
+
+                }
+
+
+            }
+
+	}
+
+
+		return quitter;
+
+*/
+//}
+
+//void startMenu() {
+/*
+	//Brings up the start menu and
+	//handles the mouse and clicking
+	int cnt = 0;
+	bool quit = false;
+	SDL_Event M;
+
+
+	//load title screen
+	SDL_BlitSurface(titleScreen, NULL, gWindowSurface, NULL);
+
+	//display buttons
+    SDL_BlitSurface(playButton, &buttonParams[cnt], gWindowSurface, &buttonPos[cnt]);
+    cnt++;
+    SDL_BlitSurface(exitButton, &buttonParams[cnt], gWindowSurface, &buttonPos[cnt]);
+
+	while (!quit) {
+		while(SDL_PollEvent( &M ) != 0 )
+			{
+
+				quit = mouseHandle(&M);
+
+				if( M.type == SDL_QUIT )
+				{
+					quit = true;
+				}
+
+			}
+			//Update the screen
+			SDL_UpdateWindowSurface( gWindow );
+	}
+
+	return;
+
+
+*/
+//}
+
+//void selectMenu() {
+    /*
+	SDL_Event S;
+	bool quit = false;
+	string fileName;
+
+	closeStartMenu();
+
+	nWindow = SDL_CreateWindow("Select Your Robot", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_SHOWN);
+
+	nWindowSurface = SDL_GetWindowSurface(nWindow);
+	SDL_BlitSurface(selectBG, NULL, nWindowSurface, NULL);
+
+
+	for (int cnt = 0; cnt < 2; cnt++) {
+		SDL_BlitSurface(selectRButton[cnt], &rButtonParam[cnt], nWindowSurface, &rButtonPos[cnt]);
+
+	}
+
+	for (int cnt = 0; cnt < 2; cnt++) {
+		SDL_BlitSurface(shapes[cycle], &shapeParam[cnt], nWindowSurface, &shapePos[cnt]);
+
+	}
+
+	SDL_UpdateWindowSurface( nWindow );
+
+
+	while (!quit) {
+			while(SDL_PollEvent( &S ) != 0 )
+				{
+
+					quit = mouseHandleS(&S, cycle);
+					if (quit == true) {
+
+						break;
+					}
+
+
+				}
+				//Update the screen
+				SDL_UpdateWindowSurface( nWindow );
+		}
+
+		return;*/
+
+//}
+
+//void cycleShapes() {
+/*
+	cycle++;
+
+	if (cycle > 9) {
+		cycle = 0;
+
+	}
+
+	SDL_BlitSurface(shapes[cycle], &shapeParam[cycle], nWindowSurface, &shapePos[cycle]);*/
+
+//}
+
+//void closeStartMenu() {
+/*
+	//closes main menu
+	SDL_FreeSurface(titleScreen);
+	SDL_FreeSurface(playButton);
+	SDL_FreeSurface(exitButton);
+	SDL_FreeSurface(playButtonClick);
+	SDL_FreeSurface(exitButtonClick);
+	titleScreen = NULL;
+	playButton = NULL;
+	exitButton = NULL;
+	playButtonClick = NULL;
+	exitButtonClick = NULL;
+
+	//free music
+	Mix_FreeChunk (onClick);
+	onClick = NULL;
+
+	SDL_DestroyWindow( gWindow );
+	gWindow = NULL;*/
+//}
+
+//void closeSelectMenu() {
+/*
+
+SDL_FreeSurface(nWindowSurface);
+
+	for (int cnt = 0; cnt > TOTAL_R_BUTTONS; cnt++) {
+		SDL_FreeSurface(selectRButton[cnt]);
+		SDL_FreeSurface(selectRButtonClick[cnt]);
+		SDL_FreeSurface(selectBG);
+
+	}
+
+	SDL_DestroyWindow( nWindow );
+	nWindow = NULL;*/
+//}
+
+//void arena () {
+    /*
+	aWindow = SDL_CreateWindow("FIGHT!!!!!!", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_SHOWN);
+
+	aWindowSurface = SDL_GetWindowSurface(aWindow);
+
+	SDL_BlitSurface(arena, NULL, aWindowSurface, &arenaPos);
+	SDL_BlitSurface(robot1, NULL, aWindowSurface, &robPos[0]);
+	SDL_BlitSurface(robot2, NULL, aWindowSurface,  &robPos[1]);
+	SDL_UpdateWindowSurface(aWindow);
+
+	//the assets for the arena are loaded in
+	//just visuals, where do we get our info?
+
+*/
+//}
+
+
+//void closeArena() {
+    /*
+
+	SDL_FreeSurface(robot1);
+	SDL_FreeSurface(robot2);
+	SDL_FreeSurface(arena);
+
+	SDL_DestroyWindow( aWindow );
+	aWindow = NULL;*/
+//}
+
+//takes the file path from fOpen and produces the robot
+//name as a string
+string disect(string path) {
+	string fileName = "";
+	int length = path.length();
+	int lastBack = 0;
+	int dotCnt;
+
+	for (int cnt = 3; cnt < length; cnt++) {
+
+		if (path[cnt] == '.') {
+			dotCnt = cnt;
+
+		}
+
+		if (path[cnt] == '\\') {
+			lastBack = cnt;
+		}
+
+	}
+
+
+	for (int cnt = lastBack + 1; cnt < dotCnt; cnt++) {
+		if (path[cnt] == '.') {
+			break;
+		}
+
+		fileName += path[cnt];
+
+	}
+
+
+return fileName;
+}
+//***GUI FUNCTIONS END HERE **** //
+
+
+
+
+string ltrim(string s1)
+{
+    int i;
+    while ((s1.length()>0) && (s1[0]==' ') || ((int)(s1[0])==8) || ((int)(s1[0])==9))
+    {
+        s1 = s1.substr(1,s1.length()-1);
+    }
+
+    return s1;
+}
+
+
+string rtrim(string s1)
+{
+    int i;
+
+    while ((s1.length()>0) && ((s1[s1.length()-1] == ' ') || ((int)(s1[s1.length()-1]) == 8)
+         || (((int)(s1[s1.length()-1]) ==9))))
+    {
+        s1 = s1.substr(0,s1.length()-2);
+    }
+    return s1;
+}
+
+string btrim(string s1)
+{
+    return ltrim(rtrim(s1));
+}
+
+string lstr(string s1, int l)
+{
+    if (s1.length()<=l)
+    {
+        return s1;
+    }
+    else
+    {
+        return s1.substr(0,l);
+    }
+}
+
+string rstr(string s1,int l)
+{
+    if (s1.length()<=l)
+    {
+        return s1;
+    }
+    else
+    {
+        return s1.substr(s1.length()-2+1,l);
+    }
+}
+
+void textxy(int x,int y, string s)  //GUI PEOPLE NEED TO DO THIS (prints string to screen at cord. x & y)
+{
+/*    setfillstyle(1,0);
+    bar(x,y,x+length(s)*8,y+7);
+    outtextxy(x,y,s);
+*/
+}
+
+
+void coltextxy(int x,int y,string s,uint8_t c)//GUI PEOPLE NEED TO DO THIS(changes color of the text and displays string)
+{
+/*    setcolor(c);
+    textxy(x,y,s);
+*/
+}
+
+char hexnum(uint8_t num)
+{
+    switch(num)
+    {
+        case 0: return '0';
+        case 1: return '1';
+        case 2: return '2';
+        case 3: return '3';
+        case 4: return '4';
+        case 5: return '5';
+        case 6: return '6';
+        case 7: return '7';
+        case 8: return '8';
+        case 9: return '9';
+        case 10: return 'A';
+        case 11: return 'B';
+        case 12: return 'C';
+        case 13: return 'D';
+        case 14: return 'E';
+        case 15: return 'F';
+        default: return 'X';
+    }
+}
+
+string hexb(uint8_t num)
+{
+    return ((hexnum(num >> 4) + hexnum(num & 15))+"");
+}
+
+string hex(uint16_t num )
+{
+    return ((hexb(num >> 8) + hexb(num & 255))+"");
+}
+
+double valuer(string i)
+{
+    double s;
+    int n;
+ //   val(i,s,n);
+    if (n>0)
+    {
+        s = 0;
+    }
+    return s;
+}
+
+ long value(string i)
+ {
+    long s;
+    int n;
+  //  val(i,s,n);
+    if (n>0)
+    {
+        s = 0;
+    }
+    return s;
+ }
+
+ string zero_pads(string s ,long l)
+ {
+    string s1;
+    s1=s;
+    while (s1.length()<l)
+    {
+        s1 = '0'+s1;
+    }
+
+    return s1;
+ }
+
+ string addfront(string b,int l)
+ {
+    while (b.length()< l)
+    {
+        b = ' '+b;
+    }
+    return b;
+ }
+
+string ucase(string s)
+{
+    for(int i = 0; i < s.length(); i++)
+    {
+        if(s[i] >= 97 && s[i] <= 122)
+        {
+            s[i] = s[i] - 32;
+        }
+    }
+    return s;
+}
+
+string lcase(string s)
+{
+    int i;
+    if (s.length()>=1)
+    {
+        for (i = 0; i< s.length();i++)
+        {
+            if ((s[i]>=65) && (s[i]<=90))
+            {
+                s[i] = s[i]+32;
+            }
+        }
+
+    }
+    return s;
+}
+
+string space(uint8_t i)
+{
+    string s;
+    int k ;
+    s = "";
+    if (i>0)
+    {
+        for (k = 1; k <= i; k++)
+        {
+            s = s+' ';
+        }
+    }
+    return s;
+}
+
+string repchar(char c,uint8_t i)
+{
+    string s;
+    int k;
+
+    s = "";
+    if (i>0)
+    {
+        for (k = 1; k <= i; k++)
+        {
+            s = s + c;
+        }
+    }
+    return s;
+}
+
+
+string addrear(string b,int l)
+{
+    while ((int)(b.length())< l)
+    {
+        b = b+' ';
+    }
+    return b;
+}
+
+string zero_pad(long n,long l)
+{
+    string s;
+
+    s = n + "";
+    while (s.length()<l)
+    {
+        s ='0'+s;
+    }
+
+    return s;
+}
+
+double distance(int x1, int y1, int x2, int y2)
+{
+    return pow((pow(x2-x1,2) + pow(y2-y1,2)),.5);
+}
+
+int rol(int n,int k)
+{
+/*  asm                     //THE NEXT FEW FUNCTIONS NEED TO KNOW HOW TO WORK WITH ASSEMBLY!!!!!
+    cld
+    mov   cx,     k
+    rep   rol     n,      1
+*/
+ n = ~(~0U << 16) & ((n << 1) + (n & (1 << 15) >> 1)); //need to look back at this (copied from confer)
+ return n;
+}
+
+int ror(int n,int k)
+{
+/*    asm
+    cld
+    mov   cx,     k
+    rep   ror     n,      1
+    end;
+*/
+    n = ~(~0U << 16) & (((unsigned) n >> 1) + ((n & 1 << 0) << 15));
+    return n;
+}
+
+int sal(int n,int k)
+{
+/*    asm
+    cld
+    mov   cx,     k
+    cmp   cx,     0
+    jle   @2
+    @1:
+    sal   n,      1
+    loop  @1
+    @2:
+*/
+    return n;
+}
+
+int sar(int n,int k)
+{
+/*    asm
+    cld
+    mov   cx,     k
+    cmp   cx,     0
+    jle   @2
+    @1:
+    sar   n,      1
+    loop  @1
+    @2:
+*/
+    return n;
+}
+
+void flushkey()                 //{ Clears any key strokes in the key-  }
+{                               //{ board buffer so a couple of key     }//{ presses don't race you through program. }
+/*    Regs : Registers;
+    Regs.AH := $01;  { AH=1: Check for keystroke }
+    Intr($16,regs); { Interupt $16: Keyboard services}
+    IF (regs.Flags and $0040) = 0 then { if chars in buffer }
+        REPEAT
+        Regs.AH := 0;
+        Intr($16,Regs);
+        Regs.AH := $01;
+        Intr($16,Regs);
+    Until (regs.flags and $0040) <> 0;
+    */
+}
+
+void calibrate_timing()
+{
+    long i,k;
+
+    delay_per_sec = 0;
+/*    k=mem[0:$46C];
+    repeat until (k!=mem)[0:$46C];
+    k=mem[0:$46C];
+    repeat delay(1);
+    delay_per_sec++;
+    until k<>mem[0:$46C];
+    delay_per_sec = round(delay_per_sec*18.2);
+*/
+}
+
+void time_delay(int n)
+{
+     long i,l;
+     if (delay_per_sec==0)
+     {
+         calibrate_timing();
+     }
+     l = round(n/1000*delay_per_sec);
+
+     for (i = 1; i<= l; i++)
+     {
+         //sleep_for(nanoseconds(10)); IM ASSUMING NANOSECONDS IS SOMETHING WITH TIME THAT DOESNT WORK
+     }
+}
+
+void check_registration()
+{
+    uint8_t w;
+    int i;
+    //f:text;
+    string s;
+
+    registered = false;
+    if (/*exist('ATR2.REG')*/true)
+    {
+ /*       assign(f,'ATR2.REG');
+        reset(f);
+        readln(f,reg_name);
+        readln(f,reg_num);
+        close(f);
+        w = 0;
+        s = btrim(ucase(reg_name));
+*/        for (i=0; i < s.length();i++)
+        {
+            w+=(int)(s[i]);
+        }
+
+        w = w ^ 23205;
+        if (w==reg_num)
+        {
+            registered = true;
+        }
+    }
+}
+
+void viewport(int x1,int y1,int x2,int y2)      //GUI CODE!!!!!!!!!!!!!!
+{
+ /*   if (!graphix)
+    {
+        return;
+    }
+    setviewport(x1,y1,x2,y2,true);
+*/
+}
+
+void main_viewport()    //MORE CODE FOR GUI!!!!!!!!!
+{
+    //viewport(5,5,474,474); //{470x470}
+}
+
+void make_tables()
+{
+    int i,j,k;
+    for (i = 0; i<= 255;i++)
+    {
+        sint[i] = sin(i/128*pi);
+        cost[i] = cos(i/128*pi);
+    }
+}
+
+int robot_color(int n)
+{
+    int k;
+    k = 7;
+    switch (n % 14)
+    {
+        case 0:k = 10;
+            break;
+        case 1:k = 12;
+            break;
+        case 2:k = 9;
+            break;
+        case 3:k = 11;
+            break;
+        case 4:k = 13;
+            break;
+        case 5:k = 14;
+            break;
+        case 6:k = 7;
+            break;
+        case 7:k = 6;
+            break;
+        case 8:k = 2;
+            break;
+        case 9:k = 4;
+            break;
+        case 10:k = 1;
+            break;
+        case 11:k = 3;
+            break;
+        case 12:k = 5;
+            break;
+        case 13:k = 15;
+            break;
+        default: k = 15;
+            break;
+    }
+    return k;
+}
+
+double abso(double x)
+{
+    if(x<0)
+    {
+        x*=-1;
+    }
+    return x;
+}
+
+double find_angle(double xx,double yy,double tx,double ty)
+{
+    int v,z;
+    double q;
+    q=0;
+    v=(int)(abso(round(tx-xx)));
+    if (v==0)
+    {
+        //{v=0.001;} commented out in original
+        if ((tx==xx) && (ty>yy))
+        {
+            q = pi;
+        }
+        if ((tx==xx) && (ty<yy))
+        {
+            q = 0;
+        }
+    }
+    else
+    {
+        z=abso(round(ty-yy));
+        q=abso(atan(z/v));
+        if ((tx>xx) && (ty>yy))
+        {
+            q=pi/2+q;
+        }
+        if ((tx>xx) && (ty<yy))
+        {
+            q = pi/2-q;
+        }
+        if ((tx<xx) && (ty<yy))
+        {
+            q=pi+pi/2+q;
+        }
+        if ((tx<xx) && (ty>yy))
+        {
+            q=pi+pi/2-q;
+        }
+        if ((tx=xx) && (ty>yy))
+        {
+            q=pi/2;
+        }
+        if ((tx=xx) && (ty<yy))
+        {
+            q=0;
+        }
+        if ((tx<xx) && (ty=yy))
+        {
+            q=pi+pi/2;
+        }
+        if ((tx>xx) && (ty=yy))
+        {
+            q=pi/2;
+        }
+    }
+    return q;
+}
+
+void box(int x1,int y1,int x2,int y2)    //GUI PEOPLE (Draws a box at coordinates)
+{
+
+}
+
+void hole(int x1,int y1,int x2,int y2)    //GUI PEOPLE (Don't know exactly what this does )
+{
+/*    i:integer;
+    begin
+    if not graphix then exit;
+    if x2<x1 then begin i:=x1; x1:=x2; x2:=i; end;
+    if y2<y1 then begin i:=y1; y1:=y2; y2:=i; end;
+    setfillstyle(1,0);
+    setcolor(0);
+    bar(x1,y1,x2,y2);
+    setcolor(8);
+    line(x1,y1,x2-1,y1);
+    line(x1,y1,x1,y2-1);
+    setcolor(15);
+    line(x1+1,y2,x2,y2);
+    line(x2,y1+1,x2,y2);
+    putpixel(x1,y2,7);
+    putpixel(x2,y1,7);
+    */
+}
+
+void chirp()        //GUI PEOPLE!!!! (sound)
+{
+
+}
+
+void click()        //GUI PEOPLE!!!! (shooting/explosion sound)
+{
+
+}
+
+int hex2int(string s)
+{
+    uint16_t w;
+    int i,j;
+
+    i = -1; w = 0;
+    while (i<s.length())
+    {
+        i++;
+        switch ((int)(s[i]))
+        {
+            case 48: w = (w << 4) | 0;
+                break;
+            case 49: w = (w << 4) | 1;
+                break;
+            case 50: w = (w << 4) | 2;
+                break;
+            case 51: w = (w << 4) | 3;
+                break;
+            case 52: w = (w << 4) | 4;
+                break;
+            case 53: w = (w << 4) | 5;
+                break;
+            case 54: w = (w << 4) | 6;
+                break;
+            case 55: w = (w << 4) | 7;
+                break;
+            case 56: w = (w << 4) | 8;
+                break;
+            case 57: w = (w << 4) | 9;
+                break;
+            case 65: w = (w << 4) | 10;
+                break;
+            case 66: w = (w << 4) | 11;
+                break;
+            case 67: w = (w << 4) | 12;
+                break;
+            case 68: w = (w << 4) | 13;
+                break;
+            case 69: w = (w << 4) | 14;
+                break;
+            case 70: w = (w << 4) | 15;
+                break;
+            default: i = s.length();
+        }
+    }
+
+    return w;
+}
+
+int str2int(string s)
+{
+    long i,j,k;
+    bool neg;
+    neg = false;
+    s = btrim(ucase(s));
+    if (s == "")
+    {
+        k = 0;
+    }
+    else
+    {
+        if (s[1]='-')
+        {
+            neg = true;
+            s = rstr(s,s.length()-1);
+        }
+        k = 0;
+        if (lstr(s,2)=="0X")
+        {
+            k = hex2int(rstr(s,s.length()-2));
+        }
+        else if (rstr(s,1)=="H")
+        {
+            k = hex2int(lstr(s,s.length()-1));
+        }
+        else
+        {
+            k = value(s);
+        }
+        if (neg)
+        {
+            k = 0-k;
+        }
+    }
+    return k;
+}
+
+int find_anglei(double xx,double yy,double tx,double ty)
+{
+    int i;
+    i=round(find_angle(xx,yy,tx,ty)/pi*128+256);
+    while (i<0)
+    {
+        i += 256;
+    }
+    i = i & 255;
+    return i;
+}
+
+string bin(int n)
+{
+    int i;
+    string bin_string;
+
+    bin_string = "";
+    for (i = 0; i <= 15; i++)
+    {
+        if ((n % 2) == 0)
+        {
+            bin_string =  '0' + bin_string;
+        }
+        else
+        {
+            bin_string =  '1' + bin_string;
+        }
+
+        n = n/2;
+    }
+    return bin_string;
+}
+
+string decimal(int num,int length )
+{
+    string dec_string;
+    int i;
+    dec_string = "";
+    for (i = 1; i <=length; i++)
+    {
+        dec_string = (char)((num % 10)+48) + dec_string;
+        num = num / 10;
+    }
+    return dec_string;
+}
+//----------------------------------------------------END ATR2FUNC FUNCTIONS----------------------------------------------------------
 
 
 //may not be needed depending on how we approach
@@ -391,7 +2050,7 @@ string mnemonic(int n, int m)
 //--------------------------WARNING: FUNCTION LOG_ERROR() IS FUBAR. DEBUG AT OWN RISK--------------------------
 
 void log_error(int n, int i, string ov) //this can be done with throwing exceptions and errors
-{/*
+{
     int j, k;
     string s;
     if(!logging_errors)
@@ -451,32 +2110,33 @@ void log_error(int n, int i, string ov) //this can be done with throwing excepti
             s = "Unknown error";
         }
     }
-    cout<<robot[n]*.errorlog<<'<'<<i<<'> '<<s<<' (Line #'<<ip<<') [Cycle: '<<game_cycle<<', Match: '<<played<<'/'<<matches<<']'<<endl;
-    cout<<robot[n]*.errorlog<<' '<<mnemonic(robot_rec.code[ip].op[0],robot_rec.code[ip].op[3] and 15)<<'  '<<operand(robot_rec.code[ip].op[1],(robot_rec.code[ip].op[3] shr 4) and 15)<<', '<<operand(robot_rec.code[ip].op[2],(robot_rec.code[ip].op[3] shr 8) and 15)<<endl;
+    cout<<robot[n].errorlog<<'<'<<i<<'> '<<s<<' (Line #'<<robot[n].ip<<') [Cycle: '<<game_cycle<<', Match: '<<played<<'/'<<matches<<']'<<endl;
+    cout<<robot[n].errorlog<<' '<<mnemonic(robot[n].code.code[robot[n].ip].op[0],robot[n].code.code[robot[n].ip].op[3] and 15)      //WE NEED TO GET THIS TO WORK
+     ;//       <<'  '<<operand(robot[n].code.code[robot[n].ip].op[1],(robot[n].code.code[robot[n].ip].op[3] shr 4) and 15)<<', '<<operand(robot[n].code.code[robot[n].ip].op[2],(robot.code.code[robot[n].ip].op[3] shr 8) and 15)<<endl;
     if (ov!="")
     {
-        cout<<robot[n]*.errorlog<<"    (Values: "<<ov<<")"<<endl;
+        cout<<robot[n].errorlog<<"    (Values: "<<ov<<")"<<endl;
     }
     else
     {
-        cout<<robot[n]*.errorlog<<endl;
+        cout<<robot[n].errorlog<<endl;
     }
-    cout<<robot[n]*.errorlog<<" AX="<<addrear((string)(robot[n]*.ram[65])+",",7)<<endl;
-    cout<<robot[n]*.errorlog<<" BX="<<addrear((string)(robot[n]*.ram[66])+",",7)<<endl;
-    cout<<robot[n]*.errorlog<<" CX="<<addrear((string)(robot[n]*.ram[67])+",",7)<<endl;
-    cout<<robot[n]*.errorlog<<" DX="<<addrear((string)(robot[n]*.ram[68])+",",7)<<endl;
-    cout<<robot[n]*.errorlog<<" EX="<<addrear((string)(robot[n]*.ram[69])+",",7)<<endl;
-    cout<<robot[n]*.errorlog<<" FX="<<addrear((string)(robot[n]*.ram[70])+",",7)<<endl;
-    cout<<robot[n]*.errorlog<<" Flags="<<robot[n]*.ram[64]<<endl;
-    cout<<robot[n]*.errorlog<<" AX="<<addrear(robot[n]*.ram[65]+",",7)<<endl;
-    cout<<robot[n]*.errorlog<<" BX="<<addrear(robot[n]*.ram[66]+",",7)<<endl;
-    cout<<robot[n]*.errorlog<<" CX="<<addrear(robot[n]*.ram[67]+",",7)<<endl;
-    cout<<robot[n]*.errorlog<<" DX="<<addrear(robot[n]*.ram[68]+",",7)<<endl;
-    cout<<robot[n]*.errorlog<<" EX="<<addrear(robot[n]*.ram[69]+",",7)<<endl;
-    cout<<robot[n]*.errorlog<<" FX="<<addrear(robot[n]*.ram[70]+",",7)<<endl;
-    cout<<robot[n]*.errorlog<<" Flags="<<robot[n]*.ram[64]<<endl;
-    cout<<robot[n]*.errorlog<<endl;
-*/};
+    cout<<robot[n].errorlog<<" AX="<<addrear((robot[n].ram[65])+",",7)<<endl;
+    cout<<robot[n].errorlog<<" BX="<<addrear((robot[n].ram[66])+",",7)<<endl;
+    cout<<robot[n].errorlog<<" CX="<<addrear((robot[n].ram[67])+",",7)<<endl;
+    cout<<robot[n].errorlog<<" DX="<<addrear((robot[n].ram[68])+",",7)<<endl;
+    cout<<robot[n].errorlog<<" EX="<<addrear((robot[n].ram[69])+",",7)<<endl;
+    cout<<robot[n].errorlog<<" FX="<<addrear((robot[n].ram[70])+",",7)<<endl;
+    cout<<robot[n].errorlog<<" Flags="<<robot[n].ram[64]<<endl;
+    cout<<robot[n].errorlog<<" AX="<<addrear(robot[n].ram[65]+",",7)<<endl;
+    cout<<robot[n].errorlog<<" BX="<<addrear(robot[n].ram[66]+",",7)<<endl;
+    cout<<robot[n].errorlog<<" CX="<<addrear(robot[n].ram[67]+",",7)<<endl;
+    cout<<robot[n].errorlog<<" DX="<<addrear(robot[n].ram[68]+",",7)<<endl;
+    cout<<robot[n].errorlog<<" EX="<<addrear(robot[n].ram[69]+",",7)<<endl;
+    cout<<robot[n].errorlog<<" FX="<<addrear(robot[n].ram[70]+",",7)<<endl;
+    cout<<robot[n].errorlog<<" Flags="<<robot[n].ram[64]<<endl;
+    cout<<robot[n].errorlog<<endl;
+};
 
 int max_shown()
 {
@@ -494,14 +2154,14 @@ int max_shown()
     }
 };
 
-//-----------------------------------Weird errors. Needs looking into.-----------------------
+
 bool graph_check(int n) //GUI
-{/*
+{
     bool ok = true;
-    if ((!graphix) || (n<0) || (n>num_robots) || (n>=max_shown))
+    if ((!graphix) || (n<0) || (n>num_robots) || (n>=(int)max_shown))
         ok=false;
     return ok;
-*/};
+};
 
 
 void robot_graph(int n) //GUI
@@ -590,7 +2250,7 @@ void update_heat(int n) //takes in variables to change the heat based on the act
   void robot_error(int n,int i,string ov)
 {
     if (graph_check(n) && (step_mode<=0))
-    //with robot[n]*. do
+    //with robot[n]. do
     {
         if (stats_mode==0)
         {
@@ -606,7 +2266,7 @@ void update_heat(int n) //takes in variables to change the heat based on the act
         {
             log_error(n,i,ov);
         }
-        //robot[n]*.error_count++; //WE STILL NEED TO MAKE ROBOT[N] WORK
+        //robot[n].error_count++; //WE STILL NEED TO MAKE ROBOT[N] WORK
     }
 }
 
@@ -791,19 +2451,25 @@ void print_code(int n, int p) //this function is putting code into hexadecimal t
    int i = 0;
      write(hex(p)+': ');
      for i = 0 to max_op do
-      write(zero_pad(robot[n]*.code[p].op[i],5),' ');
+      write(zero_pad(robot[n].code[p].op[i],5),' ');
      write(' =  ');
      for i = 0 to max_op do
-      write(hex(robot[n]*.code[p].op[i]),'h ');
+      write(hex(robot[n].code[p].op[i]),'h ');
      writeln; writeln;
      */
 }
 
+char toUpper(char l)
+{
+    if (l > 96 && l < 123)
+        l -= 32;
+
+    return l;
+}
+
 void parse1(int n, int p, string s) //it seems that this procedure will be very important to look at, as it is dealing with the robot's code, we may be able to simplify it
 {
-    /*I don't know who wrote this, but you need to check your comparisons
-    Try compiling the function and you'll see what i mean.
-    For now I'm commenting it out, but this needs to be fixed*/
+    /*Something here doesn't want to work at all ever*//*
 
 
     int i,j,k,opcode,microcode;
@@ -816,8 +2482,9 @@ void parse1(int n, int p, string s) //it seems that this procedure will be very 
         found = false;
         opcode = 0;
         microcode = 0;
-        s[i] = btrim(toupper(s[i]));
-        indirect = false;
+        s[i] = toUpper(s[i]);
+        s[i] = btrim(s[i]);
+        indirect = false;*/
         /*
         (*
         Microcode:
@@ -828,7 +2495,7 @@ void parse1(int n, int p, string s) //it seems that this procedure will be very 
             4 = !label (resolved)
             8h mask = inderect addressing (enclosed in [])
         *)
-        */
+        *//*
         if (s[i]==0)
         {
             opcode = 0;
@@ -838,7 +2505,7 @@ void parse1(int n, int p, string s) //it seems that this procedure will be very 
 
         if ((lstr(s[i],1)='[') && (rstr(s[i],1)=']'))
         {
-            s[i] = s[i].substr(2,(s[i].length() - 2)); //IDK who wrote this but you can't take a substring of a character. either s.substr(2,...) or s.substr(i,...)
+            s[i] = s[i].substr(2,(s[i].length() - 2)); //You can't take a substring of a character. either s.substr(2,...) or s.substr(i,...)
             indirect = true;
         }
 
@@ -1499,35 +3166,36 @@ void parse1(int n, int p, string s) //it seems that this procedure will be very 
     }
 
 //memory addresses
-if ((!found) && (s[i][1]='@') && ((s[i][2] > '0') && (s[i][2] < '9')))
- {
-  opcode = (int)rstr(s[i],s[i].length()-1);
-  if ((opcode<0) || (opcode>(max_ram+1)+(((max_code+1) << 3)-1))) then
-     prog_error(3,s[i]);
-  microcode = 1;
-  found = true;
-}
+    if ((!found) && (s[i][1]='@') && ((s[i][2] > '0') && (s[i][2] < '9')))
+     {
+      opcode = (int)rstr(s[i],s[i].length()-1);
+      if ((opcode<0) || (opcode>(max_ram+1)+(((max_code+1) << 3)-1))) then
+         prog_error(3,s[i]);
+      microcode = 1;
+      found = true;
+    }
 
 
-if (!found) && (s[i][1] > '0' && s[i][1] < 9 || s[i][1] == "-") //this is if the code has a number to indicate what they want to change something to
-{
-  opcode = (int)(s[i]);
-  found = true;
-}
+    if (!found) && (s[i][1] > '0' && s[i][1] < 9 || s[i][1] == "-") //this is if the code has a number to indicate what they want to change something to
+    {
+      opcode = (int)(s[i]);
+      found = true;
+    }
 
-if (found)
-{
-  code[p].op[i] = opcode;
-  if (indirect)
-    microcode = microcode | 8;
-  code[p].op[max_op] = code[p].op[max_op] | (microcode << (i*4));
-}
-else if (s[i] != 0)
-  prog_error(2,s[i]);
-if (show_code)
-  print_code(n,p);
-if (compile_by_line)
-  readkey();*/
+    if (found)
+    {
+      code[p].op[i] = opcode;
+      if (indirect)
+        microcode = microcode | 8;
+      code[p].op[max_op] = code[p].op[max_op] | (microcode << (i*4));
+    }
+    else if (s[i] != 0)
+      prog_error(2,s[i]);
+    if (show_code)
+      print_code(n,p);
+    if (compile_by_line)
+      readkey();*/
+//}
 };
 
 void check_plen(int plen) //will need this if we have a max amount of code
@@ -1800,218 +3468,215 @@ textcolor(7);
 end;
 */
 
-void robot_config(int n)    //WE NEED TO GET ROBOT[N] TO WORK
-{/*
+void robot_config(int n)
+{
     int i,j,k;
     //with robot[n]^ do
-    switch(robot[n]*.config.config.scanner){ //configures the scan range
+    switch(robot[n].config.scanner){ //configures the scan range
     case 5:
-        robot[n]*.scanrange = 1500;
+        robot[n].scanrange = 1500;
         break;
     case 4:
-        robot[n]*.scanrange = 1000;
+        robot[n].scanrange = 1000;
         break;
     case 3:
-        robot[n]*.scanrange = 700;
+        robot[n].scanrange = 700;
         break;
     case 2:
-    robot[n]*.scanrange = 500;
+    robot[n].scanrange = 500;
     break;
   case 1:
-    robot[n]*.scanrange = 350;
+    robot[n].scanrange = 350;
     break;
   default:
-    robot[n]*.scanrange = 250;
+    robot[n].scanrange = 250;
     break;
 }
-switch(robot[n]*.config.scanner){
+switch(robot[n].config.scanner){
   case 5:
-    robot[n]*.shotstrength = 1.5;
+    robot[n].shotstrength = 1.5;
     break;
   case 4:
-    robot[n]*.shotstrength = 1.35;
+    robot[n].shotstrength = 1.35;
     break;
   case 3:
-    robot[n]*.shotstrength = 1.2;
+    robot[n].shotstrength = 1.2;
     break;
   case 2:
-    robot[n]*.shotstrength = 1;
+    robot[n].shotstrength = 1;
     break;
   case 1:
-    robot[n]*.shotstrength = 0.8;
+    robot[n].shotstrength = 0.8;
     break;
   default:
-    robot[n]*.shotstrength = 0.5;
+    robot[n].shotstrength = 0.5;
     break;
 }
-switch(robot[n]*.config.arm){
+switch(robot[n].config.armor){
   case 5:
-    robot[n]*.damageadj = 0.66;
-    robot[n]*.speedadj = 0.66;
+    robot[n].damageadj = 0.66;
+    robot[n].speedadj = 0.66;
     break;
   case 4:
-    robot[n]*.damageadj = 0.77;
-    robot[n]*.speedadj = 0.75;
+    robot[n].damageadj = 0.77;
+    robot[n].speedadj = 0.75;
     break;
   case 3:
-    robot[n]*.damageadj = 0.83;
-    robot[n]*.speedadj = 0.85;
+    robot[n].damageadj = 0.83;
+    robot[n].speedadj = 0.85;
     break;
   case 2:
-    robot[n]*.damageadj = 1;
-    robot[n]*.speedadj = 1;
+    robot[n].damageadj = 1;
+    robot[n].speedadj = 1;
     break;
   case 1:
-    robot[n]*.damageadj = 1.5;
-    robot[n]*.speedadj = 1.2;
+    robot[n].damageadj = 1.5;
+    robot[n].speedadj = 1.2;
     break;
   default:
-    robot[n]*.damageadj = 2;
-    robot[n]*.speedadj = 1.33;
+    robot[n].damageadj = 2;
+    robot[n].speedadj = 1.33;
     break;
 }
-switch(robot[n]*.config.eng){
+switch(robot[n].config.engine){
   case 5:
-    robot[n]*.speedadj = robot[n]*.speedadj * 1.5;
+    robot[n].speedadj = robot[n].speedadj * 1.5;
     break;
   case 4:
-    robot[n]*.speedadj = robot[n]*.speedadj * 1.35;
+    robot[n].speedadj = robot[n].speedadj * 1.35;
     break;
   case 3:
-    robot[n]*.speedadj = robot[n]*.speedadj * 1.2;
+    robot[n].speedadj = robot[n].speedadj * 1.2;
     break;
   case 2:
-    robot[n]*.speedadj = robot[n]*.speedadj * 1;
+    robot[n].speedadj = robot[n].speedadj * 1;
     break;
   case 1:
-    robot[n]*.speedadj = robot[n]*.speedadj * 0.8;
+    robot[n].speedadj = robot[n].speedadj * 0.8;
     break;
   default:
-    robot[n]*.speedadj = robot[n]*.speedadj * 0.5;
+    robot[n].speedadj = robot[n].speedadj * 0.5;
     break;
 }
-switch(robot[n]*.config.mine){
+switch(robot[n].config.mines){
   case 5:
-    robot[n]*.mines = 24;
+    robot[n].mines = 24;
     break;
   case 4:
-    robot[n]*.mines = 16;
+    robot[n].mines = 16;
     break;
   case 3:
-    robot[n]*.mines = 10;
+    robot[n].mines = 10;
     break;
   case 2:
-    robot[n]*.mines = 6;
+    robot[n].mines = 6;
     break;
   case 1:
-    robot[n]*.mines = 4;
+    robot[n].mines = 4;
     break;
   default:
-    robot[n]*.mines = 2;
+    robot[n].mines = 2;
     //config.mines = 0; not entirely sure what this is
     break;
   }
-  robot[n]*.shields_up = false;
+  robot[n].shields_up = false;
 
-  if((robot[n]*.config.shield < 3) || (robot[n]*.config.shield > 5))
-    robot[n]*.config.shield = 0;
-  if((robot[n]*.config.heatsinks < 0) || (robot[n]*.config.heatsinks > 5)) //code states that heatsingks are handled separately
-    robot[n]*.config.heatsinks = 0; //will come back to*/
+  if((robot[n].config.shield < 3) || (robot[n].config.shield > 5))
+    robot[n].config.shield = 0;
+  if((robot[n].config.heatsinks < 0) || (robot[n].config.heatsinks > 5)) //code states that heatsingks are handled separately
+    robot[n].config.heatsinks = 0; //will come back to*/
 }
 
-void reset_software(int n) //WE NEED TO GET ROBOT[N] TO WORK
-{/*
+void reset_software(int n)
+{
     int i;
 
-    //with robot[n]*. do
+    //with robot[n]. do
     for (i = 0; i < max_ram;i++)
     {
-        robot[n]*.ram[i] = 0;
+        robot[n].ram[i] = 0;
     }
-    robot[n]*.ram[71] = 768;
-    robot[n]*.thd = robot[n]*.hd;
-    robot[n]*.tspd = 0;
-    robot[n]*.scanarc = 8;
-    robot[n]*.shift = 0;
-    robot[n]*.err = 0;
-    robot[n]*.overburn = false;
-    robot[n]*.keepshift = false;
-    robot[n]*.ip = 0;
-    robot[n]*.accuracy = 0;
-    robot[n]*.meters = 0;
-    robot[n]*.delay_left = 0;
-    robot[n]*.time_left = 0;
-    robot[n]*.shields_up = false;*/
+    robot[n].ram[71] = 768;
+    robot[n].thd = robot[n].hd;
+    robot[n].tspd = 0;
+    robot[n].scanarc = 8;
+    robot[n].shift = 0;
+    robot[n].err = 0;
+    robot[n].overburn = false;
+    robot[n].keepshift = false;
+    robot[n].ip = 0;
+    robot[n].accuracy = 0;
+    robot[n].meter = 0;
+    robot[n].delay_left = 0;
+    robot[n].time_left = 0;
+    robot[n].shields_up = false;
 }
 
-void reset_hardware(int n) //WE NEED TO GET ROBOT[N] TO WORK
-{/*
+void reset_hardware(int n)
+{
   int i;
   double d, dd;
   //with robot[n]^ do
-  for (i = 1; i < max_robot_lines; i++)
-  {
-    robot[n]*.ltx[i] = 0;
-    robot[n]*.tx[i] = 0;
-    robot[n]*.lty[i] = 0;
-    robot[n]*.ty[i] = 0;
-  }
+    robot[n].ltx = 0;   //USED TO BE A FOR LOOP, BUT THESE ARE INTS NOT ARRAYS
+    robot[n].tx = 0;
+    robot[n].lty = 0;
+    robot[n].ty = 0;
   do{
-    robot[n]*.x = rand() % 1000;
-    robot[n]*.y = rand() % 1000;
+    robot[n].x = rand() % 1000;
+    robot[n].y = rand() % 1000;
     dd = 1000;
     for (i = 0; i < num_robots; i++)
     {
-      if (robot[i]*.x < 0)
-        robot[i]*.x = 0;
-      if (robot[i]*.x > 1000)
-        robot[i]*.x = 1000;
-      if (robot[i]*.y < 0)
-        robot[i]*.y = 0;
-      if (robot[i]*.y > 1000)
-        robot[i]*.y = 1000;
-      d = distance(robot[n]*.x,robot[n]*.y,robot[i]*.x,robot[i]*.y);
-      if ((robot[i]*.health > 0) && (i != n) && (d < dd))
+      if (robot[i].x < 0)
+        robot[i].x = 0;
+      if (robot[i].x > 1000)
+        robot[i].x = 1000;
+      if (robot[i].y < 0)
+        robot[i].y = 0;
+      if (robot[i].y > 1000)
+        robot[i].y = 1000;
+      d = distance(robot[n].x,robot[n].y,robot[i].x,robot[i].y);
+      if ((robot[i].armor > 0) && (i != n) && (d < dd))
         dd = d;
     }
   }
   while (dd > 32);
   for (i = 0; i < max_mines; i++)
   {
-    mine[i].x = -1;
-    mine[i].y = -1;
-    mine[i].yield = 0;
-    mine[i].detonate = false;
-    mine[i].detect = 0;
+    robot[n].mine[i].x = -1;
+    robot[n].mine[i].y = -1;
+    robot[n].mine[i].yield = 0;
+    robot[n].mine[i].detonate = false;
+    robot[n].mine[i].detect = 0;
   }
-  robot[n]*.lx = -1;
-  robot[n]*.ly = -1;
-  robot[n]*.hd=random(256);
-  robot[n]*.shift = 0;
-  robot[n]*.lhd = hd+1;
-  robot[n]*.lshift = shift+1;
-  robot[n]*.spd = 0;
-  robot[n]*.speed = 0;
-  robot[n]*.cooling = false;
-  robot[n]*.health = 100;
-  robot[n]*.larmor = 0;
-  robot[n]*.heat = 0;
-  robot[n]*.lheat = 1;
-  robot[n]*.match_shots = 0;
-  robot[n]*.won = false;
-  robot[n]*.last_damage = 0;
-  robot[n]*.last_hit = 0;
-  robot[n]*.transponder = n+1;
-  robot[n]*.meters = 0;
-  robot[n]*.shutdown = 400;
-  robot[n]*.shields_up = false;
-  robot[n]*.channel = transponder;
-  robot[n]*.startkills = kills;
-  robot_config(n);*/
+  robot[n].lx = -1;
+  robot[n].ly = -1;
+  robot[n].hd=rand()%256;
+  robot[n].shift = 0;
+  robot[n].lhd = robot[n].hd+1;
+  robot[n].lshift = robot[n].shift+1;
+  robot[n].spd = 0;
+  robot[n].speed = 0;
+  robot[n].cooling = false;
+  robot[n].armor = 100;
+  robot[n].larmor = 0;
+  robot[n].heat = 0;
+  robot[n].lheat = 1;
+  robot[n].match_shots = 0;
+  robot[n].won = false;
+  robot[n].last_damage = 0;
+  robot[n].last_hit = 0;
+  robot[n].transponder = n+1;
+  robot[n].meter = 0;
+  robot[n].shutdown = 400;
+  robot[n].shields_up = false;
+  robot[n].channel = robot[n].transponder;
+  robot[n].startkills = robot[n].kills;
+  robot_config(n);
 }
 
-void init_robot(int n) //WE NEED TO GET ROBOT[N] TO WORK
-{/*
+void init_robot(int n)
+{
     int i,j,k,l;
 
     //with robot[n]. do
@@ -2043,7 +3708,7 @@ void init_robot(int n) //WE NEED TO GET ROBOT[N] TO WORK
 
     robot[n].config.scanner = 5;
     robot[n].config.weapon = 2;
-    robot[n].config.health = 2;
+    robot[n].config.armor = 2;
     robot[n].config.engine = 2;
     robot[n].config.heatsinks = 1;
     robot[n].config.shield = 0;
@@ -2057,35 +3722,36 @@ void init_robot(int n) //WE NEED TO GET ROBOT[N] TO WORK
     {
         for (k = 0; k < max_op; k++)
         {
-            robot[n].code[i].op[k] = 0;
+            robot[n].code.code[i].op[k] = 0;
         }
     }
 
    reset_hardware(n);
-   reset_software(n);*/
+   reset_software(n);
 }
 
 
-void create_robot(int n, string filename) //WE NEED TO MAKE ROBOT[N] WORK
-{/*
+void create_robot(int n, string filename)
+{
   int i,j,k;
   int maxavail = 999999; //Wasn't declared, so I made it big
   if (maxavail < sizeof(struct robot_rec))
     prog_error(9, filename);
-    robot[n] = new robot_rec;
+//    robot[n] = new robot_rec;     //WE SHOULDNT NEED THIS
     //with robot[n]^ do
     init_robot(n);
     if (filename[1]='?')
       filename = filename + locked_ext;
     else
       filename = filename + robot_ext;
-    if filename[1]='?' then filename = rstr(filename,length(filename)-1);
-    fn = filename;
+    if (filename[1]='?')
+        filename = rstr(filename,(filename.length()-1));
+    robot[n].fn = filename;
     robot_config(n);
-    compile(n,filename);
-    k = robot[n]*.scanner+robot[n]*.health+robot[n]*.weapon+robot[n]*.engine+robot[n]*.heatsinks+robot[n]*.shield+robot[n]*.mines;
+//    compile(n,filename);              //NIKKI MIGHT BE DUMB
+    k = robot[n].config.scanner+robot[n].config.armor+robot[n].config.weapon+robot[n].config.engine+robot[n].config.heatsinks+robot[n].config.shield+robot[n].config.mines;
     if (k > max_config_points)
-      prog_error(21,(string)(k)+'/'+(string)(max_config_points));*/
+      prog_error(21,(k)+"/"+(max_config_points));
 }
 
 void shutdown()
@@ -2117,8 +3783,8 @@ void shutdown()
         for (i = 0; i < num_robots; i++)
         {
             //with robot[i]^ do
-//            cout<<"Robot error-log created: "<<(base_name(robot[i].fn)+".ERR")<<endl; //WE NEED TO MAKE ROBOT[N] WORK
-//            close(errorlog);
+//            cout<<"Robot error-log created: "<<(base_name(robot[i].fn)+".ERR")<<endl; //FUNCTION BASE_NAME DOES NOT EXIST
+
         }
 
     }
@@ -2272,14 +3938,14 @@ void init()
     time_slice = default_slice;
     for (i = 0; i < max_missiles; i++)
     //with missile[i]. do
-    {/*                     WE NEED TO MAKE MISSILE[I] WORK
+    {
         missile[i].a = 0;
         missile[i].source = -1;
         missile[i].x = 0;
         missile[i].y = 0;
         missile[i].lx = 0;
         missile[i].ly = 0;
-        missile[i].mult = 1;*/
+        missile[i].mult = 1;
     }
 
     registered = false;
@@ -2505,7 +4171,7 @@ end;
 int get_from_ram(int n,int i,int j)
 {
     int k,l;
-    //with robot[n]*. do
+    //with robot[n]. do
     if ((i<0) || (i>(max_ram+1)+(((max_code+1) << 3)-1)))
     {
        k = 0;
@@ -2515,12 +4181,12 @@ int get_from_ram(int n,int i,int j)
     {
         if (i<=max_ram)
         {
-//            k = robot[n]*.ram[i];     WE NEED TO GET ROBOT[N] TO WORK
+            k = robot[n].ram[i];
         }
         else
         {
             l = i-max_ram-1;
-            //k = robot[n]*.code[l >> 2].op[l & 3]; WE NEED TO GET ROBOT[N] TO WORK
+            k = robot[n].code.code[l >> 2].op[l & 3];
         }
     }
 
@@ -2531,10 +4197,10 @@ int get_val(int n,int c,int o)
 {
     int i,j,k;
     k = 0;
-    //with robot[n]*. do
+    //with robot[n]. do
 
-//    j = (robot[n]*.code[c].op[max_op] >> (4*o)) & 15;     WE NEED TO GET ROBOT[N] TO WORK
- //   i = robot[n]*.code[c].op[o];
+    j = (robot[n].code.code[c].op[max_op] >> (4*o)) & 15;
+    i = robot[n].code.code[c].op[o];
     if ((j & 7)==1)
     {
         k = get_from_ram(n,i,j);
@@ -2560,10 +4226,10 @@ void put_val(int n,int c,int o,int v)
     k = 0;
     i = 0;
     j = 0;
-    //with robot[n]*. do
+    //with robot[n]. do
 
-//    j = (robot[n]*.code[c].op[max_op] >> (4*o)) & 15; WE NEED TO GET ROBOT[N] TO WORK
-//    i = robot[n]*.code[c].op[o];
+    j = (robot[n].code.code[c].op[max_op] >> (4*o)) & 15;
+    i = robot[n].code.code[c].op[o];
     if ((j & 7)==1)
     {
         if ((i<0) || (i>max_ram))
@@ -2575,19 +4241,19 @@ void put_val(int n,int c,int o,int v)
         {
             if ((j & 8)>0)
             {
-//                i = robot[n]*.ram[i];
+                i = robot[n].ram[i];
                 if ((i<0) || (i>max_ram))
                 {
                     robot_error(n,4,i+"");
                 }
                 else
                 {
-//                    robot[n]*.ram[i] = v;
+                    robot[n].ram[i] = v;
                 }
             }
             else
             {
-//                robot[n]*.ram[i] = v;
+                robot[n].ram[i] = v;
             }
         }
     }
@@ -2597,45 +4263,45 @@ void put_val(int n,int c,int o,int v)
     }
 }
 
-void push(int n,int v) //WE NEED TO GET ROBOT[N] TO WORK
-{/*
-    //with robot[n]*. do
+void push(int n,int v)
+{
+    //with robot[n]. do
 
-    if ((robot[n]*.ram[71] >= stack_base) && (robot[n]*.ram[71] < (stack_base + stack_size)))
+    if ((robot[n].ram[71] >= stack_base) && (robot[n].ram[71] < (stack_base + stack_size)))
     {
-        robot[n]*.ram[robot[n]*.ram[71]] = v;
-        robot[n]*.ram[71]++;
+        robot[n].ram[robot[n].ram[71]] = v;
+        robot[n].ram[71]++;
     }
     else
     {
-        robot_error(n,1,(robot[n]*.ram[71]+""));
-    }*/
+        robot_error(n,1,(robot[n].ram[71]+""));
+    }
 }
 
-int pop(int n) //WE NEED TO GET ROBOT[N] TO WORK
-{/*
+int pop(int n)
+{
     int k;
 
-    //with robot[n]*. do
+    //with robot[n]. do
 
-    if ((robot[n]*.ram[71] > stack_base) && (robot[n]*.ram[71] <= (stack_base + stack_size)))
+    if ((robot[n].ram[71] > stack_base) && (robot[n].ram[71] <= (stack_base + stack_size)))
     {
-        robot[n]*.ram[71]--;
-        k = robot[n]*.ram[robot[n]*.ram[71]];
+        robot[n].ram[71]--;
+        k = robot[n].ram[robot[n].ram[71]];
     }
    else
    {
-       robot_error(n,5,(robot[n]*.ram[71]+""));
+       robot_error(n,5,(robot[n].ram[71]+""));
    }
 
-    return k;*/
+    return k;
 }
 
 int find_label(int n,int l,int m)
 {
     int i,j,k;
     k = -1;
-    //with robot[n]*. do
+    //with robot[n]. do
 
     if (m==3)
     {
@@ -2650,10 +4316,10 @@ int find_label(int n,int l,int m)
 
         else
         {
-//            for (i = robot[n]*.plen;  i >= 0; i--) WE NEED TO GET ROBOT[N] TO WORK
+            for (i = robot[n].plen;  i >= 0; i--)
             {
-//                j = robot[n]*.code[i].op[max_op] & 15;
-//                if ((j==2) && (robot[n]*.code[i].op[0]==l))
+                j = robot[n].code.code[i].op[max_op] & 15;
+                if ((j==2) && (robot[n].code.code[i].op[0]==l))
                 {
                     k = i;
                 }
@@ -2665,17 +4331,16 @@ int find_label(int n,int l,int m)
 }
 
 
-void init_mine(int n,int detectrange,int sizeN) //WE NEED TO GET ROBOT[N] TO WORK
-{/*
+void init_mine(int n,int detectrange,int sizeN)
+{
     int i,j,k;
     //with robot[n]. do
     k = -1;
     for (i = 0; i < max_mines; i++)
     {
-        if (((robot[n].mine[i].x<0) || (robot[n].mine[i].x>1000) || (robot[n].mine[i].y<0) || (robot[n].mine[i].y>1000)
-                || (robot[n].mine[i].yield<=0)) && (k<0))
+        if (((robot[n].mine[i].x<0) || (robot[n].mine[i].x>1000) || (robot[n].mine[i].y<0) || (robot[n].mine[i].y>1000) || (robot[n].mine[i].yield<=0)) && (k<0))
         {
-                    k = i;
+            k = i;
         }
     }
 
@@ -2702,7 +4367,7 @@ int count_missiles()
         }
     }
 
-    return k;*/
+    return k;
 }
 
 void init_missile(double xx, double yy, double xxv, double yyv,int dir,int s,int blast,bool ob)
@@ -2713,7 +4378,7 @@ void init_missile(double xx, double yy, double xxv, double yyv,int dir,int s,int
     k =-1;
     for (i =max_missiles; i >= 0; i--)
     {
-//        if (missile[i].a==0) //WE NEED TO GET MISSILE[I] TO WORK
+        if (missile[i].a==0)
         {
             k =i;
         }
@@ -2721,7 +4386,7 @@ void init_missile(double xx, double yy, double xxv, double yyv,int dir,int s,int
     if (k>=0)
     {
         //with missile[k]. do
-/*        missile[k].source = s;
+        missile[k].source = s;
         missile[k].x = xx;
         missile[k].lx = missile[k].x;
         missile[k].y = yy;
@@ -2767,38 +4432,38 @@ void init_missile(double xx, double yy, double xxv, double yyv,int dir,int s,int
             missile[k].hd = dir;
             missile[k].max_rad =mis_radius;
 //          if debug_info then
-//              begin writeln(#13,zero_pad(game_cycle,5),' F ',s,': hd=',hd,'           ');
-//          repeat until *//*keypressed FIX WITH GUI*//*false; flushkey; end;*/
-   //     }
+//              begin writeln(#13,zero_pad(game_cycle,5),' F ',s,': hd=',hd,'           ');     //COUT
+//          repeat until /*keypressed FIX WITH GUI*/false; flushkey; end;
+        }
     }
 }
 
-void damage(int n,int d,bool physical) //WE NEED TO GET ROBOT[N] TO WORK
-{/*
+void damage(int n,int d,bool physical)
+{
     int i,k,h,dd;
     double m;
-    if ((n<0) || (n>num_robots) || (robot[n]*.health<=0))
+    if ((n<0) || (n>num_robots) || (robot[n].armor<=0))
     {
         return;
     }
 
-    if (robot[n]*.shield<3)
+    if (robot[n].config.shield<3)
     {
-        robot[n]*.shields_up =false;
+        robot[n].shields_up =false;
     }
     //with robot[n]^ do
     h =0;
-    if ((robot[n]*.shields_up) && (!physical))
+    if ((robot[n].shields_up) && (!physical))
     {
         dd =d;
-        if ((old_shields) && (robot[n]*.shield>=3))
+        if ((old_shields) && (robot[n].config.shield>=3))
         {
             d =0;
             h =0;
         }
         else
         {
-            switch (robot[n]*.shield)
+            switch (robot[n].config.shield)
             {
                 case 3: d =round(dd*2/3);
                     if (d<1)
@@ -2824,38 +4489,38 @@ void damage(int n,int d,bool physical) //WE NEED TO GET ROBOT[N] TO WORK
     if (d<0)
     {
         d =0;
-    }*/
+    }
  //   if debug_info then
  //       begin writeln(#13,zero_pad(game_cycle,5),' D ',n,': ',health,'-',d,'=',health-d,'           ');
  //       repeat until /*keypressed FIX WITH GUI*/false; flushkey; end;
-    /*if (d>0)
+    if (d>0)
     {
-        d =round(d*robot[n]*.damageadj);
+        d =round(d*robot[n].damageadj);
         if (d<1)
         {
             d =1;
         }
     }
 
-    robot[n]*.health -=d;
-    robot[n]*.heat+=h;
-    robot[n]*.last_damage =0;
-    if (robot[n]*.health<=0)
+    robot[n].armor -=d;
+    robot[n].heat+=h;
+    robot[n].last_damage =0;
+    if (robot[n].armor<=0)
     {
-        robot[n]*.health =0;
+        robot[n].armor =0;
 //        update_health(n);
-        robot[n]*.heat =500;
+        robot[n].heat =500;
 //        update_heat(n);
-        robot[n]*.health =0;
+        robot[n].armor =0;
         kill_count = 0;
-        robot[n]*.deaths = 0;
+        robot[n].deaths = 0;
 //        update_lives(n);
  //       if graphix && timing then time_delay(10);
  //       draw_robot(n);    //replace with new removal of robot from GUI
-        robot[n]*.heat =0;
+        robot[n].heat =0;
         //update_heat(n);       //STUFF TO DO WITH GUI!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-        init_missile(robot[n]*.x,robot[n]*.y,0,0,0,n,blast_circle,false);
-        if (robot[n]*.overburn)
+        init_missile(robot[n].x,robot[n].y,0,0,0,n,blast_circle,false);
+        if (robot[n].overburn)
         {
             m =1.3;
         }
@@ -2865,20 +4530,20 @@ void damage(int n,int d,bool physical) //WE NEED TO GET ROBOT[N] TO WORK
         }
         for (i =0 ; i<num_robots;i++)
         {
-            if ((i!=n) && (robot[i]*.health>0))
+            if ((i!=n) && (robot[i].armor>0))
             {
-                k =round(distance(robot[n]*.x,robot[n]*.y,robot[i]*.x,robot[i]*.y));
+                k =round(distance(robot[n].x,robot[n].y,robot[i].x,robot[i].y));
                 if (k<blast_radius)
                 {
                     damage(i,round(abso(blast_radius-k)*m),false);
                 }
             }
         }
-    }*/
+    }
 }
 
-int scan(int n) //WE NEED TO GET ROBOT[N] TO WORK
-{/*
+int scan(int n)
+{
     double r,d,acc;
     int dir,range,i,j,k,nn,xx,yy,sign;
     nn = -1;
@@ -2888,43 +4553,42 @@ int scan(int n) //WE NEED TO GET ROBOT[N] TO WORK
         return -3;                      //This result of an invalid entry placeholder return
     }
     //with robot[n]^ do
-    if( robot[n]*.scanarc<0)
+    if( robot[n].scanarc<0)
     {
-        robot[n]*.scanarc=0;
+        robot[n].scanarc=0;
     }
 
-    robot[n]*.accuracy=0;
+    robot[n].accuracy=0;
     nn=-1;
-    dir=(robot[n]*.shift+robot[n]*.hd) && 255;      //possible robot class values
+    dir=(robot[n].shift+robot[n].hd) && 255;      //possible robot class values
     if (debug_info)
     {
-        cout<<"<SCAN Arc="<<robot[n]*.scanarc<<", Dir="<<dir<<">";
+        cout<<"<SCAN Arc="<<robot[n].scanarc<<", Dir="<<dir<<">";
     }
     for (i=0; i < num_robots;i++)
     {
-        if ((i!=n) && (robot[i]*.health>0))
+        if ((i!=n) && (robot[i].armor>0))
         {
-            j = find_anglei(robot[n]*.x,robot[n]*.y,robot[i]*.x,robot[i]*.y);
-            d = distance(robot[n]*.x,robot[n]*.y,robot[i]*.x,robot[i]*.y);
+            j = find_anglei(robot[n].x,robot[n].y,robot[i].x,robot[i].y);
+            d = distance(robot[n].x,robot[n].y,robot[i].x,robot[i].y);
             k = round(d);
-            if ((k<range) && (k<=robot[n]*.scanrange) && ((abso(j-dir)<=abso(robot[n]*.scanarc)) ||
-                        (abso(j-dir)>=256-abso(robot[n]*.scanarc))))
+            if ((k<range) && (k<=robot[n].scanrange) && ((abso(j-dir)<=abso(robot[n].scanarc)) || (abso(j-dir)>=256-abso(robot[n].scanarc))))
             {
                 dir = (dir+1024) && 255;
-                xx = round( sint[dir]*d+robot[n]*.x);
-                yy = round(-cost[dir]*d+robot[n]*.y);
-                r = distance(xx,yy,robot[i]*.x,robot[i]*.y);
+                xx = round( sint[dir]*d+robot[n].x);
+                yy = round(-cost[dir]*d+robot[n].y);
+                r = distance(xx,yy,robot[i].x,robot[i].y);
                 if (debug_info)
                 {
                     cout<<"SCAN HIT! Scan X,Y: "<<round(xx)<<","<<round(yy)<<"  Robot X,Y: "<<
-                        round(robot[i]*.x)<<","<<round(robot[i]*.y)<<"  Dist="<<round(r);
+                        round(robot[i].x)<<","<<round(robot[i].y)<<"  Dist="<<round(r);
                     //repeat until keypressed; flushkey;                //THIS WAS FOR DEBUG MODE!!!! UPDATE CODE LATER!!!!
                 }
-                if ((robot[n]*.scanarc>0) || (r<hit_range-2))
+                if ((robot[n].scanarc>0) || (r<hit_range-2))
                 {
                     range = k;
-                    robot[n]*.accuracy = 0;
-                    if (robot[n]*.scanarc>0)
+                    robot[n].accuracy = 0;
+                    if (robot[n].scanarc>0)
                     {
                         j=(j+1024) && 255;
                         dir=(dir+1024) && 255;
@@ -2946,24 +4610,24 @@ int scan(int n) //WE NEED TO GET ROBOT[N] TO WORK
                             j = j+256;
                             sign = 1;
                         }
-                        acc = abso(j-dir)/robot[n]*.scanarc*2;
+                        acc = abso(j-dir)/robot[n].scanarc*2;
                         if (sign<0)
                         {
-                            robot[n]*.accuracy=-abso(round(acc));
+                            robot[n].accuracy=-abso(round(acc));
                         }
 
                         else
                         {
-                            robot[n]*.accuracy = abso(round(acc));
+                            robot[n].accuracy = abso(round(acc));
                         }
 
-                        if (robot[n]*.accuracy>2)
+                        if (robot[n].accuracy>2)
                         {
-                            robot[n]*.accuracy = 2;
+                            robot[n].accuracy = 2;
                         }
-                        if (robot[n]*.accuracy<-2)
+                        if (robot[n].accuracy<-2)
                         {
-                            robot[n]*.accuracy=-2;
+                            robot[n].accuracy=-2;
                         }
                     }
                     nn = i;
@@ -2976,74 +4640,74 @@ int scan(int n) //WE NEED TO GET ROBOT[N] TO WORK
             }
             if (nn  >= 0 && nn <=num_robots)
             {
-                robot[n]*.ram[5] = robot[nn].transponder;
-                robot[n]*.ram[6] = (robot[nn].hd-(robot[n]*.hd+robot[n]*.shift)+1024) && 255;
-                robot[n]*.ram[7] = robot[nn].spd;
-                robot[n]*.ram[13] = round(robot[nn].speed*100);
+                robot[n].ram[5] = robot[nn].transponder;
+                robot[n].ram[6] = (robot[nn].hd-(robot[n].hd+robot[n].shift)+1024) && 255;
+                robot[n].ram[7] = robot[nn].spd;
+                robot[n].ram[13] = round(robot[nn].speed*100);
             }
         }
     }
-    return range;*/
+    return range;
 }
 
-void com_transmit(int n,int chan,int data) //WE NEED TO GET ROBOT[N] TO WORK
-{/*
+void com_transmit(int n,int chan,int data)
+{
     int i;
 
     for (i=0; i < num_robots; i++)
     {
-        //with robot[i]*. do
-        if ((robot[i]*.health > 0) && (i!=n) && (robot[i]*.channel==chan))
+        //with robot[i]. do
+        if ((robot[i].armor > 0) && (i!=n) && (robot[i].channel==chan))
         {
-            if ((robot[i]*.ram[10]<0) || (robot[i]*.ram[10]>max_queue))
+            if ((robot[i].ram[10]<0) || (robot[i].ram[10]>max_queue))
             {
-                robot[i]*.ram[10] = 0;
+                robot[i].ram[10] = 0;
             }
-            if ((robot[i]*.ram[11]<0) or (robot[i]*.ram[11]>max_queue))
+            if ((robot[i].ram[11]<0) or (robot[i].ram[11]>max_queue))
             {
-                robot[i]*.ram[11] = 0;
+                robot[i].ram[11] = 0;
             }
-            robot[i]*.ram[robot[i]*.ram[11]+com_queue] = data;
-            robot[i]*.ram[11]++;
-            if (robot[i]*.ram[11]>max_queue)
+            robot[i].ram[robot[i].ram[11]+com_queue] = data;
+            robot[i].ram[11]++;
+            if (robot[i].ram[11]>max_queue)
             {
-                robot[i]*.ram[11] = 0;
+                robot[i].ram[11] = 0;
             }
-            if (robot[i]*.ram[11]==robot[i]*.ram[10])
+            if (robot[i].ram[11]==robot[i].ram[10])
             {
-                robot[i]*.ram[10]++;
+                robot[i].ram[10]++;
             }
-            if (robot[i]*.ram[10]>max_queue)
+            if (robot[i].ram[10]>max_queue)
             {
-                robot[i]*.ram[10] = 0;
+                robot[i].ram[10] = 0;
             }
         }
-    }*/
+    }
 }
 
 
-int com_receive(int n) //WE NEED TO GET ROBOT[N] TO WORK
-{/*
+int com_receive(int n)
+{
     int k;
 
     k = 0;
-    //with robot[n]*. do
+    //with robot[n]. do
 
-    if (robot[n]*.ram[10]!=robot[n]*.ram[11])
+    if (robot[n].ram[10]!=robot[n].ram[11])
     {
-        if ((robot[n]*.ram[10]<0) || (robot[n]*.ram[10]>max_queue))
+        if ((robot[n].ram[10]<0) || (robot[n].ram[10]>max_queue))
         {
-            robot[n]*.ram[10] = 0;
+            robot[n].ram[10] = 0;
         }
-        if ((robot[n]*.ram[11]<0) || (robot[n]*.ram[11]>max_queue))
+        if ((robot[n].ram[11]<0) || (robot[n].ram[11]>max_queue))
         {
-            robot[n]*.ram[11] = 0;
+            robot[n].ram[11] = 0;
         }
-        k = robot[n]*.ram[robot[n]*.ram[10]+com_queue];
-        robot[n]*.ram[10]++;
-        if (robot[n]*.ram[10]>max_queue)
+        k = robot[n].ram[robot[n].ram[10]+com_queue];
+        robot[n].ram[10]++;
+        if (robot[n].ram[10]>max_queue)
         {
-            robot[n]*.ram[10] = 0;
+            robot[n].ram[10] = 0;
         }
     }
     else
@@ -3051,24 +4715,24 @@ int com_receive(int n) //WE NEED TO GET ROBOT[N] TO WORK
         robot_error(n,12,"");
     }
 
-    return k;*/
+    return k;
 }
 
-void out_port(int n,int p,int v, int* time_used) //WE NEED TO GET ROBOT[N] TO WORK
-{/*
+void out_port(int n,int p,int v, int* time_used)
+{
     int i;
 
-    //with robot[n]*. do
+    //with robot[n]. do
 
     switch (p)
     {
-        case 11:robot[n]*.tspd = v;
+        case 11:robot[n].tspd = v;
         break;
-        case 12:robot[n]*.shift = (robot[n]*.shift+v+1024) & 255;
+        case 12:robot[n].shift = (robot[n].shift+v+1024) & 255;
         break;
-        case 13:robot[n]*.shift = (v+1024) & 255;
+        case 13:robot[n].shift = (v+1024) & 255;
         break;
-        case 14:robot[n]*.thd = (robot[n]*.thd+v+1024) & 255;
+        case 14:robot[n].thd = (robot[n].thd+v+1024) & 255;
         break;
         case 15:
             *time_used +=3;
@@ -3080,33 +4744,34 @@ void out_port(int n,int p,int v, int* time_used) //WE NEED TO GET ROBOT[N] TO WO
             {
                 v = -4;
             }
-            init_missile(robot[n]*.x,robot[n]*.y,robot[n]*.xv,robot[n]*.yv,(robot[n]*.hd+robot[n]*.shift+v) & 255,n,0,robot[n]*.overburn);
-        break;
-        case 17:robot[n]*.scanarc = v;
-        break;
+            init_missile(robot[n].x,robot[n].y,robot[n].xv,robot[n].yv,(robot[n].hd+robot[n].shift+v) & 255,n,0,robot[n].overburn);
+            break;
+        case 17:
+            robot[n].scanarc = v;
+            break;
         case 18:
             if (v==0)
             {
-                robot[n]*.overburn = false;
+                robot[n].overburn = false;
             }
             else
             {
-                robot[n]*.overburn = true;
+                robot[n].overburn = true;
             }
         break;
-        case 19:robot[n]*.transponder = v;
+        case 19:robot[n].transponder = v;
         break;
-        case 20:robot[n]*.shutdown = v;
+        case 20:robot[n].shutdown = v;
         break;
-        case 21:robot[n]*.channel = v;
+        case 21:robot[n].channel = v;
         break;
         case 22:
-            if (robot[n]*.config.mines>=0)
+            if (robot[n].config.mines>=0)
             {
-                if (robot[n]*.mines>0)
+                if (robot[n].mines>0)
                 {
                     init_mine(n,v,mine_blast);
-                    robot[n]*.mines--;
+                    robot[n].mines--;
                 }
                 else
                 {
@@ -3119,11 +4784,11 @@ void out_port(int n,int p,int v, int* time_used) //WE NEED TO GET ROBOT[N] TO WO
             }
         break;
         case 23:
-            if (config.mines>=0)
+            if (robot[n].config.mines>=0)
             {
                 for (i = 0; i < max_mines; i++)
                 {
-                    robot[n]*.mine[i].detonate = true;
+                    robot[n].mine[i].detonate = true;
                 }
             }
             else
@@ -3132,64 +4797,64 @@ void out_port(int n,int p,int v, int* time_used) //WE NEED TO GET ROBOT[N] TO WO
             }
         break;
         case 24:
-            if (robot[n]*.config.shield>=3)
+            if (robot[n].config.shield>=3)
             {
                 if (v==0)
                 {
-                    robot[n]*.shields_up = false;
+                    robot[n].shields_up = false;
                 }
                 else
                 {
-                    robot[n]*.shields_up = true;
+                    robot[n].shields_up = true;
                 }
             }
             else
             {
-                robot[n]*.shields_up = false;
+                robot[n].shields_up = false;
                 robot_error(n,15,"");
             }
         break;
         default: robot_error(n,11,p+"");
     }
-    if (robot[n]*.scanarc>64)
+    if (robot[n].scanarc>64)
     {
-        robot[n]*.scanarc = 64;
+        robot[n].scanarc = 64;
     }
-    if (robot[n]*.scanarc<0)
+    if (robot[n].scanarc<0)
     {
-        robot[n]*.scanarc = 0;
-    }*/
+        robot[n].scanarc = 0;
+    }
 }
 
-int in_port(int n,int p,int* time_used) //WE NEED TO GET ROBOT[N] TO WORK
-{/*
+int in_port(int n,int p,int* time_used)
+{
     int v,i,j,k,l,nn;
 
     v = 0;
-    //with robot[n]*. do
+    //with robot[n]. do
     switch (p)
     {
-        case 1:v = robot[n]*.spd;
+        case 1:v = robot[n].spd;
         break;
-        case 2:v = robot[n]*.heat;
+        case 2:v = robot[n].heat;
         break;
-        case 3:v = robot[n]*.hd;
+        case 3:v = robot[n].hd;
         break;
-        case 4:v = robot[n]*.shift;
+        case 4:v = robot[n].shift;
         break;
-        case 5:v = ((robot[n]*.shift+robot[n]*.hd) & 255);
+        case 5:v = ((robot[n].shift+robot[n].hd) & 255);
         break;
-        case 6:v = robot[n]*.health;
+        case 6:v = robot[n].armor;
         break;
         case 7:v = scan(n);
             *time_used+=1;
             if (show_arcs)
             {
-                robot[n]*.arc_count = 2;
+                robot[n].arc_count = 2;
             }
         break;
         case 8:
-            v = robot[n]*.accuracy;
+            v = robot[n].accuracy;
             *time_used+=1;
         break;
         case 9:
@@ -3199,8 +4864,8 @@ int in_port(int n,int p,int* time_used) //WE NEED TO GET ROBOT[N] TO WORK
             nn = -1;
             for (i = 0; i < num_robots;i++)
             {
-                j = round(distance(robot[n]*.x,robot[n]*.y,robot[i]*.x,robot[i]*.y));
-                if ((n!=i) && (j<k) && (robot[i]*.health>0))
+                j = round(distance(robot[n].x,robot[n].y,robot[i].x,robot[i].y));
+                if ((n!=i) && (j<k) && (robot[i].armor>0))
                 {
                     k = j;
                     nn = i;
@@ -3209,7 +4874,7 @@ int in_port(int n,int p,int* time_used) //WE NEED TO GET ROBOT[N] TO WORK
             v = k;
             if ((nn>=0) && (nn <num_robots))
             {
-                robot[n]*.ram[5] = robot[nn].transponder;
+                robot[n].ram[5] = robot[nn].transponder;
             }
         break;
         case 10:v = (rand()%65535)+(rand()%2);
@@ -3218,7 +4883,7 @@ int in_port(int n,int p,int* time_used) //WE NEED TO GET ROBOT[N] TO WORK
             nn = -1;
             if (show_arcs)
             {
-                robot[n]*.sonar_count = 2;
+                robot[n].sonar_count = 2;
             }
             *time_used += 40;
             l = -1;
@@ -3226,8 +4891,8 @@ int in_port(int n,int p,int* time_used) //WE NEED TO GET ROBOT[N] TO WORK
             nn = -1;
             for (i = 0; i < num_robots; i++)
             {
-                j = round(distance(robot[n]*.x,robot[n]*.y,robot[i]*.x,robot[i]*.y));
-                if ((n!=i) && (j<k) && (j<max_sonar) && (robot[i]*.health>0))
+                j = round(distance(robot[n].x,robot[n].y,robot[i].x,robot[i].y));
+                if ((n!=i) && (j<k) && (j<max_sonar) && (robot[i].armor>0))
                 {
                     k = j;
                     l = i;
@@ -3236,7 +4901,7 @@ int in_port(int n,int p,int* time_used) //WE NEED TO GET ROBOT[N] TO WORK
             }
             if (l>=0)
             {
-                v = ((int)(round(find_angle(robot[n]*.x,robot[n]*.y,robot[l].x,robot[l].y)/pi*128+1024+(rand()%65)-32)) & 255);
+                v = ((int)(round(find_angle(robot[n].x,robot[n].y,robot[l].x,robot[l].y)/pi*128+1024+(rand()%65)-32)) & 255);
             }
             else
             {
@@ -3244,37 +4909,37 @@ int in_port(int n,int p,int* time_used) //WE NEED TO GET ROBOT[N] TO WORK
             }
             if ((nn >= 0) && (nn<num_robots))
             {
-                robot[n]*.ram[5] = robot[nn].transponder;
+                robot[n].ram[5] = robot[nn].transponder;
             }
         break;
         case 17:
-            v = robot[n]*.scanarc;
+            v = robot[n].scanarc;
         break;
         case 18:
-            if (robot[n]*.overburn)
+            if (robot[n].overburn)
             {
                 v = 1;
             }
 
             else v = 0;
         break;
-        case 19:v = robot[n]*.transponder;
+        case 19:v = robot[n].transponder;
         break;
-        case 20:v = robot[n]*.shutdown;
+        case 20:v = robot[n].shutdown;
         break;
-        case 21:v = robot[n]*.channel;
+        case 21:v = robot[n].channel;
         break;
-        case 22:v = robot[n]*.mines;
+        case 22:v = robot[n].mines;
         break;
         case 23:
-            if (robot[n]*.mines>=0)
+            if (robot[n].mines>=0)
             {
                 k = 0;
                 for (i = 0; i < max_mines; i++)
                 {
                     //with mine[i]. do
-                    if ((robot[n]*.mine[i].x>=0) && (robot[n]*.mine[i].x<=1000) && (robot[n]*.mine[i].y>=0) &&
-                            (robot[n]*.mine[i].y<=1000) && (robot[n]*.mine[i].yield>0))
+                    if ((robot[n].mine[i].x>=0) && (robot[n].mine[i].x<=1000) && (robot[n].mine[i].y>=0) &&
+                            (robot[n].mine[i].y<=1000) && (robot[n].mine[i].yield>0))
                     {
                         k++;
                     }
@@ -3288,9 +4953,9 @@ int in_port(int n,int p,int* time_used) //WE NEED TO GET ROBOT[N] TO WORK
             }
         break;
         case 24:
-            if (robot[n]*.shield>0)
+            if (robot[n].config.shield>0)
             {
-                if (robot[n]*.shields_up)
+                if (robot[n].shields_up)
                 {
                     v = 1;
                 }
@@ -3302,18 +4967,18 @@ int in_port(int n,int p,int* time_used) //WE NEED TO GET ROBOT[N] TO WORK
             else
             {
                 v = 0;
-                robot[n]*.shields_up = false;
+                robot[n].shields_up = false;
             }
         break;
         default: robot_error(n,11,p+"");
     }
 
-    return v;*/
+    return v;
 }
 
 
-void call_int(int n,int int_num, int *time_used) //WE NEED TO GET ROBOT[N] TO WORK
-{/*
+void call_int(int n,int int_num, int *time_used)
+{
     int i,j,k;
 
  //with robot[n]^ do
@@ -3327,44 +4992,44 @@ void call_int(int n,int int_num, int *time_used) //WE NEED TO GET ROBOT[N] TO WO
         break;
         case 2:
             *time_used = 5;
-            robot[n]*.ram[69] = round(robot[n]*.x);
-            robot[n]*.ram[70] = round(robot[n]*.y);
+            robot[n].ram[69] = round(robot[n].x);
+            robot[n].ram[70] = round(robot[n].y);
         break;
         case 3:
             *time_used = 2;
-            if (robot[n]*.ram[65]==0)
+            if (robot[n].ram[65]==0)
             {
-                robot[n]*.keepshift = false;
+                robot[n].keepshift = false;
             }
             else
             {
-                robot[n]*.keepshift = true;
+                robot[n].keepshift = true;
             }
 
-            robot[n]*.ram[70] = robot[n]*.shift & 255;
+            robot[n].ram[70] = robot[n].shift & 255;
         break;
         case 4:
-            if (robot[n]*.ram[65]==0)
+            if (robot[n].ram[65]==0)
             {
-                robot[n]*.overburn = false;
+                robot[n].overburn = false;
             }
             else
             {
-                robot[n]*.overburn = true;
+                robot[n].overburn = true;
             }
         break;
         case 5:
             *time_used = 2;
-            robot[n]*.ram[70] = robot[n]*.transponder;
+            robot[n].ram[70] = robot[n].transponder;
         break;
         case 6:
             *time_used = 2;
-            robot[n]*.ram[69] = game_cycle >> 16;
-            robot[n]*.ram[70] = game_cycle & 65535;
+            robot[n].ram[69] = game_cycle >> 16;
+            robot[n].ram[70] = game_cycle & 65535;
         break;
         case 7:
-            j = robot[n]*.ram[69];
-            k = robot[n]*.ram[70];
+            j = robot[n].ram[69];
+            k = robot[n].ram[70];
             if (j<0)
             {
                 j = 0;
@@ -3381,55 +5046,55 @@ void call_int(int n,int int_num, int *time_used) //WE NEED TO GET ROBOT[N] TO WO
             {
                 k = 1000;
             }
-            robot[n]*.ram[65] = (int)(round(find_angle(round(robot[n]*.x),round(robot[n]*.y),j,k)/pi*128+256)) & 255;
+            robot[n].ram[65] = (int)(round(find_angle(round(robot[n].x),round(robot[n].y),j,k)/pi*128+256)) & 255;
             *time_used = 32;
         break;
         case 8:
-            robot[n]*.ram[70] = robot[n]*.ram[5];
+            robot[n].ram[70] = robot[n].ram[5];
             *time_used = 1;
         break;
         case 9:
-            robot[n]*.ram[69] = robot[n]*.ram[6];
-            robot[n]*.ram[70] = robot[n]*.ram[7];
+            robot[n].ram[69] = robot[n].ram[6];
+            robot[n].ram[70] = robot[n].ram[7];
             *time_used = 2;
         break;
         case 10:
             k = 0;
             for (i = 0; i < num_robots;i++)
             {
-                if (robot[i]*.health>0)
+                if (robot[i].armor>0)
                 {
                     k++;
                 }
             }
 
-            robot[n]*.ram[68] = k;
-            robot[n]*.ram[69] = played;
-            robot[n]*.ram[70] = matches;
+            robot[n].ram[68] = k;
+            robot[n].ram[69] = played;
+            robot[n].ram[70] = matches;
             *time_used = 4;
         break;
         case 11:
-            robot[n]*.ram[68] = round(robot[n]*.speed*100);
-            robot[n]*.ram[69] = robot[n]*.last_damage;
-            robot[n]*.ram[70] = robot[n]*.last_hit;
+            robot[n].ram[68] = round(robot[n].speed*100);
+            robot[n].ram[69] = robot[n].last_damage;
+            robot[n].ram[70] = robot[n].last_hit;
             *time_used = 5;
         break;
         case 12:
-            robot[n]*.ram[70] = robot[n]*.ram[8];
+            robot[n].ram[70] = robot[n].ram[8];
             *time_used = 1;
         break;
         case 13:
-            robot[n]*.ram[8] = 0;
+            robot[n].ram[8] = 0;
             *time_used = 1;
         break;
         case 14:
-            com_transmit(n,robot[n]*.channel,robot[n]*.ram[65]);
+            com_transmit(n,robot[n].channel,robot[n].ram[65]);
             *time_used = 1;
         break;
         case 15:
-            if (robot[n]*.ram[10]!=robot[n]*.ram[11])
+            if (robot[n].ram[10]!=robot[n].ram[11])
             {
-                robot[n]*.ram[70] = com_receive(n);
+                robot[n].ram[70] = com_receive(n);
             }
             else
             {
@@ -3439,51 +5104,51 @@ void call_int(int n,int int_num, int *time_used) //WE NEED TO GET ROBOT[N] TO WO
             *time_used = 1;
         break;
         case 16:
-            if (robot[n]*.ram[11]>=robot[n]*.ram[10])
+            if (robot[n].ram[11]>=robot[n].ram[10])
             {
-                 robot[n]*.ram[70] = robot[n]*.ram[11]-robot[n]*.ram[10];
+                 robot[n].ram[70] = robot[n].ram[11]-robot[n].ram[10];
             }
 
             else
             {
-                robot[n]*.ram[70] = max_queue+1-robot[n]*.ram[10]+robot[n]*.ram[11];
+                robot[n].ram[70] = max_queue+1-robot[n].ram[10]+robot[n].ram[11];
             }
             *time_used = 1;
         break;
         case 17:
-            robot[n]*.ram[10] = 0;
-            robot[n]*.ram[11] = 0;
+            robot[n].ram[10] = 0;
+            robot[n].ram[11] = 0;
             *time_used = 1;
         break;
         case 18:
-            robot[n]*.ram[68] = robot[n]*.kills;
-            robot[n]*.ram[69] = robot[n]*.kills-robot[n]*.startkills;
-            robot[n]*.ram[70] = robot[n]*.deaths;
+            robot[n].ram[68] = robot[n].kills;
+            robot[n].ram[69] = robot[n].kills-robot[n].startkills;
+            robot[n].ram[70] = robot[n].deaths;
             *time_used = 3;
         break;
         case 19:
-                robot[n]*.ram[9] = 0;
-                robot[n]*.meters = 0;
+                robot[n].ram[9] = 0;
+                robot[n].meter = 0;
         break;
         default: robot_error(n,10,int_num+"");
-    }*/
+    }
 }
 
-void jump(int n,int o, bool inc_ip) //WE NEED TO GET ROBOT[N] TO WORK
-{/*
+void jump(int n,int o, bool inc_ip)
+{
     int loc;
-    //with robot[n]*. do
+    //with robot[n]. do
 
-    loc = find_label(n,get_val(n,robot[n]*.ip,o),robot[n]*.code[robot[n]*.ip].op[max_op] >> (o*4));
-    if ((loc>=0) && (loc<=robot[n]*.plen))
+    loc = find_label(n,get_val(n,robot[n].ip,o),robot[n].code.code[robot[n].ip].op[max_op] >> (o*4));
+    if ((loc>=0) && (loc<=robot[n].plen))
     {
         inc_ip = false;
-        robot[n]*.ip = loc;
+        robot[n].ip = loc;
     }
     else
     {
         robot_error(n,2,(loc+""));
-    }*/
+    }
 }
 
 void update_debug_bars()
@@ -3702,7 +5367,7 @@ bool gameover()
         k = 0;
         for (n = 0; n<num_robots;n++)
         {
-            if (/*robot[n]*.health>*/0) //WE NEED TO GET ROBOT[N] TO WORK
+            if (robot[n].armor>0)
             {
                 k++;
             }
@@ -3727,7 +5392,7 @@ bool invalid_microcode(int n,int ip)
     invalid = false;
     for( i = 0;i < 2; i++)
     {
-//        k = (robot[n]*.code[ip].op[max_op] >> (i << 2)) & 7; //WE NEED TO GET ROBOT[N] TO WORK
+        k = (robot[n].code.code[ip].op[max_op] >> (i << 2)) & 7;
         if (!((k == 0) || (k == 1) || (k ==2) || (k ==4)))
         {
             invalid = true;
@@ -3754,8 +5419,8 @@ case c of
 end;
 end;
 */
-void execute_instruction(int n) //WE NEED TO GET ROBOT[N] TO WORK
-{/*
+void execute_instruction(int n)
+{
     int j,k;
     int time_used,loc;
     bool inc_ip;
@@ -3763,24 +5428,24 @@ void execute_instruction(int n) //WE NEED TO GET ROBOT[N] TO WORK
 
     //with robot[n]^ do
 
-    {--update system variables--}
-    robot[n]*.ram[0]= robot[n]*.tspd;
-    robot[n]*.ram[1]= robot[n]*.thd;
-    robot[n]*.ram[2]= robot[n]*.shift;
-    robot[n]*.ram[3]= robot[n]*.accuracy;
+//    {--update system variables--}
+    robot[n].ram[0]= robot[n].tspd;
+    robot[n].ram[1]= robot[n].thd;
+    robot[n].ram[2]= robot[n].shift;
+    robot[n].ram[3]= robot[n].accuracy;
 
     time_used= 1;
     inc_ip= true;
     loc= 0;
-    if ((robot[n]*.ip>robot[n]*.plen) || (robot[n]*.ip<0))
+    if ((robot[n].ip>robot[n].plen) || (robot[n].ip<0))
     {
-        robot[n]*.ip= 0;
+        robot[n].ip= 0;
     }
 
-    if (invalid_microcode(n,robot[n]*.ip))
+    if (invalid_microcode(n,robot[n].ip))
     {
         time_used= 1;
-        robot_error(n,16,hex(robot[n]*.code[robot[n]*.ip].op[max_op]));
+        robot_error(n,16,hex(robot[n].code.code[robot[n].ip].op[max_op]));
     }
     else
     {
@@ -3799,8 +5464,8 @@ void execute_instruction(int n) //WE NEED TO GET ROBOT[N] TO WORK
             }
 
             while (step_loop && (!(quit || gameover() || bout_over)))
-            {*/
-//                if (/*keypressed FIX WITH GUI*/false) //with robot[0]^ do
+            {
+                if (/*keypressed FIX WITH GUI*/false) //with robot[0]^ do
                 {
 /*                    const char c= upcase(readkey);                //GUI STUFF TO DO LATER!!!!!
                     switch (c)
@@ -3835,7 +5500,7 @@ void execute_instruction(int n) //WE NEED TO GET ROBOT[N] TO WORK
                             break;
                         case 45:
                         case 95:
-                            if (robot[n]*.mem_watch>0)
+                            if (robot[n].mem_watch>0)
                             {
                                 setcolor(0);
                                 for (i= 0; i < 9;i++)
@@ -3902,64 +5567,64 @@ void execute_instruction(int n) //WE NEED TO GET ROBOT[N] TO WORK
                         default: process_keypress(c);
                    }
                  }
-*//*            }
+*/            }
         }
     }
 
 
-    if (! (((robot[n]*.code[robot[n]*.ip].op[max_op] & 7) > 0)&& ( robot[n]*.code[robot[n]*.ip].op[max_op]<1)))
+    if (! (((robot[n].code.code[robot[n].ip].op[max_op] & 7) > 0)&& ( robot[n].code.code[robot[n].ip].op[max_op]<1)))
     {
         time_used= 0;
     }
     else
     {
-        switch (get_val(n,robot[n]*.ip,0))
+        switch (get_val(n,robot[n].ip,0))
         {
             case 0: //(*NOP*)
                 executed++;
                 break;
 
             case 1: //(*ADD*)
-                put_val(n,robot[n]*.ip,1,get_val(n,robot[n]*.ip,1)+get_val(n,robot[n]*.ip,2));
+                put_val(n,robot[n].ip,1,get_val(n,robot[n].ip,1)+get_val(n,robot[n].ip,2));
                 executed++;
                 break;
 
             case 2: //(*SUB*)
-                put_val(n,robot[n]*.ip,1,get_val(n,robot[n]*.ip,1)-get_val(n,robot[n]*.ip,2));
+                put_val(n,robot[n].ip,1,get_val(n,robot[n].ip,1)-get_val(n,robot[n].ip,2));
                 executed++;
                 break;
 
             case 3: //(*OR*)
-                put_val(n,robot[n]*.ip,1,get_val(n,robot[n]*.ip,1) | get_val(n,robot[n]*.ip,2));
+                put_val(n,robot[n].ip,1,get_val(n,robot[n].ip,1) | get_val(n,robot[n].ip,2));
                 executed++;
                 break;
 
             case 4: //(*AND*)
-                put_val(n,robot[n]*.ip,1,get_val(n,robot[n]*.ip,1) & get_val(n,robot[n]*.ip,2));
+                put_val(n,robot[n].ip,1,get_val(n,robot[n].ip,1) & get_val(n,robot[n].ip,2));
                 executed++;
                 break;
 
             case 5: //(*XOR*)
-                put_val(n,robot[n]*.ip,1,get_val(n,robot[n]*.ip,1) ^ get_val(n,robot[n]*.ip,2));
+                put_val(n,robot[n].ip,1,get_val(n,robot[n].ip,1) ^ get_val(n,robot[n].ip,2));
                 executed++;
                 break;
 
             case 6: //(*NOT*)
-                put_val(n,robot[n]*.ip,1,!(get_val(n,robot[n]*.ip,1)));
+                put_val(n,robot[n].ip,1,!(get_val(n,robot[n].ip,1)));
                 executed++;
                 break;
 
             case 7: //(*MPY*)
-                put_val(n,robot[n]*.ip,1,get_val(n,robot[n]*.ip,1)*get_val(n,robot[n]*.ip,2));
+                put_val(n,robot[n].ip,1,get_val(n,robot[n].ip,1)*get_val(n,robot[n].ip,2));
                 time_used= 10;
                 executed++;
                 break;
 
             case 8: //(*DIV*)
-                j= get_val(n,robot[n]*.ip,2);
+                j= get_val(n,robot[n].ip,2);
                 if (j!=0)
                 {
-                    put_val(n,robot[n]*.ip,1,get_val(n,robot[n]*.ip,1) / j);
+                    put_val(n,robot[n].ip,1,get_val(n,robot[n].ip,1) / j);
                 }
                 else
                 {
@@ -3970,10 +5635,10 @@ void execute_instruction(int n) //WE NEED TO GET ROBOT[N] TO WORK
                 break;
 
             case 9: //(*MOD*)
-                j= get_val(n,robot[n]*.ip,2);
+                j= get_val(n,robot[n].ip,2);
                 if (j!=0)
                 {
-                    put_val(n,robot[n]*.ip,1,get_val(n,robot[n]*.ip,1) % j);
+                    put_val(n,robot[n].ip,1,get_val(n,robot[n].ip,1) % j);
                 }
                 else
                 {
@@ -3984,25 +5649,25 @@ void execute_instruction(int n) //WE NEED TO GET ROBOT[N] TO WORK
             break;
 
             case 10: //(*RET*)
-                robot[n]*.ip= pop(n);
-                if ((robot[n]*.ip<0) || (robot[n]*.ip>robot[n]*.plen))
+                robot[n].ip= pop(n);
+                if ((robot[n].ip<0) || (robot[n].ip>robot[n].plen))
                 {
-                    robot_error(n,7,(robot[n]*.ip + ""));
+                    robot_error(n,7,(robot[n].ip + ""));
                 }
                 executed++;
                 break;
 
             case 11: //(*GSB*)
-                loc= find_label(n,get_val(n,robot[n]*.ip,1),robot[n]*.code[robot[n]*.ip].op[max_op]<<(1*4));
+                loc= find_label(n,get_val(n,robot[n].ip,1),robot[n].code.code[robot[n].ip].op[max_op]<<(1*4));
                 if (loc>=0)
                 {
-                    push(n,robot[n]*.ip);
+                    push(n,robot[n].ip);
                     inc_ip= false;
-                    robot[n]*.ip= loc;
+                    robot[n].ip= loc;
                 }
                 else
                 {
-                    robot_error(n,2,(get_val(n,robot[n]*.ip,1)+""));
+                    robot_error(n,2,(get_val(n,robot[n].ip,1)+""));
                 }
                 executed++;
                 break;
@@ -4013,7 +5678,7 @@ void execute_instruction(int n) //WE NEED TO GET ROBOT[N] TO WORK
                 break;
 
             case 13: //(*JLS,JB*)
-                if ((robot[n]*.ram[64] & 2)>0)
+                if ((robot[n].ram[64] & 2)>0)
                 {
                     jump(n,1,inc_ip);
                 }
@@ -4023,7 +5688,7 @@ void execute_instruction(int n) //WE NEED TO GET ROBOT[N] TO WORK
                 break;
 
             case 14: //(*JGR,JA*)
-                if ((robot[n]*.ram[64] & 4)>0)
+                if ((robot[n].ram[64] & 4)>0)
                 {
                     jump(n,1,inc_ip);
                 }
@@ -4033,14 +5698,14 @@ void execute_instruction(int n) //WE NEED TO GET ROBOT[N] TO WORK
                 break;
 
             case 15: //(*JNE*)
-                if ((robot[n]*.ram[64] & 1)==0)
+                if ((robot[n].ram[64] & 1)==0)
                     jump(n,1,inc_ip);
                 time_used= 0;
                 executed++;
                 break;
 
             case 16: //(*JEQ,JE*)
-                if ((robot[n]*.ram[64] & 1)>0)
+                if ((robot[n].ram[64] & 1)>0)
                 {
                     jump(n,1,inc_ip);
                 }
@@ -4050,21 +5715,21 @@ void execute_instruction(int n) //WE NEED TO GET ROBOT[N] TO WORK
                 break;
 
             case 17: //(*SWAP, XCHG*)
-                robot[n]*.ram[4]= get_val(n,robot[n]*.ip,1);
-                put_val(n,robot[n]*.ip,1,get_val(n,robot[n]*.ip,2));
-                put_val(n,robot[n]*.ip,2,robot[n]*.ram[4]);
+                robot[n].ram[4]= get_val(n,robot[n].ip,1);
+                put_val(n,robot[n].ip,1,get_val(n,robot[n].ip,2));
+                put_val(n,robot[n].ip,2,robot[n].ram[4]);
                 time_used= 3;
                 executed++;
                 break;
 
             case 18: //(*DO*)
-                robot[n]*.ram[67]= get_val(n,robot[n]*.ip,1);
+                robot[n].ram[67]= get_val(n,robot[n].ip,1);
                 executed++;
                 break;
 
             case 19: //(*LOOP*)
-                robot[n]*.ram[67]--;
-                if (robot[n]*.ram[67]>0)
+                robot[n].ram[67]--;
+                if (robot[n].ram[67]>0)
                 {
                     jump(n,1,inc_ip);
                 }
@@ -4073,64 +5738,64 @@ void execute_instruction(int n) //WE NEED TO GET ROBOT[N] TO WORK
                 break;
 
             case 20: //(*CMP*)
-                k = get_val(n,robot[n]*.ip,1)-get_val(n,robot[n]*.ip,2);
-                robot[n]*.ram[64]= robot[n]*.ram[64] & 65520;
+                k = get_val(n,robot[n].ip,1)-get_val(n,robot[n].ip,2);
+                robot[n].ram[64]= robot[n].ram[64] & 65520;
                 if (k==0)
                 {
-                    robot[n]*.ram[64]= robot[n]*.ram[64] | 1;
+                    robot[n].ram[64]= robot[n].ram[64] | 1;
                 }
                 if (k<0)
                 {
-                    robot[n]*.ram[64]= robot[n]*.ram[64] | 2;
+                    robot[n].ram[64]= robot[n].ram[64] | 2;
                 }
                 if (k>0)
                 {
-                    robot[n]*.ram[64]= robot[n]*.ram[64] | 4;
+                    robot[n].ram[64]= robot[n].ram[64] | 4;
                 }
-                if ((get_val(n,robot[n]*.ip,2)==0) && (k==0))
+                if ((get_val(n,robot[n].ip,2)==0) && (k==0))
                 {
-                    robot[n]*.ram[64]= robot[n]*.ram[64] | 8;
+                    robot[n].ram[64]= robot[n].ram[64] | 8;
                 }
 
                 executed++;
                 break;
 
             case 21: //(*TEST*)
-                k = get_val(n,robot[n]*.ip,1) & get_val(n,robot[n]*.ip,2);
-                robot[n]*.ram[64]= robot[n]*.ram[64] & 65520;
-                if (k==get_val(n,robot[n]*.ip,2))
+                k = get_val(n,robot[n].ip,1) & get_val(n,robot[n].ip,2);
+                robot[n].ram[64]= robot[n].ram[64] & 65520;
+                if (k==get_val(n,robot[n].ip,2))
                 {
-                    robot[n]*.ram[64]= robot[n]*.ram[64] | 1;
+                    robot[n].ram[64]= robot[n].ram[64] | 1;
                 }
                 if (k==0)
                 {
-                    robot[n]*.ram[64]= robot[n]*.ram[64] | 8;
+                    robot[n].ram[64]= robot[n].ram[64] | 8;
                 }
                 executed++;
                 break;
 
             case 22: //(*MOV, SET*)
-                put_val(n,robot[n]*.ip,1,get_val(n,robot[n]*.ip,2));
+                put_val(n,robot[n].ip,1,get_val(n,robot[n].ip,2));
                 executed++;
                 break;
 
             case 23: //(*LOC*)
-                put_val(n,robot[n]*.ip,1,robot[n]*.code[robot[n]*.ip].op[2]);
+                put_val(n,robot[n].ip,1,robot[n].code.code[robot[n].ip].op[2]);
                 time_used= 2;
                 executed++;
                 break;
 
             case 24: //(*GET*)
-                k= get_val(n,robot[n]*.ip,2);
+                k= get_val(n,robot[n].ip,2);
                 if ((k>=0) && (k<=max_ram))
                 {
-                    put_val(n,robot[n]*.ip,1,robot[n]*.ram[k]);
+                    put_val(n,robot[n].ip,1,robot[n].ram[k]);
                 }
 
                 else if ((k>max_ram) && (k<=(max_ram+1)+(((max_code+1) >> 3)-1)))
                 {
                         j= k-max_ram-1;
-                        put_val(n,robot[n]*.ip,1,robot[n]*.code[j << 2].op[j & 3]);
+                        put_val(n,robot[n].ip,1,robot[n].code.code[j << 2].op[j & 3]);
                 }
                 else
                 {
@@ -4141,10 +5806,10 @@ void execute_instruction(int n) //WE NEED TO GET ROBOT[N] TO WORK
                 break;
 
             case 25: //(*PUT*)
-                k = get_val(n,robot[n]*.ip,2);
+                k = get_val(n,robot[n].ip,2);
                 if ((k>=0) && (k<=max_ram))
                 {
-                    robot[n]*.ram[k]= get_val(n,robot[n]*.ip,1);
+                    robot[n].ram[k]= get_val(n,robot[n].ip,1);
                 }
 
                 else
@@ -4156,76 +5821,76 @@ void execute_instruction(int n) //WE NEED TO GET ROBOT[N] TO WORK
                 break;
 
             case 26: //(*INT*)
-                call_int(n,get_val(n,robot[n]*.ip,1),time_used);
+                call_int(n,get_val(n,robot[n].ip,1),time_used);
                 executed++;
                 break;
 
             case 27: //(*IPO,IN*)
                 time_used= 4;
-                put_val(n,robot[n]*.ip,2,in_port(n,get_val(n,robot[n]*.ip,1),&time_used));
+                put_val(n,robot[n].ip,2,in_port(n,get_val(n,robot[n].ip,1),&time_used));
                 executed++;
                 break;
 
             case 28: //(*OPO,OUT*)
                 time_used= 4;
-                out_port(n,get_val(n,robot[n]*.ip,1),get_val(n,robot[n]*.ip,2),&time_used);
+                out_port(n,get_val(n,robot[n].ip,1),get_val(n,robot[n].ip,2),&time_used);
                 executed++;
                 break;
 
             case 29: //(*DEL,DELAY*)
-                time_used= get_val(n,robot[n]*.ip,1);
+                time_used= get_val(n,robot[n].ip,1);
                 executed++;
                 break;
 
             case 30: //(*PUSH*)
-                push(n,get_val(n,robot[n]*.ip,1));
+                push(n,get_val(n,robot[n].ip,1));
                 executed++;
                 break;
 
             case 31: //(*POP*)
-                put_val(n,robot[n]*.ip,1,pop(n));
+                put_val(n,robot[n].ip,1,pop(n));
                 executed++;
                 break;
 
             case 32: //(*ERR*)
-                robot_error(n,get_val(n,robot[n]*.ip,1),"");
+                robot_error(n,get_val(n,robot[n].ip,1),"");
                 time_used= 0;
                 executed++;
                 break;
 
             case 33: //(*INC*)
-                put_val(n,robot[n]*.ip,1,get_val(n,robot[n]*.ip,1)+1);
+                put_val(n,robot[n].ip,1,get_val(n,robot[n].ip,1)+1);
                 executed++;
                 break;
 
             case 34: //(*DEC*)
-                put_val(n,robot[n]*.ip,1,get_val(n,robot[n]*.ip,1)-1);
+                put_val(n,robot[n].ip,1,get_val(n,robot[n].ip,1)-1);
                 executed++;
                 break;
 
             case 35: //(*SHL*)
-                put_val(n,robot[n]*.ip,1,get_val(n,robot[n]*.ip,1)>>get_val(n,robot[n]*.ip,2));
+                put_val(n,robot[n].ip,1,get_val(n,robot[n].ip,1)>>get_val(n,robot[n].ip,2));
                 executed++;
                 break;
 
             case 36: //(*SHR*)
-                put_val(n,robot[n]*.ip,1,get_val(n,robot[n]*.ip,1)<<get_val(n,robot[n]*.ip,2));
+                put_val(n,robot[n].ip,1,get_val(n,robot[n].ip,1)<<get_val(n,robot[n].ip,2));
                 executed++;
                 break;
 
             case 37: //(*ROL*)
-                put_val(n,robot[n]*.ip,1,rol(get_val(n,robot[n]*.ip,1),get_val(n,robot[n]*.ip,2)));
+                put_val(n,robot[n].ip,1,rol(get_val(n,robot[n].ip,1),get_val(n,robot[n].ip,2)));
                 executed++;
                 break;
 
             case 38: //(*ROR*)
-                put_val(n,robot[n]*.ip,1,ror(get_val(n,robot[n]*.ip,1),get_val(n,robot[n]*.ip,2)));
+                put_val(n,robot[n].ip,1,ror(get_val(n,robot[n].ip,1),get_val(n,robot[n].ip,2)));
                 executed++;
                 break;
 
             case 39: //(*JZ*)
                 time_used= 0;
-                if ((robot[n]*.ram[64] & 8)>0)
+                if ((robot[n].ram[64] & 8)>0)
                 {
                     jump(n,1,inc_ip);
                 }
@@ -4235,7 +5900,7 @@ void execute_instruction(int n) //WE NEED TO GET ROBOT[N] TO WORK
 
             case 40: //(*JNZ*)
                 time_used= 0;
-                if ((robot[n]*.ram[64] & 8)==0)
+                if ((robot[n].ram[64] & 8)==0)
                 {
                     jump(n,1,inc_ip);
                 }
@@ -4244,14 +5909,14 @@ void execute_instruction(int n) //WE NEED TO GET ROBOT[N] TO WORK
                 break;
 
             case 41: //(*JAE,JGE*)
-                if (((robot[n]*.ram[64] & 1)>0) || ((robot[n]*.ram[64] & 4)>0))
+                if (((robot[n].ram[64] & 1)>0) || ((robot[n].ram[64] & 4)>0))
                     jump(n,1,inc_ip);
                 time_used= 0;
                 executed++;
                 break;
 
             case 42: //(*JBE,JLE*)
-                if (((robot[n]*.ram[64] & 1)>0) || ((robot[n]*.ram[64] & 2)>0))
+                if (((robot[n].ram[64] & 1)>0) || ((robot[n].ram[64] & 2)>0))
                 {
                     jump(n,1,inc_ip);
                 }
@@ -4261,25 +5926,25 @@ void execute_instruction(int n) //WE NEED TO GET ROBOT[N] TO WORK
                 break;
 
             case 43: //(*SAL*)
-                put_val(n,robot[n]*.ip,1,sal(get_val(n,robot[n]*.ip,1),get_val(n,robot[n]*.ip,2)));
+                put_val(n,robot[n].ip,1,sal(get_val(n,robot[n].ip,1),get_val(n,robot[n].ip,2)));
                 executed++;
                 break;
 
             case 44: //(*SAR*)
-                put_val(n,robot[n]*.ip,1,sar(get_val(n,robot[n]*.ip,1),get_val(n,robot[n]*.ip,2)));
+                put_val(n,robot[n].ip,1,sar(get_val(n,robot[n].ip,1),get_val(n,robot[n].ip,2)));
                 executed++;
                 break;
 
             case 45: //(*NEG*)
-                put_val(n,robot[n]*.ip,1,0-get_val(n,robot[n]*.ip,1));
+                put_val(n,robot[n].ip,1,0-get_val(n,robot[n].ip,1));
                 executed++;
                 break;
             case 46: //(*JTL*)
-                loc = get_val(n,robot[n]*.ip,1);
-                if ((loc>=0) && (loc<=robot[n]*.plen))
+                loc = get_val(n,robot[n].ip,1);
+                if ((loc>=0) && (loc<=robot[n].plen))
                 {
                     inc_ip= false;
-                    robot[n]*.ip = loc;
+                    robot[n].ip = loc;
                 }
                 else
                 {
@@ -4292,21 +5957,22 @@ void execute_instruction(int n) //WE NEED TO GET ROBOT[N] TO WORK
                 break;
         }
     }
-    robot[n]*.delay_left+=time_used;
+    robot[n].delay_left+=time_used;
     if (inc_ip)
     {
-        robot[n]*.ip++;
+        robot[n].ip++;
     }
 
     if (graphix && (n==0) && (step_mode>0))
     {
         update_debug_window();
     }
-*/
-}
-}
-void do_robot(int n) //WE NEED TO GET ROBOT[N] TO WORK
-{/*
+
+}}           //so, uh, this is weird
+
+
+void do_robot(int n)
+{
     int i,k,tthd;
     double heat_mult,ttx,tty;
 
@@ -4314,44 +5980,44 @@ void do_robot(int n) //WE NEED TO GET ROBOT[N] TO WORK
     {
         return;
     }
-    //with robot[n]*.^ do
+    //with robot[n].^ do
     //{--time slice--}
-    robot[n]*.time_left = time_slice;
-    if ((robot[n]*.time_left>robot[n]*.robot_time_limit) && (robot[n]*.robot_time_limit>0))
+    robot[n].time_left = time_slice;
+    if ((robot[n].time_left>robot[n].robot_time_limit) && (robot[n].robot_time_limit>0))
     {
-        robot[n]*.time_left = robot[n]*.robot_time_limit;
+        robot[n].time_left = robot[n].robot_time_limit;
     }
 
-    if ((robot[n]*.time_left>robot[n]*.max_time) && (robot[n]*.max_time>0))
+    if ((robot[n].time_left>robot[n].max_time) && (robot[n].max_time>0))
     {
-        robot[n]*.time_left=robot[n]*.max_time;
+        robot[n].time_left=robot[n].max_time;
     }
 
     executed=0;
 
    //{--execute timeslice--}
-    while ((robot[n]*.time_left>0) && (!robot[n]*.cooling) && (executed<20+time_slice) && (robot[n]*.health>0))
+    while ((robot[n].time_left>0) && (!robot[n].cooling) && (executed<20+time_slice) && (robot[n].armor>0))
     {
-        if (robot[n]*.delay_left<0)
+        if (robot[n].delay_left<0)
         {
-            robot[n]*.delay_left=0;
+            robot[n].delay_left=0;
         }
-        if (robot[n]*.delay_left>0)
+        if (robot[n].delay_left>0)
         {
-            robot[n]*.delay_left--;
-            robot[n]*.time_left--;
+            robot[n].delay_left--;
+            robot[n].time_left--;
         }
-        if ((robot[n]*.time_left>=0) && (robot[n]*.delay_left=0))
+        if ((robot[n].time_left>=0) && (robot[n].delay_left=0))
         {
             execute_instruction(n);
         }
 
-        if (robot[n]*.heat>=robot[n]*.shutdown)
+        if (robot[n].heat>=robot[n].shutdown)
         {
-            robot[n]*.cooling = true;
-            robot[n]*.shields_up = false;
+            robot[n].cooling = true;
+            robot[n].shields_up = false;
         }
-        if (robot[n]*.heat>=500)
+        if (robot[n].heat>=500)
         {
             damage(n,1000,true);
         }
@@ -4359,251 +6025,250 @@ void do_robot(int n) //WE NEED TO GET ROBOT[N] TO WORK
     }
 
     //{--fix up variables--}
-    robot[n]*.thd = (robot[n]*.thd+1024) & 255;
-    robot[n]*.hd = (robot[n]*.hd+1024) & 255;
-    robot[n]*.shift = (robot[n]*.shift+1024) & 255;
-    if (robot[n]*.tspd<-75)
+    robot[n].thd = (robot[n].thd+1024) & 255;
+    robot[n].hd = (robot[n].hd+1024) & 255;
+    robot[n].shift = (robot[n].shift+1024) & 255;
+    if (robot[n].tspd<-75)
     {
-       robot[n]*.tspd = -75;
+       robot[n].tspd = -75;
     }
-    if (robot[n]*.tspd>100)
+    if (robot[n].tspd>100)
     {
-        robot[n]*.tspd = 100;
+        robot[n].tspd = 100;
     }
-    if (robot[n]*.spd<-75)
+    if (robot[n].spd<-75)
     {
-        robot[n]*.spd=-75;
+        robot[n].spd=-75;
     }
-    if (robot[n]*.spd>100)
+    if (robot[n].spd>100)
     {
-        robot[n]*.spd=100;
+        robot[n].spd=100;
     }
-    if (robot[n]*.heat<0)
+    if (robot[n].heat<0)
     {
-        robot[n]*.heat=0;
+        robot[n].heat=0;
     }
-    if (robot[n]*.last_damage<maxint)
+    if (robot[n].last_damage<maxint)
     {
-        robot[n]*.last_damage++;
+        robot[n].last_damage++;
     }
-    if (robot[n]*.last_hit<maxint)
+    if (robot[n].last_hit<maxint)
     {
-        robot[n]*.last_hit++;
+        robot[n].last_hit++;
     }
 
     //{--update heat--}
-    if (robot[n]*.shields_up && ((game_cycle & 3)==0))
+    if (robot[n].shields_up && ((game_cycle & 3)==0))
     {
-        robot[n]*.heat++;
+        robot[n].heat++;
     }
-    if (!robot[n]*.shields_up)
+    if (!robot[n].shields_up)
     {
-        if (robot[n]*.heat>0)
+        if (robot[n].heat>0)
         {
-            switch (robot[n]*.heatsinks)////(*heat adjustments*)
+            switch (robot[n].config.heatsinks)//(*heat adjustments*)
             {
                 case 5:
                     if ((game_cycle & 1)==0) //?????
                     {
-                        robot[n]*.heat--;
+                        robot[n].heat--;
                     }
                 case 4:
                     if ((game_cycle % 3)==0)
                     {
-                        robot[n]*.heat--;
+                        robot[n].heat--;
                     }
                 case 3:
                     if ((game_cycle & 3)==0)
                     {
-                        robot[n]*.heat--;
+                        robot[n].heat--;
                     }
                 case 2:
                     if ((game_cycle & 7)==0)
                     {
-                        robot[n]*.heat--;
+                        robot[n].heat--;
                     }
             }
         }
 
         else if ((game_cycle & 3)==0)
         {
-            robot[n]*.heat++;
+            robot[n].heat++;
         }
 
-        if (robot[n]*.overburn && ((game_cycle % 3)==0))
+        if (robot[n].overburn && ((game_cycle % 3)==0))
         {
-            robot[n]*.heat++;
+            robot[n].heat++;
         }
 
-        if (robot[n]*.heat>0)
+        if (robot[n].heat>0)
         {
-            robot[n]*.heat--;
+            robot[n].heat--;
         }
-        if ((robot[n]*.heat>0) && ((game_cycle & 7)==0) && (abso(robot[n]*.tspd)<=25))
+        if ((robot[n].heat>0) && ((game_cycle & 7)==0) && (abso(robot[n].tspd)<=25))
         {
-            robot[n]*.heat--;
+            robot[n].heat--;
         }
-        if ((robot[n]*.heat<=robot[n]*.shutdown-50) || (robot[n]*.heat<=0))
+        if ((robot[n].heat<=robot[n].shutdown-50) || (robot[n].heat<=0))
         {
-            robot[n]*.cooling = false;
+            robot[n].cooling = false;
         }
     }
 
-    if (robot[n]*.cooling)
+    if (robot[n].cooling)
     {
-        robot[n]*.tspd=0;
+        robot[n].tspd=0;
     }
 
     heat_mult=1;
-    if(robot[n]*.heat>=80 && robot[n]*.heat<=99)
+    if(robot[n].heat>=80 && robot[n].heat<=99)
     {
         heat_mult=0.98;
     }
-    if(robot[n]*.heat>=100 && robot[n]*.heat<=149)
+    if(robot[n].heat>=100 && robot[n].heat<=149)
     {
         heat_mult=0.95;
     }
-    if(robot[n]*.heat>=150 && robot[n]*.heat<=199)
+    if(robot[n].heat>=150 && robot[n].heat<=199)
     {
         heat_mult=0.85;
     }
-    if(robot[n]*.heat>=200 && robot[n]*.heat<=249)
+    if(robot[n].heat>=200 && robot[n].heat<=249)
     {
         heat_mult=0.75;
     }
-    if(robot[n]*.heat>=250 && robot[n]*.heat<=maxint)
+    if(robot[n].heat>=250 && robot[n].heat<=maxint)
     {
         heat_mult=0.50;
     }
 
-    if (robot[n]*.overburn)
+    if (robot[n].overburn)
     {
         heat_mult = heat_mult*1.30;
     }
-    if ((robot[n]*.heat>=475) && ((game_cycle & 3)==0))
+    if ((robot[n].heat>=475) && ((game_cycle & 3)==0))
     {
         damage(n,1,true);
     }
-    else if ((robot[n]*.heat>=450) && ((game_cycle & 7)==0))
+    else if ((robot[n].heat>=450) && ((game_cycle & 7)==0))
     {
         damage(n,1,true);
     }
-    else if ((robot[n]*.heat>=400) && ((game_cycle & 15)==0))
+    else if ((robot[n].heat>=400) && ((game_cycle & 15)==0))
     {
         damage(n,1,true);
     }
-    else if ((robot[n]*.heat>=350) && ((game_cycle & 31)==0))
+    else if ((robot[n].heat>=350) && ((game_cycle & 31)==0))
     {
         damage(n,1,true);
     }
-    else if ((robot[n]*.heat>=300) && ((game_cycle & 63)==0))
+    else if ((robot[n].heat>=300) && ((game_cycle & 63)==0))
     {
         damage(n,1,true);
     }
 
     //{--update robot in physical world--}
     //{-acceleration-}
-    if(abso(robot[n]*.spd-robot[n]*.tspd)<=acceleration)
+    if(abso(robot[n].spd-robot[n].tspd)<=acceleration)
     {
-        robot[n]*.spd = robot[n]*.tspd;
+        robot[n].spd = robot[n].tspd;
     }
 
     else
     {
-        if( robot[n]*.tspd>robot[n]*.spd)
+        if( robot[n].tspd>robot[n].spd)
         {
-            robot[n]*.spd += acceleration;
+            robot[n].spd += acceleration;
         }
         else
         {
-            robot[n]*.spd -= acceleration;
+            robot[n].spd -= acceleration;
         }
     }
    //{-turning-}
-    tthd = robot[n]*.hd + robot[n]*.shift;
-    if ((abso(robot[n]*.hd-robot[n]*.thd)<=turn_rate) || (abso(robot[n]*.hd-robot[n]*.thd)>=256-turn_rate))
+    tthd = robot[n].hd + robot[n].shift;
+    if ((abso(robot[n].hd-robot[n].thd)<=turn_rate) || (abso(robot[n].hd-robot[n].thd)>=256-turn_rate))
     {
-        robot[n]*.hd = robot[n]*.thd;
+        robot[n].hd = robot[n].thd;
     }
-    else if( robot[n]*.hd != robot[n]*.thd)
+    else if( robot[n].hd != robot[n].thd)
     {
         k = 0;
-        if (((robot[n]*.thd > robot[n]*.hd) && (abso(robot[n]*.hd-robot[n]*.thd)<=128)) ||
-                ((robot[n]*.thd<robot[n]*.hd) && (abso(robot[n]*.hd-robot[n]*.thd)>=128)))
+        if (((robot[n].thd > robot[n].hd) && (abso(robot[n].hd-robot[n].thd)<=128)) || ((robot[n].thd<robot[n].hd) && (abso(robot[n].hd-robot[n].thd)>=128)))
         {
             k = 1;
         }
         if (k == 1)
         {
-            robot[n]*.hd =(robot[n]*.hd+turn_rate) & 255;
+            robot[n].hd =(robot[n].hd+turn_rate) & 255;
         }
         else
         {
-            robot[n]*.hd = (robot[n]*.hd+256-turn_rate) & 255;
+            robot[n].hd = (robot[n].hd+256-turn_rate) & 255;
         }
     }
-    robot[n]*.hd = robot[n]*.hd & 255;
-    if(robot[n]*.keepshift)
+    robot[n].hd = robot[n].hd & 255;
+    if(robot[n].keepshift)
     {
-        robot[n]*.shift = (tthd-robot[n]*.hd+1024) & 255;
+        robot[n].shift = (tthd-robot[n].hd+1024) & 255;
     }
 
     //{-moving-}
-    robot[n]*.speed = robot[n]*.spd/100*(max_vel*heat_mult*robot[n]*.speedadj);
-    robot[n]*.xv = sint[robot[n]*.hd]*robot[n]*.speed;
-    robot[n]*.yv =-cost[robot[n]*.hd]*robot[n]*.speed;
-    if ((robot[n]*.hd==0) || (robot[n]*.hd==128))
+    robot[n].speed = robot[n].spd/100*(max_vel*heat_mult*robot[n].speedadj);
+    robot[n].xv = sint[robot[n].hd]*robot[n].speed;
+    robot[n].yv =-cost[robot[n].hd]*robot[n].speed;
+    if ((robot[n].hd==0) || (robot[n].hd==128))
     {
-        robot[n]*.xv = 0;
+        robot[n].xv = 0;
     }
 
-    if ((robot[n]*.hd=64) || (robot[n]*.hd=192))
+    if ((robot[n].hd=64) || (robot[n].hd=192))
     {
-        robot[n]*.yv = 0;
+        robot[n].yv = 0;
     }
-    if (robot[n]*.xv!=0)
+    if (robot[n].xv!=0)
     {
-        ttx = robot[n]*.x+robot[n]*.xv;
+        ttx = robot[n].x+robot[n].xv;
     }
     else
     {
-        ttx = robot[n]*.x;
+        ttx = robot[n].x;
     }
 
-    if (robot[n]*.yv!=0)
+    if (robot[n].yv!=0)
     {
-        tty = robot[n]*.y+robot[n]*.yv;
+        tty = robot[n].y+robot[n].yv;
     }
     else
     {
-        tty = robot[n]*.y;
+        tty = robot[n].y;
     }
 
     if ((ttx<0) || (tty<0) || (ttx>1000) || (tty>1000))
     {
-        robot[n]*.ram[8]++;
-        robot[n]*.tspd=0;
-        if (abso(robot[n]*.speed)>=max_vel/2)
+        robot[n].ram[8]++;
+        robot[n].tspd=0;
+        if (abso(robot[n].speed)>=max_vel/2)
         {
             damage(n,1,true);
         }
-        robot[n]*.spd=0;
+        robot[n].spd=0;
         //{ttx=x; tty=y;}
     }
 
     for (i =0; i < num_robots;i++)
     {
-        if ((i!=n) && (robot[i]*.health>0) && (distance(ttx,tty,robot[i]*.x,robot[i]*.y)<crash_range))
+        if ((i!=n) && (robot[i].armor>0) && (distance(ttx,tty,robot[i].x,robot[i].y)<crash_range))
         {
-            robot[n]*.tspd=0;
-            robot[n]*.spd=0;
-            ttx=robot[n]*.x;
-            tty=robot[n]*.y;
-            robot[i]*.tspd=0;
-            robot[i]*.spd=0;
-            robot[n]*.ram[8]++;
-            robot[i]*.ram[8]++;
-            if (abso(robot[n]*.speed)>=max_vel/2)
+            robot[n].tspd=0;
+            robot[n].spd=0;
+            ttx=robot[n].x;
+            tty=robot[n].y;
+            robot[i].tspd=0;
+            robot[i].spd=0;
+            robot[n].ram[8]++;
+            robot[i].ram[8]++;
+            if (abso(robot[n].speed)>=max_vel/2)
             {
                 damage(n,1,true);
                 damage(i,1,true);
@@ -4627,89 +6292,90 @@ void do_robot(int n) //WE NEED TO GET ROBOT[N] TO WORK
     {
         tty=1000;
     }
-    robot[n]*.meters = robot[n]*.meters+distance(robot[n]*.x,robot[n]*.y,ttx,tty);
-    if (robot[n]*.meters>=maxint)
+    robot[n].meter = robot[n].meter+distance(robot[n].x,robot[n].y,ttx,tty);
+    if (robot[n].meter>=maxint)
     {
-        robot[n]*.meters = robot[n]*.meters-maxint;
+        robot[n].meter = robot[n].meter-maxint;
     }
 
-    robot[n]*.ram[9]=trunc(robot[n]*.meters);
-    robot[n]*.x=ttx;
-    robot[n]*.y=tty;
+    robot[n].ram[9]=trunc(robot[n].meter);
+    robot[n].x=ttx;
+    robot[n].y=tty;
 
    //{--draw robot--}
-   if (robot[n]*.health<0)
+   if (robot[n].armor<0)
    {
-       robot[n]*.health = 0;
+       robot[n].armor = 0;
    }
 
-   if (robot[n]*.heat<0)
+   if (robot[n].heat<0)
    {
-       robot[n]*.heat = 0;
+       robot[n].heat = 0;
    }
    if (graphix)
    {
-        if (robot[n]*.health!=robot[n]*.larmor)
+        if (robot[n].armor!=robot[n].larmor)
         {
             //update_armor(n);                                                  //UPDATE THE GUI TO MATCH!!!!
         }
 
-        if (robot[n]*.heat / 5.0 !=robot[n]*.lheat / 5.0)
+        if (robot[n].heat / 5.0 !=robot[n].lheat / 5.0)
         {
             //update_heat(n);                                               //UPDATE THE GUI TO MATCH!!!!
         }
         //draw_robot(n);                                                    //UPDATE THE GUI TO MATCH!!!!
    }
 
-   robot[n]*.lheat = robot[n]*.heat;
-   robot[n]*.larmor = robot[n]*.health;
+   robot[n].lheat = robot[n].heat;
+   robot[n].larmor = robot[n].armor;
 
    //{--Cycle complete, inc counter--}
-   robot[n]*.cycles_lived++;*/
+   robot[n].cycles_lived++;
 }
-//WE NEED TO GET ROBOT[N] TO WORK
+
+
 void do_mine(int n, int m) //this is an indicator for when to explode and place mines, can be MUCH more efficient
-{/*
+{
   int i,j,k,l;
   double d,r;
   bool source_alive;
-  //with robot[n]*.mine[m] do
-  if ((robot[n]*.mine[m].x>=0) && (robot[n]*.mine[m]x<=1000) && (robot[n]*.mine[m]y>=0) && (robot[n]*.mine[m]y<=1000) && (robot[n]*.mine[m]yield>0))
+  //with robot[n].mine[m] do
+  if ((robot[n].mine[m].x>=0) && (robot[n].mine[m].x<=1000) && (robot[n].mine[m].y>=0) && (robot[n].mine[m].y<=1000) && (robot[n].mine[m].yield>0))
   {
     for (i = 0; i < num_robots; i++)
-      if (robot[i]*.health>0) and (i<>n) then
+//      if (robot[i].armor>0) and (i<>n) then     //WE NEED TO GET THIS IF STATEMENT FIXED
       {
-        d = distance(robot[n]*.mine[m]x,robot[n]*.mine[m]y,robot[i]*.x,robot[i]*.y);
-        if (d <= robot[n]*.mine[m]detect)
-          robot[n]*.mine[m]detonate = true;
+        d = distance(robot[n].mine[m].x,robot[n].mine[m].y,robot[i].x,robot[i].y);
+        if (d <= robot[n].mine[m].detect)
+          robot[n].mine[m].detonate = true;
       }
-      if (robot[n]*.mine[m]detonate)
+      if (robot[n].mine[m].detonate)
       {
-        init_missile(robot[n]*.mine[m]x,robot[n]*.mine[m]y,0,0,0,n,mine_circle,false);
+        init_missile(robot[n].mine[m].x,robot[n].mine[m].y,0,0,0,n,mine_circle,false);
         kill_count = 0;
-        if (robot[n]*.health > 0)
-          source_alive = true
+        if (robot[n].armor > 0)
+          source_alive = true;
         else
           source_alive = false;
       }
         for (i = 0; i < num_robots; i++)
-          if ((i != n) && (robot[i]*.health > 0))
+          if ((i != n) && (robot[i].armor > 0))
           {
-            k = round(distance(robot[n]*.mine[m]x,robot[n]*.mine[m]y,robot[i]*.x,robot[i]*.y));
-            if (k < robot[n]*.mine[m]yield)
+            k = round(distance(robot[n].mine[m].x,robot[n].mine[m].y,robot[i].x,robot[i].y));
+            if (k < robot[n].mine[m].yield)
             {
-              damage(i,round(abso(robot[n]*.mine[m]yield - k)),false);
+              damage(i,round(abso(robot[n].mine[m].yield - k)),false);
               if ((n >= 0) && (n <= num_robots) && (i != n))
-                robot[n]*.damage_total += round(abso(yield-k));
+                robot[n].damage_total += round(abso(robot[n].mine[m].yield-k));
             }
           }
-      if ((kill_count > 0) && (source_alive) && (robot[n]*.health <= 0)
+      if ((kill_count > 0) && (source_alive) && (robot[n].armor <= 0))
         kill_count--;
       if (kill_count > 0)
       {
-        robot[n]*.kills += kill_count;
+        robot[n].kills += kill_count;
         update_lives(n);
-      }*/
+      }
  /*if graphix then
   putpixel(round(x*screen_scale)+screen_x,round(y*screen_scale)+screen_y,0);
  yield = 0; x = -1; y = -1;
@@ -4727,15 +6393,14 @@ begin
         round(x*screen_scale)+screen_x-1,round(y*screen_scale)+screen_y);
   end;
 end;*/
-//  }
+  }
 }
 
 void do_missile(int n) //code for missle, will need to look at but can make more efficient
-{/*             WE NEED TO GET ROBOT[N] TO WORK
+{
 double llx,lly,r,d,dir,xv,yv;;
 int i,j,k,l,xx,yy,tx,ty,dd,dam;
 bool source_alive;
-with missile[n] do
 if (missile[n].a = 0)
   return;
 else
@@ -4743,13 +6408,13 @@ else
   if (missile[n].a = 1)
   {
     if ((missile[n].x<-20) || (missile[n].x>1020) || (missile[n].y<-20) || (missile[n].y>1020))
-      a = 0;
+      missile[n].a = 0;
 
     llx = missile[n].lx;
     lly = missile[n].ly;
     missile[n].lx = missile[n].x;
     missile[n].ly = missile[n].y;
-    if (missile[n].a > 0) then
+    if (missile[n].a > 0)
     {
       missile[n].hd = ((missile[n].hd+256) & 255);
       missile[n].xv =  sint[missile[n].hd] * missile[n].mspd;
@@ -4760,16 +6425,16 @@ else
     k = -1;
     l = maxint;
     for (i = 0; i < num_robots; i++)
-      if ((robot[i]*.health > 0) && (i != source))
+      if ((robot[i].armor > 0) && (i != missile[n].source))
       {
-        d = distance(missile[n].lx,missile[n].ly,robot[i]*.x,robot[i]*.y);
-        dir = find_angle(missile[n].lx,missile[n].ly,robot[i]*.x,robot[i]*.y);
-        j = (round(dir/M_PI*128)+1024) & 255;}
+        d = distance(missile[n].lx,missile[n].ly,robot[i].x,robot[i].y);
+        dir = find_angle(missile[n].lx,missile[n].ly,robot[i].x,robot[i].y);
+//        j = (round(dir/M_PI*128)+1024) & 255;       //WE NEED TO GET THIS TO WORK
         missile[n].hd = missile[n].hd & 255;
         xx = round(sint[missile[n].hd] * d + missile[n].lx);
         yy = round(-cost[missile[n].hd] * d + missile[n].ly);
-        r = distance(xx,yy,robot[i]*.x,robot[i]*.y);
-        if ((d <= mspd) && (r < missile[n].hit_range) && (round(d) <= l))
+        r = distance(xx,yy,robot[i].x,robot[i].y);
+        if ((d <= missile[n].mspd) && (r < hit_range) && (round(d) <= l))
         {
           k = i;
           l = round(d);
@@ -4786,39 +6451,39 @@ else
         missile[n].rad = 0;
         missile[n].lrad = 0;
       }
-      if ((source > 0) && (source < num_robots))
+      if ((missile[n].source > 0) && (missile[n].source < num_robots))
       {
-        robot[source]*.last_hit = 0;
-        robot[source]*.hits++;
+        robot[missile[n].source].last_hit = 0;
+        robot[missile[n].source].hits++;
       }
       for (i = 0; i < num_robots; i++)
       {
-        dd = round(distance(missile[n].x,missile[n].y,robot[i]*.x,robot[i]*.y));
-        if (dd <= missile[n].hit_range)
+        dd = round(distance(missile[n].x,missile[n].y,robot[i].x,robot[i].y));
+        if (dd <= hit_range)
         {
-          dam = round(abso(missile[n].hit_range - dd) * missile[n].mult);
+          dam = round(abso(hit_range - dd) * missile[n].mult);
           if (dam <= 0)
             dam = 1;
           kill_count = 0;
-          if (robot[source]*.health > 0)
-            source_alive = true
+          if (robot[missile[n].source].armor > 0)
+            source_alive = true;
           else
           {
             source_alive = false;
             damage(i,dam,false);
           }
-          if ((source > 0) && (source < num_robots) && (i != source))
-            robot[source]*.damage_total += dam;
-          if ((kill_count > 0) && (source_alive) && (robot[source]*.health <= 0))
+          if ((missile[n].source > 0) && (missile[n].source < num_robots) && (i != missile[n].source))
+            robot[missile[n].source].damage_total += dam;
+          if ((kill_count > 0) && (source_alive) && (robot[missile[n].source].armor <= 0))
             kill_count--;
           if (kill_count > 0)
           {
-            robot[source]*.kills += kill_count;
-            update_lives(source);
+            robot[missile[n].source].kills += kill_count;
+            update_lives(missile[n].source);
           }
         }
       }
-    }*/
+    }
 
 //{--draw missile--}
 /*if graphix then
@@ -4853,18 +6518,24 @@ if graphix then
  end;
 end;
 end;*/
-}
+}}
 
-string victor_string(int k, int n) //WE NEED TO GET ROBOT[N] TO WORK
-{/*
+string victor_string(int k, int n)
+{
   string s = NULL;
   if (k = 1)
-    s = "Robot #" + (n+1) + " (" + robot[n]*.fn + ") wins!";
+  {
+      s = "Robot #";
+      s += (n+1);
+      s += " (";
+      s += robot[n].fn;
+      s+= ") wins!";
+  }
   if (k = 0)
     s = "Simultaneous destruction, match is a tie.";
   if (k > 1)
     s = "No clear victor, match is a tie.";
-  return s;*/
+  return s;
 }
 /*
 procedure show_statistics; //was seen in another file, can use either function
@@ -4935,7 +6606,7 @@ writeln;
 end;
 end;
 */
-void score_robots() //WE NEED TO GET ROBOT[N] TO WORK
+void score_robots()
 {
     int n,i,j,k,l;
 
@@ -4943,8 +6614,8 @@ void score_robots() //WE NEED TO GET ROBOT[N] TO WORK
     n = -1;
     for (i = 0; i < num_robots; i++)
     {
-//        robot[i].trials++;
-//        if (robot[i].health>0)
+        robot[i].trials++;
+        if (robot[i].armor>0)
         {
             k++;
             n = i;
@@ -4952,13 +6623,13 @@ void score_robots() //WE NEED TO GET ROBOT[N] TO WORK
     }
     if ((k=1) && (n>=0))
     {
-//        robot[n].wins++;
-//        robot[n].won = true;
+        robot[n].wins++;
+        robot[n].won = true;
     }
 }
 
 void init_bout() //just sets up the initial match, not necessary
-{/*         WE NEED TO GET MISSILE[I] TO WORK
+{
   int i,j,k;
   game_cycle = 0;
   for (i = 0; i < max_missiles; i++)
@@ -4972,12 +6643,12 @@ void init_bout() //just sets up the initial match, not necessary
     missile[i].mult = 1;
   }
   for (i = 0; i < num_robots; i++)
-  //with robot[i]*. do
+  //with robot[i]. do
   {
-    robot[i]*.mem_watch = 128;
+    robot[i].mem_watch = 128;
     reset_hardware(i);
     reset_software(i);
-  }*/
+  }
 /*  if graphix then setscreen;
   {FIFI}
   if graphix and (step_mode>0) then init_debug_window;
@@ -5016,7 +6687,7 @@ void bout() //this is the main function, it's keeping timers and setting everyth
   init_bout();
   bout_over = false;
 
-/*                      THIS IS A MESS
+
   if (step_mode = 0)
     step_loop = false;
   else
@@ -5024,19 +6695,19 @@ void bout() //this is the main function, it's keeping timers and setting everyth
   step_count = -1;
   if ((graphix) && (step_mode>0))
     for (i = 0; i < num_robots; i++)
-      draw_robot(i);
-*/
+//      draw_robot(i);
+
   do{
     game_cycle++;
     for (i = 0; i < num_robots; i++)
-//      if (robot[i]*.health > 0)       WE NEED TO GET ROBOT[I] TO WORK
+      if (robot[i].armor > 0)
         do_robot(i);
     for (i = 0; i < max_missiles; i++)
-//      if (missile[i].a > 0)           WE NEED TO GET MISSILE[I] TO WORK
+      if (missile[i].a > 0)
         do_missile(i);
     for (i = 0; i < num_robots; i++)
       for (k = 0; k < max_mines; k++)
-//        if (robot[i]*.mine[k].yield>0)    WE NEED TO GET ROBOT[I] TO WORK
+        if (robot[i].mine[k].yield>0)
           do_mine(i,k);
 
     if (graphix && timing)
@@ -5125,18 +6796,18 @@ void write_report()
     //with robot[i]. do
     {
 
-        switch (report_type)    //WE NEED TO GET ROBOT[I] TO WORK
-        {/*
+        switch (report_type)
+        {
             case 2:cout<<robot[i].wins<<" "<<robot[i].trials<<" "<<robot[i].kills<<" "<<robot[i].deaths<<" "<<robot[i].fn<<" "<<endl;
             break;
-            case 3:cout<<robot[i].wins<<" "<<robot[i].trials<<" "<<robot[i].kills<<" "<<robot[i].deaths<<" "<<robot[i].health<<" "<<
+            case 3:cout<<robot[i].wins<<" "<<robot[i].trials<<" "<<robot[i].kills<<" "<<robot[i].deaths<<" "<<robot[i].armor<<" "<<
                         robot[i].heat<<" "<<robot[i].shots_fired<<" "<<robot[i].fn<<" "<<endl;
             break;
-            case 4:cout<<robot[i].wins<<" "<<robot[i].trials<<" "<<robot[i].kills<<" "<<robot[i].deaths<<" "<<robot[i].health<<" "<<
+            case 4:cout<<robot[i].wins<<" "<<robot[i].trials<<" "<<robot[i].kills<<" "<<robot[i].deaths<<" "<<robot[i].armor<<" "<<
                         robot[i].heat<<" "<<robot[i].shots_fired<<" "<<robot[i].hits<<" "<<robot[i].damage_total<<" "<<
                         robot[i].cycles_lived<<" "<<robot[i].error_count<<" "<<robot[i].fn<<" "<<endl;
             break;
-            default: cout<<robot[i].wins<<" "<<robot[i].trials<<" "<<robot[i].fn<<" "<<endl;*/
+            default: cout<<robot[i].wins<<" "<<robot[i].trials<<" "<<robot[i].fn<<" "<<endl;
         }
     }
     /*close(f);*/
@@ -5186,13 +6857,13 @@ int main(void)
     w = 0;
     for(i = 0; i < num_robots; i++){
      //need robot[i]^
-//       if (packet_robot[i]*.wins = w)     VARIABLE DOES NOT EXIST
+       if (robot[i].wins = w) //packet_robot ???
           k++;
-//       if (wins > w)      VARIABLE DOES NOT EXIST
+       if (robot[i].wins > w)
        {
           k = 1;
           n = i;
-//          w = wins;       VARIABLE DOES NOT EXIST
+          w = robot[i].wins;
         }
       }
     cout<<"Robot           Wins  Matches  Kills  Deaths    Shots"<<endl;
@@ -5209,7 +6880,7 @@ int main(void)
 //    textcolor(15); //GUI
     cout<<endl;
 //    if (k = 1)
-        //writeln('Robot #',n+1,' (',robot[n]*.fn,') wins the bout! (score: ',w,'/',matches,')')
+        //writeln('Robot #',n+1,' (',robot[n].fn,') wins the bout! (score: ',w,'/',matches,')')
 //    else
         //writeln('There is no clear victor!');
     //writeln;
