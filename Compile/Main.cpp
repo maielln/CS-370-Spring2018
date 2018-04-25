@@ -208,7 +208,7 @@ void put_val(int n,int c,int o,int v);
 int pop(int n);
 void push(int n,int v);
 void jump(int n,int o, bool inc_ip);
-void call_int(int n,int int_num, int time_used);
+//void call_int(int n,int int_num, int time_used);
 void reset_software(int n);
 void com_transmit(int n,int chan,int data);
 int com_receive(int n);
@@ -5571,6 +5571,7 @@ void execute_instruction(int n)
         }
     }
 
+    int temp;
 
     if (! (((robot[n].code.code[robot[n].ip].op[max_op] & 7) > 0)&& ( robot[n].code.code[robot[n].ip].op[max_op]<1)))
     {
@@ -5821,7 +5822,8 @@ void execute_instruction(int n)
                 break;
 
             case 26: //(*INT*)
-                call_int(n,get_val(n,robot[n].ip,1),time_used);
+                temp = get_val(n,robot[n].ip,1);
+                call_int(n,temp,&time_used);
                 executed++;
                 break;
 
