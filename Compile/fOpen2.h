@@ -21,6 +21,7 @@ class fOpen //requires libcomdlg32.a
         string getBuffer (); //returns the variable buffer
         string getInPath (); //returns the variable inPath
         void writeLine (string); //Writes a line to the output file. If no file exists, it creates one
+        int getLineCount (); //Returns how many lines are in the file
 
 
     private:
@@ -30,6 +31,7 @@ class fOpen //requires libcomdlg32.a
         FILE * roboFile;
         string inPathStr;
         string fText;
+        int line_count;
 
         bool isValidExt(char[]);
         bool read_file_to_buffer(FILE *f);
