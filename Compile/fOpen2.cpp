@@ -14,7 +14,9 @@ fOpen::fOpen ()
     cout << "Please insert the path for a .txt or .at2 file: ";
     cin >> inPath;
 
+    int i=0;
     inPathStr = "i";
+    line_count = 0;
 
     FILE * roboFile = NULL;
     buffer = NULL;
@@ -49,6 +51,13 @@ fOpen::fOpen ()
 
     if (inPathStr == "i")
         inPathStr = (string)inPath;
+
+    for (i=0;fText[i]!='\0';i++)
+    {
+        if (fText[i] == '\n')
+            line_count++;
+    }
+
 
     return;
 }
@@ -146,15 +155,21 @@ bool fOpen::isValidExt(char inPath[])
 }
 
 
-string fOpen::getBuffer ()
+string fOpen::getBuffer (void)
 {
     return fText;
 }
 
 
-string fOpen::getInPath()
+string fOpen::getInPath(void)
 {
     return inPathStr;
+}
+
+
+int fOpen::getLineCount(void)
+{
+    return line_count;
 }
 
 
