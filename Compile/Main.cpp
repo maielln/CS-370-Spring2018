@@ -216,6 +216,9 @@ int in_port(int n,int p);
 int scan(int n);
 void out_port(int n,int p,int v, int* time_used);
 
+void display (void);
+int fileSelect (void);
+
 //ALL COUTS AND WRITES NEED TO BE DISCUSSED AND REPLACED WITH GUI STUFF
 
 
@@ -337,6 +340,7 @@ struct missile_rec
 
 robot_rec robot[max_robots];
 
+fOpen * fileArr[31];
 
 //ROBOT VARIABLES
 int num_robots;
@@ -1189,10 +1193,9 @@ return fileName;
 string ltrim(string s1)
 {
     int i;
-    while ((s1.length()>0) && (s1[0]==' ') || ((int)(s1[0])==8) || ((int)(s1[0])==9))
-    {
-        s1 = s1.substr(1,s1.length()-1);
-    }
+
+    while(!s1.empty() && isspace(s1.back()))
+        s1.pop_back();
 
     return s1;
 }
@@ -1202,12 +1205,10 @@ string rtrim(string s1)
 {
     int i;
 
-    while ((s1.length()>0) && ((s1[s1.length()-1] == ' ') || ((int)(s1[s1.length()-1]) == 8)
-         || (((int)(s1[s1.length()-1]) ==9))))
-    {
-        s1 = s1.substr(0,s1.length()-2);
-    }
-    return s1;
+    while(i < s1.size() && isspace(s1[i]))
+        i++;
+
+    return s1.substr(i);
 }
 
 string btrim(string s1)
@@ -1226,6 +1227,19 @@ string lstr(string s1, int l)
         return s1.substr(0,l);
     }
 }
+
+/*
+int square (int n)
+{
+int i;
+
+for (i=0;i<9999999999;i++)
+{
+    if (i == n*n)
+        return i;
+}
+}
+*/
 
 string rstr(string s1,int l)
 {
@@ -2469,12 +2483,13 @@ char toUpper(char l)
 
 void parse1(int n, int p, string s) //it seems that this procedure will be very important to look at, as it is dealing with the robot's code, we may be able to simplify it
 {
-    /*Something here doesn't want to work at all ever*//*
+    /*Something here doesn't want to work at all ever*/
 
 
     int i,j,k,opcode,microcode;
     bool found, indirect;
     string ss;
+    s = btrim(s);
 
     for(i = 0; i < (max_op - 1); i++)
     {
@@ -2482,9 +2497,8 @@ void parse1(int n, int p, string s) //it seems that this procedure will be very 
         found = false;
         opcode = 0;
         microcode = 0;
+        indirect = false;
         s[i] = toUpper(s[i]);
-        s[i] = btrim(s[i]);
-        indirect = false;*/
         /*
         (*
         Microcode:
@@ -2495,7 +2509,7 @@ void parse1(int n, int p, string s) //it seems that this procedure will be very 
             4 = !label (resolved)
             8h mask = inderect addressing (enclosed in [])
         *)
-        *//*
+        */
         if (s[i]==0)
         {
             opcode = 0;
@@ -2503,9 +2517,9 @@ void parse1(int n, int p, string s) //it seems that this procedure will be very 
             found = true;
         }
 
-        if ((lstr(s[i],1)='[') && (rstr(s[i],1)=']'))
+        if ((lstr(s, 1).compare('[')==0) && (rstr(s, 1).compare(']')==0))
         {
-            s[i] = s[i].substr(2,(s[i].length() - 2)); //You can't take a substring of a character. either s.substr(2,...) or s.substr(i,...)
+            s[i] = s[i].substr(2,(s[i].length() - 2));
             indirect = true;
         }
 
@@ -3894,7 +3908,7 @@ void parse_param(string s) //this function has the file open portion, i'm placin
 }
 
 
-void init()
+void init() //HEY IT'S OVER HERE
 {
     int i;
 
@@ -3931,13 +3945,11 @@ void init()
     maxcode = max_code;
     make_tables();
     //randomize();      FUNCTION DOESNT EXIST
-    num_robots = -1;
     game_limit = 100000;
     game_cycle = 0;
     game_delay = default_delay;
     time_slice = default_slice;
     for (i = 0; i < max_missiles; i++)
-    //with missile[i]. do
     {
         missile[i].a = 0;
         missile[i].source = -1;
@@ -4002,7 +4014,8 @@ void init()
     }
     if (num_robots<1)
     {
-        prog_error(4,"");
+        cout << num_robots << endl;
+        prog_error(4,"Not enough robots to start the game.");
     }
 
     if (!no_gfx)
@@ -4054,7 +4067,7 @@ void init()
 
     if (!graphix)
     {
-        cout<<"Freemem: "/*<<memavail*/<<endl<<endl;
+//        cout<<"Freemem: "<<memavail<<endl<<endl;
     }
 }
 
@@ -6834,10 +6847,193 @@ flushkey; readkey;
 setscreen;
 end;
 */
+
+void display (void)
+{
+	int i = 0;
+
+	cout << "--------------------------------------------------" << endl;
+
+	for (i=0;i<31;i++)
+	{
+		cout << i+1 << ": ";
+
+		if (fileArr[i] == NULL)
+		{
+			cout << "no file selected" << endl;
+		}
+		else
+		{
+			cout << fileArr[i] -> getInPath() << endl;
+		}
+	}
+
+	cout << "--------------------------------------------------" << endl;
+
+	return;
+}
+
+
+int fileSelect(void)
+{
+	string input = "";
+	int i, numRobots = 0;
+
+	while (input != "exit")
+	{
+		display();
+
+		cout << "Please insert add, edit, delete, continue, or exit: ";
+		cin >> input;
+
+		if (input == "add")
+		{
+			for (i=0;i<31;i++)
+			{
+				if (fileArr[i] == NULL)
+				{
+					cout << "Please select a file to add in position " << i+1 << endl;
+					fileArr[i] = new fOpen();
+					break;
+				}
+			}
+
+			if (i < 31)
+            {
+                if (fileArr[i] -> getInPath() == "")
+                {
+                    cout << "Invalid file selected. File addition failed" << endl;
+                    delete fileArr[i];
+                    fileArr[i] = NULL;
+                }
+                else
+                {
+                    cout << "File added in position " << i+1 << endl;
+                }
+            }
+			else
+            {
+				cout << "No open slots to add a file. You have to delete a file to add a new one" << endl;
+            }
+		}
+		else if (input == "edit")
+        {
+            cout << "Which file position would you like to edit: ";
+            cin >> i;
+            i--;
+            if (i < 31 && fileArr[i] != NULL)
+            {
+                cout << "Please select a file to replace " << fileArr[i] -> getInPath() << " : ";
+                delete fileArr[i];
+                fileArr[i] = new fOpen();
+                if (fileArr[i] -> getInPath() == "")
+                {
+                    cout << "Invalid file selected. File replace failed" << endl;
+                    delete fileArr[i];
+                    fileArr[i] = NULL;
+                }
+                else
+                {
+                    cout << "File successfully replaced!" << endl;
+                }
+            }
+            else if (i < 32 && i > 0)
+            {
+                cout << "Please select a file to add in position " << i+1 << ": ";
+                fileArr[i] = new fOpen ();
+                if (fileArr[i] -> getInPath() == "")
+                {
+                    cout << endl << "Invalid file selected. File addition failed" << endl;
+                    delete fileArr[i];
+                    fileArr[i] = NULL;
+                }
+                else
+                {
+                    cout << endl << "File added in position " << i+1 << endl;
+                }
+            }
+            else
+            {
+                cout << "Invalid entry. Please pick a number between 1 and 32" << endl;
+            }
+        }
+		else if (input == "delete")
+		{
+			cout << "Please insert the position of the file you wish to delete: ";
+			cin >> i;
+			i--;
+			if (fileArr[i] == NULL)
+			{
+				cout << "There is no file in that position to delete!" << endl;
+			}
+			else
+			{
+				cout << "Are you sure you would like to delete " << fileArr[i] -> getInPath() << "? (y/n): ";
+				cin >> input;
+				if (input == "y")
+				{
+					delete fileArr[i];
+					fileArr[i] = NULL;
+					cout << "File " << i+1 << " deleted!" << endl;
+				}
+				else
+				{
+					cout << "File " << i+1 << " has not been deleted." << endl;
+				}
+				input = "delete";
+			}
+		}
+		else if (input == "continue")
+		{
+			cout << "Are you sure you would like to start with the selected robots? (y/n): ";
+			cin >> input;
+			if (input == "y")
+            {
+                for (i=0;i<31;i++)
+                {
+                    if (fileArr[i] != NULL)
+                    {
+                        cout << "Loading in " << fileArr[i] -> getInPath() << endl;
+                        //compile (fileArr[i].getBuffer);
+                        numRobots++;
+                    }
+                }
+                if (numRobots)
+                {
+                    cout << "Starting the game with these " << numRobots << " robots." << endl;
+                    return numRobots;
+                }
+                else
+                {
+                    cout << "No robots selected!" << endl;
+                    input = "continue";
+                }
+            }
+
+		}
+		else if (input != "exit")
+		{
+			cout << "Invalid comand: " << input << endl;
+		}
+	}
+
+	return 0;
+}
+
+
 int main(void)
 {
   int i, j, k, l, n, w;
   srand((unsigned) time(0)); //needed for random locations
+
+  //------------------------------FileSelect----------------------------------------------
+
+  num_robots = -1;
+  num_robots = fileSelect();
+
+
+  //------------------------------End FileSelect------------------------------------------
+
   init();
   if (graphix) //GUI, just made it c++ code
 //    begin_window();       FUNCTION DOES NOT EXIST
