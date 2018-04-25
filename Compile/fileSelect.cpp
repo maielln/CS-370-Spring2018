@@ -1,11 +1,12 @@
-#include "fOpen.h"
+#include <fOpen.h>
 #include <iostream>
 
 using namespace std;
 
+
 void display (void);
 
-fOpen * fileArr[32];
+fOpen * fileArr[31];
 
 /*
 file selection program, used to select and store the filepaths of multiple files.
@@ -27,7 +28,7 @@ int main (void)
 
 		if (input == "add")
 		{
-			for (i=0;i<32;i++)
+			for (i=0;i<31;i++)
 			{
 				if (fileArr[i] == NULL)
 				{
@@ -37,28 +38,59 @@ int main (void)
 				}
 			}
 
-			if (i < 32)
-				cout << "File added in position " << i+1 << endl;
+			if (i < 31)
+            {
+                if (fileArr[i] -> getInPath() == "")
+                {
+                    cout << "Invalid file selected. File addition failed" << endl;
+                    delete fileArr[i];
+                    fileArr[i] = NULL;
+                }
+                else
+                {
+                    cout << "File added in position " << i+1 << endl;
+                }
+            }
 			else
-				cout << "No open slots to add a file. You have to delete a file to add a new one " << endl;
+            {
+				cout << "No open slots to add a file. You have to delete a file to add a new one" << endl;
+            }
 		}
 		else if (input == "edit")
         {
             cout << "Which file position would you like to edit: ";
             cin >> i;
             i--;
-            if (i < 32 && fileArr[i] != NULL)
+            if (i < 31 && fileArr[i] != NULL)
             {
                 cout << "Please select a file to replace " << fileArr[i] -> getInPath() << " : ";
                 delete fileArr[i];
                 fileArr[i] = new fOpen();
-                cout << "File successfully replaced!" << endl;
+                if (fileArr[i] -> getInPath() == "")
+                {
+                    cout << "Invalid file selected. File replace failed" << endl;
+                    delete fileArr[i];
+                    fileArr[i] = NULL;
+                }
+                else
+                {
+                    cout << "File successfully replaced!" << endl;
+                }
             }
-            else if (i < 32)
+            else if (i < 32 && i > 0)
             {
                 cout << "Please select a file to add in position " << i+1 << ": ";
                 fileArr[i] = new fOpen ();
-                cout << "File successfully added!" << endl;
+                if (fileArr[i] -> getInPath() == "")
+                {
+                    cout << endl << "Invalid file selected. File addition failed" << endl;
+                    delete fileArr[i];
+                    fileArr[i] = NULL;
+                }
+                else
+                {
+                    cout << endl << "File added in position " << i+1 << endl;
+                }
             }
             else
             {
@@ -97,7 +129,7 @@ int main (void)
 			cin >> input;
 			if (input == "y")
             {
-                for (i=0;i<32;i++)
+                for (i=0;i<31;i++)
                 {
                     if (fileArr[i] != NULL)
                     {
@@ -105,8 +137,16 @@ int main (void)
                         numRobots++;
                     }
                 }
-                cout << "Starting the game with these " << numRobots << " robots." << endl;
-				return 1;
+                if (numRobots)
+                {
+                    cout << "Starting the game with these " << numRobots << " robots." << endl;
+                    return 1;
+                }
+                else
+                {
+                    cout << "No robots selected!" << endl;
+                    input = "continue";
+                }
             }
 
 		}
@@ -126,7 +166,7 @@ void display (void)
 
 	cout << "--------------------------------------------------" << endl;
 
-	for (i=0;i<32;i++)
+	for (i=0;i<31;i++)
 	{
 		cout << i+1 << ": ";
 
@@ -144,4 +184,3 @@ void display (void)
 
 	return;
 }
-
