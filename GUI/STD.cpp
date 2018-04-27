@@ -1,5 +1,5 @@
 #include <SDL.h>
-#include <SDL_image.h>
+//#include <SDL_image.h>
 #include <stdio.h>
 #include <string>
 #include <iostream>
@@ -46,6 +46,7 @@ string disect(string);
 void createRenderer();
 void selectScreen();
 void displayText(int);
+extern string getDirect();
 
 
 //the name of the window we create
@@ -147,6 +148,10 @@ void closeSelect();
 void loadArena();
 int loopShapes();
 
+
+//directory
+string directory;
+
 void createRenderer() {
 	renderer = SDL_CreateRenderer(aWindow, -1, SDL_RENDERER_ACCELERATED);
 
@@ -233,32 +238,32 @@ bool loadMedia() {
 	bool success = true;
 
 	//title image loaded
-	titleScreen = SDL_LoadBMP("mainmenu.bmp");
+	titleScreen = SDL_LoadBMP((directory + "mainmenu.bmp").c_str());
 	if (titleScreen == NULL) {
 		printf("Title Image could not be loaded");
 		success = false;
 	}
 
 	//set buttons
-	playButton = SDL_LoadBMP("play.bmp");
+	playButton = SDL_LoadBMP((directory + "play.bmp").c_str());
 	if (playButton == NULL) {
 		printf("Play image could not be loaded");
 		success = false;
 	}
 
-	playButtonClick = SDL_LoadBMP("playClick.bmp");
+	playButtonClick = SDL_LoadBMP((directory + " playClick.bmp").c_str());
 	if (playButtonClick == NULL) {
 		printf("play click could not be loaded");
 		success = false;
 	}
 
-	exitButton = SDL_LoadBMP("exit.bmp");
+	exitButton = SDL_LoadBMP((directory + "exit.bmp").c_str());
 	if (exitButton == NULL) {
 		printf("exit image could not be loaded");
 		success = false;
 	}
 
-	exitButtonClick = SDL_LoadBMP("exitClick.bmp");
+	exitButtonClick = SDL_LoadBMP((directory + "exitClick.bmp").c_str());
 	if (exitButtonClick == NULL) {
 		printf("exit image click could not be loaded");
 		success = false;
@@ -284,13 +289,13 @@ bool loadMedia() {
 
 
 	//load images for the select screen
-	selectRButton[0] = SDL_LoadBMP("r0.bmp");
+	selectRButton[0] = SDL_LoadBMP((directory + "r0.bmp").c_str());
 	if (exitButtonClick == NULL) {
 		printf("r 0 could not be loaded ");
 		success = false;
 	}
 
-	selectRButton[1] = SDL_LoadBMP("r1.bmp");
+	selectRButton[1] = SDL_LoadBMP((directory + "r1.bmp").c_str());
 	if (exitButtonClick == NULL) {
 		printf("r 1 could not be loaded ");
 		success = false;
@@ -318,13 +323,13 @@ bool loadMedia() {
 
 
 
-	selectRButtonClick[0] = SDL_LoadBMP("r0click.bmp");
+	selectRButtonClick[0] = SDL_LoadBMP((directory + "r0click.bmp").c_str());
 	if (exitButtonClick == NULL) {
 		printf("r 0 click could not be loaded ");
 		success = false;
 	}
 
-	selectRButtonClick[1] = SDL_LoadBMP("r1click.bmp");
+	selectRButtonClick[1] = SDL_LoadBMP((directory + "r1click.bmp").c_str());
 	if (exitButtonClick == NULL) {
 		printf("r 1 click could not be loaded ");
 		success = false;
@@ -353,28 +358,28 @@ bool loadMedia() {
 
 
 	//load select screen background
-	selectBG = SDL_LoadBMP("selectBG.bmp");
+	selectBG = SDL_LoadBMP((directory + "selectBG.bmp").c_str());
 	if (selectBG == NULL) {
 		printf("Select bg not loaded");
 		success = false;
 	}
 
-	arena = SDL_LoadBMP("arena.bmp");
+	arena = SDL_LoadBMP((directory + "arena.bmp").c_str());
 	if (arena == NULL) {
 		printf("arena Image could not be loaded");
 		success = false;
 	}
 
 	//set buttons
-/* 	robot1 = SDL_LoadBMP("becky.bmp");
+/* 	robot1 = SDL_LoadBMP((directory + "becky.bmp").c_str());
 	if (robot1 == NULL) {
-		printf("Play image could not be loaded");
+		printf("Play image could not be loaded").c_str());
 		success = false;
 	}
 
-	robot2 = SDL_LoadBMP("steve.bmp");
+	robot2 = SDL_LoadBMP((directory + "steve.bmp").c_str());
 	if (robot2 == NULL) {
-		printf("play click could not be loaded");
+		printf("play click could not be loaded").c_str());
 		success = false;
 	}
  */
@@ -397,11 +402,11 @@ bool loadMedia() {
 
 
 		pos = xMin + (int)(xRange * rand()) / ((RAND_MAX + 1.0));
-		cout << pos << endl;
+		//cout << pos << endl;
 		spritePos[cnt].x = pos;
 
 		pos = yMin + (int)(yRange * rand()) / ((RAND_MAX + 1.0));
-		cout << pos << endl;;
+		//cout << pos << endl;
 		spritePos[cnt].y = pos;
 
 		spritePos[cnt].w = 16;
@@ -446,7 +451,7 @@ bool loadMedia() {
 
 		const char *c = getShape.c_str();
 
-		shapes[cnt] = SDL_LoadBMP(c);
+		shapes[cnt] = SDL_LoadBMP((directory + c).c_str());
 
 		if (shapes[cnt] == NULL) {
 
@@ -469,37 +474,43 @@ bool loadMedia() {
 
 	for (int cnt = 0; cnt < 10; cnt++) {
 		switch (cnt) {
-			case 0: getShape = "smol/circle";
+			case 0: getShape = "circlesmol";
 			break;
-			case 1: getShape = "smol/star";
+			case 1: getShape = "starsmol";
 			break;
-			case 2: getShape = "smol/triangle";
+			case 2: getShape = "trianglesmol";
 			break;
-			case 3: getShape = "smol/tear";
+			case 3: getShape = "tearsmol";
 			break;
-			case 4: getShape = "smol/diamond";
+			case 4: getShape = "diamondsmol";
 			break;
-			case 5: getShape = "smol/pacman";
+			case 5: getShape = "pacmansmol";
 			break;
-			case 6: getShape = "smol/mushroom";
+			case 6: getShape = "mushroomsmol";
 			break;
-			case 7: getShape = "smol/hour";
+			case 7: getShape = "hoursmol";
 			break;
-			case 8: getShape = "smol/galaga";
+			case 8: getShape = "galagasmol";
 			break;
-			case 9: getShape = "smol/pyramid";
+			case 9: getShape = "pyramidsmol";
 			break;
-			default: getShape = "smol/fail";
+			default: getShape = "failsmol";
 			break;
 		}
 
 
-		getShape = getShape + ".bmp";
-		cout << getShape << endl;
+		getShape = directory + getShape + ".bmp";
+		//cout << getShape << endl;
 
 		const char *c = getShape.c_str();
 
 		sprites[cnt] = SDL_LoadBMP(c);
+		if(sprites[cnt] == NULL) {
+			
+			cout << "error: " + getShape << endl; 
+			cout << endl; 
+			cout << SDL_GetError() << endl; 
+		}
 
 		if (cnt < TOTAL_R_BUTTONS) {
 			shapeParam[cnt].w = 75;
@@ -575,22 +586,22 @@ bool mouseHandle (SDL_Event* M) {
 		//left
 		if (x < MPos[0].x)  {
 			inside = false;
-			//printf("left");
+			//printf("left").c_str());
 		}
 
 		if (x > MPos[0].x + BUTTON_WIDTH) {
 			inside = false;
-			//printf("right");
+			//printf("right").c_str());
 		}
 
 		if (y < MPos[0].y)  {
 			inside = false;
-			//printf("above");
+			//printf("above").c_str());
 		}
 
 		if (y > MPos[0].y + BUTTON_HEIGHT) {
 			inside = false;
-			//printf("below");
+			//printf("below").c_str());
 		}
 
 		if (inside) {
@@ -687,22 +698,22 @@ bool mouseHandleS(SDL_Event* S) {
 		//left
 		if (x < SPos[0].x)  {
 			inside = false;
-			//printf("left");
+			//printf("left").c_str());
 		}
 
 		if (x > SPos[0].x + 75) {
 			inside = false;
-			//printf("right");
+			//printf("right").c_str());
 		}
 
 		if (y < SPos[0].y)  {
 			inside = false;
-			//printf("above");
+			//printf("above").c_str());
 		}
 
 		if (y > SPos[0].y + 75) {
 			inside = false;
-			//printf("below");
+			//printf("below").c_str());
 		}
 
 		if (inside) {
@@ -892,8 +903,11 @@ int main( int argc, char* args[] ) {
 	SDL_Event M;
 
 	//boot SDL and load menu
+	directory = getDirect();
 	initSDL();
 	loadMedia();
+
+	directory = getDirect();
 
 
 	//load title screen
@@ -934,7 +948,7 @@ void launch() {
 	string fileName;
 
 
-	TTF_Font* font = TTF_OpenFont("arial.ttf", 25);
+	TTF_Font* font = TTF_OpenFont((directory + "arial.ttf").c_str(), 25);
 
 	if (!font) {
 
@@ -1049,21 +1063,45 @@ void selectScreen() {
 
 	nWindow = SDL_CreateWindow("Select Your RBT", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_SHOWN);
 
-	nWindowSurface = SDL_GetWindowSurface(nWindow);
-	SDL_BlitSurface(selectBG, NULL, nWindowSurface, NULL);
+nWindowSurface = SDL_GetWindowSurface(nWindow);
+
+	if (nWindowSurface ==  NULL) {
+		cout << SDL_GetError() << endl;
+	}
+
+		SDL_BlitSurface(selectBG, NULL, nWindowSurface, NULL);
+
+	if (selectBG == NULL) {
+		cout << SDL_GetError() << endl;
+
+	}
 
 
 	for (int cnt = 0; cnt < 2; cnt++) {
 		SDL_BlitSurface(selectRButton[cnt], &rButtonParam[cnt], nWindowSurface, &rButtonPos[cnt]);
 
+		if (selectRButton[cnt] ==  NULL) {
+		cout << SDL_GetError() << endl;
+        }
 	}
 
+
+
 	SDL_BlitSurface(shapes[0], &shapeParam[0], nWindowSurface, &shapePos[0]);
+
+	if (shapes[0] ==  NULL) {
+		cout << SDL_GetError() << endl;
+	}
 
 	buttonPos[0].x = 300;
 	buttonPos[0].y = 401;
 
 	SDL_BlitSurface(playButton, &buttonParams[0], gWindowSurface, &buttonPos[0]);
+
+	if (playButton == NULL) {
+	cout << SDL_GetError() << endl;
+
+	}
 
 	SDL_UpdateWindowSurface( nWindow );
 
@@ -1073,7 +1111,7 @@ void selectScreen() {
 void displayText (int buttonNum) {
 	string fileName;
 
-	TTF_Font* font = TTF_OpenFont("smol/arial.ttf", 25);
+	TTF_Font* font = TTF_OpenFont((directory + "arial.ttf").c_str(), 25);
 
 
 	if (!font) {
@@ -1166,24 +1204,24 @@ void loadArena ()  {
 	}
 
 	SDL_Delay( 2000 );
-	
-	double angle = 0.0; 
+
+	double angle = 0.0;
 	cnt = 0;
-	while (cnt < 200) {
-		
+	while (cnt < 1000) {
+
 		SDL_RenderClear(renderer);
 		SDL_RenderCopyEx(renderer, arenaT, NULL, &arenaPos, 0, NULL, SDL_FLIP_NONE);
 		SDL_RenderCopyEx(renderer, rob1T, NULL, &spritePos[cycle], angle + cnt, NULL, SDL_FLIP_NONE);
 		SDL_RenderPresent(renderer);
 
 		cnt++;
-		
-		
-		
+
+
+
 	}
 
 
-	
+
 	cnt = 0;
 	while (cnt < 200) {
 		spritePos[cycle].y++;
@@ -1205,7 +1243,7 @@ void loadArena ()  {
 	SDL_Delay( 2000 );
 	//reset
 
-	
+
 	exit(0);
 }
 
