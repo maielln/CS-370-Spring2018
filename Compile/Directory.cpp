@@ -42,7 +42,7 @@ string getDirect()
         }
     }
 
-    directs += "/";
+    directs += "/assets/";
 
     return directs;
 }
