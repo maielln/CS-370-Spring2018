@@ -17,7 +17,7 @@ class fOpen //requires libcomdlg32.a
 {
     public:
 
-        fOpen(); //Constructor Opens up the windows prompt to take in a directory of a file and puts it in the inPath variable. If the directory isn't valid, then the program exits.
+        fOpen(string); //Constructor Opens up the windows prompt to take in a directory of a file and puts it in the inPath variable. If the directory isn't valid, then the program exits.
         string getBuffer (); //returns the variable buffer
         string getInPath (); //returns the variable inPath
         void writeLine (string); //Writes a line to the output file. If no file exists, it creates one
@@ -26,7 +26,6 @@ class fOpen //requires libcomdlg32.a
 
     private:
 
-        char inPath[80];
         char * buffer;
         FILE * roboFile;
         string inPathStr;
