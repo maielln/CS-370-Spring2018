@@ -23,6 +23,7 @@ Contributors: Mark Yetter, Niccole Maiello, William Csont, Eric, Tyler
 //#include <SDL_mixer.h>
 //#include "helloworld.cpp"
 #include <fOpen.h>
+#include <comp.h>
 //#include <SDL_ttf.h>
 #include <vector>
 #include <windows.h>
@@ -3103,6 +3104,12 @@ void compile(int n, string filename) //may need this to compile the robots, but 
   if k>0 then s = lstr(s,k-1);
   s = btrim(ucase(s));
   for i = 0 to max_op do pp[i] = '';
+    */
+    string s;
+    //Comp tnt = new Comp();
+    Comp tnt(filename);
+    //cout << tnt.getText() << endl;
+    /*
   if (length(s)>0) and (s[1]<>';') then
    begin
     case s[1] of
@@ -6673,6 +6680,7 @@ void display (void)
 int fileSelect(void)
 {
 	string input = "";
+	string inPath = "";
 	int i, numRobots = 0;
 
 	while (input != "exit")
@@ -6688,8 +6696,9 @@ int fileSelect(void)
 			{
 				if (fileArr[i] == NULL)
 				{
-					cout << "Please select a file to add in position " << i+1 << endl;
-					fileArr[i] = new fOpen();
+					cout << "Please select a file to add in position " << i+1 << ": ";
+					cin >> inPath;
+					fileArr[i] = new fOpen(inPath);
 					break;
 				}
 			}
@@ -6720,8 +6729,9 @@ int fileSelect(void)
             if (i < 31 && fileArr[i] != NULL)
             {
                 cout << "Please select a file to replace " << fileArr[i] -> getInPath() << " : ";
+                cin >> inPath;
                 delete fileArr[i];
-                fileArr[i] = new fOpen();
+                fileArr[i] = new fOpen(inPath);
                 if (fileArr[i] -> getInPath() == "")
                 {
                     cout << "Invalid file selected. File replace failed" << endl;
@@ -6736,7 +6746,8 @@ int fileSelect(void)
             else if (i < 32 && i > 0)
             {
                 cout << "Please select a file to add in position " << i+1 << ": ";
-                fileArr[i] = new fOpen ();
+                cin >> inPath;
+                fileArr[i] = new fOpen(inPath);
                 if (fileArr[i] -> getInPath() == "")
                 {
                     cout << endl << "Invalid file selected. File addition failed" << endl;
@@ -6789,9 +6800,9 @@ int fileSelect(void)
                 {
                     if (fileArr[i] != NULL)
                     {
-                        cout << "Loading in " << fileArr[i] -> getInPath() << endl;
-                        //compile (fileArr[i].getBuffer);
+                        compile (numRobots, fileArr[i] -> getInPath());
                         numRobots++;
+                        cout << "...Done!" << endl;
                     }
                 }
                 if (numRobots)
