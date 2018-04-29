@@ -124,22 +124,29 @@ SDL_Surface* robot2 = NULL;
 //shapes button
 const int TOTAL_SHAPES = 10;
 SDL_Surface* shapes [10];
+SDL_Surface* shapes2 [10];
 int cycle = 0;
+int cycle2 = 0;
 
 SDL_Rect shapeParam[TOTAL_R_BUTTONS];
+SDL_Rect shapeParam2[TOTAL_R_BUTTONS];
 SDL_Rect shapePos[TOTAL_R_BUTTONS];
+SDL_Rect shapePos2[TOTAL_R_BUTTONS];
 
 
 //robot sprite arrays
 //this is just referencing the SHAPE
 SDL_Surface* sprites[TOTAL_SHAPES];
 SDL_Rect spritePos[TOTAL_SHAPES];
+SDL_Rect spritePos2[TOTAL_SHAPES];
+SDL_Surface* sprites2[TOTAL_SHAPES];
 
 std::string getShape;
 
 SDL_Renderer* renderer;
 
 SDL_Texture* rob1T = NULL;
+SDL_Texture* rob2T = NULL;
 
 SDL_Texture* arenaT = NULL;
 SDL_Rect arenaParam;
@@ -147,6 +154,7 @@ SDL_Rect arenaParam;
 void closeSelect();
 void loadArena();
 int loopShapes();
+int loopShapes2();
 
 
 //directory
@@ -169,6 +177,8 @@ void createTextures() {
 		cout << "error" << endl;
 		cout << SDL_GetError() << endl;
 	}
+
+	rob2T = SDL_CreateTextureFromSurface(renderer, sprites2[cycle2]);
 
 	arenaT = SDL_CreateTextureFromSurface(renderer, arena);
 
@@ -411,8 +421,26 @@ bool loadMedia() {
 
 		spritePos[cnt].w = 16;
 		spritePos[cnt].h = 16;
+	}
+
+		for (int cnt = 0; cnt < 10; cnt++) {
+
+
+		pos = xMin + (int)(xRange * rand()) / ((RAND_MAX + 1.0));
+		//cout << pos << endl;
+		spritePos2[cnt].x = pos;
+
+		pos = yMin + (int)(yRange * rand()) / ((RAND_MAX + 1.0));
+		//cout << pos << endl;
+		spritePos2[cnt].y = pos;
+
+		spritePos2[cnt].w = 16;
+		spritePos2[cnt].h = 16;
+
+
 
 	}
+
 
 	//load audio
 	onClick = Mix_LoadWAV("ring.wav");
@@ -506,22 +534,114 @@ bool loadMedia() {
 
 		sprites[cnt] = SDL_LoadBMP(c);
 		if(sprites[cnt] == NULL) {
-			
-			cout << "error: " + getShape << endl; 
-			cout << endl; 
-			cout << SDL_GetError() << endl; 
+
+			cout << "error: " + getShape << endl;
+			cout << endl;
+			cout << SDL_GetError() << endl;
+		}
+	}
+
+
+	//second shape button
+	for (int cnt = 0; cnt < 10; cnt++) {
+		switch (cnt) {
+			case 0: getShape = "circlepurp";
+			break;
+			case 1: getShape = "starpurp";
+			break;
+			case 2: getShape = "trianglepurp";
+			break;
+			case 3: getShape = "tearpurp";
+			break;
+			case 4: getShape = "diamondpurp";
+			break;
+			case 5: getShape = "pacmanpurp";
+			break;
+			case 6: getShape = "mushroompurp";
+			break;
+			case 7: getShape = "hourpurp";
+			break;
+			case 8: getShape = "galagapurp";
+			break;
+			case 9: getShape = "pyramidpurp";
+			break;
+			default: getShape = "failpurp";
+			break;
+		}
+		getShape = getShape + ".bmp";
+
+		const char *c = getShape.c_str();
+
+		shapes2[cnt] = SDL_LoadBMP((directory + c).c_str());
+
+		if (shapes2[cnt] == NULL) {
+
+			cout << "ERROR" << endl;
+			cout << SDL_GetError() << endl;
 		}
 
 		if (cnt < TOTAL_R_BUTTONS) {
-			shapeParam[cnt].w = 75;
-			shapeParam[cnt].h = 75;
+			shapeParam2[cnt].w = 75;
+			shapeParam2[cnt].h = 75;
 
-			shapePos[cnt].x = 200;
-			shapePos[cnt].y = 100;
+			shapePos2[cnt].x = 200;
+			shapePos2[cnt].y = 200;
 
 
         }
 	}
+
+
+	for (int cnt = 0; cnt < 10; cnt++) {
+		switch (cnt) {
+			case 0: getShape = "circlepurpsmol";
+			break;
+			case 1: getShape = "starpurpsmol";
+			break;
+			case 2: getShape = "trianglepurpsmol";
+			break;
+			case 3: getShape = "tearpurpsmol";
+			break;
+			case 4: getShape = "diamondpurpsmol";
+			break;
+			case 5: getShape = "pacmanpurpsmol";
+			break;
+			case 6: getShape = "mushroompurpsmol";
+			break;
+			case 7: getShape = "hourpurpsmol";
+			break;
+			case 8: getShape = "galagapurpsmol";
+			break;
+			case 9: getShape = "pyramidpurpsmol";
+			break;
+			default: getShape = "failpurpsmol";
+			break;
+		}
+		getShape = getShape + ".bmp";
+
+		const char *c = getShape.c_str();
+
+		sprites2[cnt] = SDL_LoadBMP((directory + c).c_str());
+
+		if (sprites2[cnt] == NULL) {
+
+			cout << "ERROR" << endl;
+			cout << SDL_GetError() << endl;
+		}
+
+		if (cnt < TOTAL_R_BUTTONS) {
+			shapeParam2[cnt].w = 75;
+			shapeParam2[cnt].h = 75;
+
+			shapePos2[cnt].x = 200;
+			shapePos2[cnt].y = 200;
+
+
+        }
+	}
+
+
+
 
 
 
@@ -749,7 +869,7 @@ bool mouseHandleS(SDL_Event* S) {
 
 		}
 
-		if (x > SPos[1].x + BUTTON_WIDTH) {
+		if (x > SPos[1].x + 75) {
 			inside = false;
 
 		}
@@ -759,7 +879,7 @@ bool mouseHandleS(SDL_Event* S) {
 
 		}
 
-		if (y > SPos[1].y + BUTTON_HEIGHT) {
+		if (y > SPos[1].y + 75) {
 			inside = false;
 
 		}
@@ -828,6 +948,54 @@ bool mouseHandleS(SDL_Event* S) {
 
 		}
 
+		
+	//SHAPES 2	
+	 if( S->type == SDL_MOUSEMOTION || S->type == SDL_MOUSEBUTTONDOWN || S->type == SDL_MOUSEBUTTONUP )
+	{
+		//Get mouse position
+		int x, y;
+		SDL_GetMouseState( &x, &y );
+
+		bool inside = true;
+		//left
+		if (x < shapePos2[1].x)  {
+			inside = false;
+
+		}
+
+		if (x > shapePos2[1].x + 75) {
+			inside = false;
+
+		}
+
+		if (y < shapePos2[1].y)  {
+			inside = false;
+
+		}
+
+		if (y > shapePos2[1].y + 75) {
+			inside = false;
+
+		}
+
+		if (inside) {
+			switch (S->type) {
+			case SDL_MOUSEBUTTONDOWN:
+				rob2 = loopShapes2();
+				break;
+
+				case SDL_MOUSEBUTTONUP:
+
+				break;
+
+                }
+
+
+            }
+
+		}
+	
+		
 	//new play button
 	if( S->type == SDL_MOUSEMOTION || S->type == SDL_MOUSEBUTTONDOWN || S->type == SDL_MOUSEBUTTONUP )
 	{
@@ -894,6 +1062,20 @@ int loopShapes() {
 	SDL_UpdateWindowSurface(nWindow);
 
 	return cycle;
+
+}
+
+int loopShapes2() {
+	cycle2++;
+
+	if (cycle2 > 9) {
+		cycle2 = 0;
+	}
+
+	SDL_BlitSurface(shapes2[cycle2], &shapeParam2[cycle2], nWindowSurface, &shapePos2[cycle2]);
+	SDL_UpdateWindowSurface(nWindow);
+
+
 
 }
 
@@ -1088,6 +1270,7 @@ nWindowSurface = SDL_GetWindowSurface(nWindow);
 
 
 	SDL_BlitSurface(shapes[0], &shapeParam[0], nWindowSurface, &shapePos[0]);
+	SDL_BlitSurface(shapes2[0], &shapeParam2[0], nWindowSurface, &shapePos2[0]);
 
 	if (shapes[0] ==  NULL) {
 		cout << SDL_GetError() << endl;
@@ -1177,6 +1360,8 @@ void loadArena ()  {
 	SDL_RenderCopyEx(renderer, arenaT, NULL, &arenaPos, 0, NULL, SDL_FLIP_NONE);
 
 	SDL_RenderCopyEx(renderer, rob1T, NULL, &spritePos[cycle], 0, NULL, SDL_FLIP_NONE);
+	
+	SDL_RenderCopyEx(renderer, rob2T, NULL, &spritePos2[cycle2], 0, NULL, SDL_FLIP_NONE);
 
 	SDL_RenderPresent(renderer);
 
@@ -1188,8 +1373,14 @@ void loadArena ()  {
 	//move in the X direction 200px, or until the wall is hit.
 	while (cnt < 200) {
 		spritePos[cycle].x++;
+		spritePos2[cycle2].x++;
 
 		if (spritePos[cycle].x >= 550) {
+			break;
+
+		}
+		
+		if (spritePos2[cycle2].x >= 550) {
 			break;
 
 		}
@@ -1197,6 +1388,7 @@ void loadArena ()  {
 		SDL_RenderClear(renderer);
 		SDL_RenderCopyEx(renderer, arenaT, NULL, &arenaPos, 0, NULL, SDL_FLIP_NONE);
 		SDL_RenderCopyEx(renderer, rob1T, NULL, &spritePos[cycle], 0, NULL, SDL_FLIP_NONE);
+		SDL_RenderCopyEx(renderer, rob2T, NULL, &spritePos2[cycle2], 0, NULL, SDL_FLIP_NONE);
 		SDL_RenderPresent(renderer);
 
 		cnt++;
@@ -1212,6 +1404,8 @@ void loadArena ()  {
 		SDL_RenderClear(renderer);
 		SDL_RenderCopyEx(renderer, arenaT, NULL, &arenaPos, 0, NULL, SDL_FLIP_NONE);
 		SDL_RenderCopyEx(renderer, rob1T, NULL, &spritePos[cycle], angle + cnt, NULL, SDL_FLIP_NONE);
+		SDL_RenderCopyEx(renderer, rob2T, NULL, &spritePos2[cycle2], angle + cnt, NULL, SDL_FLIP_NONE);
+		
 		SDL_RenderPresent(renderer);
 
 		cnt++;
@@ -1225,15 +1419,21 @@ void loadArena ()  {
 	cnt = 0;
 	while (cnt < 200) {
 		spritePos[cycle].y++;
+		spritePos2[cycle2].y++;
 
 		if (spritePos[cycle].y >= 550) {
 			break;
 
 		}
+		
+		if(spritePos2[cycle2].y >= 550) {
+			break; 
+		}
 
 		SDL_RenderClear(renderer);
 		SDL_RenderCopyEx(renderer, arenaT, NULL, &arenaPos, 0, NULL, SDL_FLIP_NONE);
 		SDL_RenderCopyEx(renderer, rob1T, NULL, &spritePos[cycle], 0, NULL, SDL_FLIP_NONE);
+		SDL_RenderCopyEx(renderer, rob2T, NULL, &spritePos2[cycle2],  cnt, NULL, SDL_FLIP_NONE);
 		SDL_RenderPresent(renderer);
 
 		cnt++;
