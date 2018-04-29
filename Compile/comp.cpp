@@ -12,19 +12,31 @@
 
 using namespace std;
 
-string Comp::compile(string SSPath)
+
+Comp::Comp(string fPath)
 {
-    fOpen inFile(SSPath);
-    fireCount = 0;
-    scanning = false;
-    scanarc = 1; //some variables for robot
+    fOpen inFile(fPath);
+
+    scanner=0;
+    armor=0;
+    engines=0;
+    mines=0;
+    heatsinks=0;
+    weapon=0;
+    shield=0;
 
     fText = inFile.getBuffer();
 
     formatFile();
-
-    return fText; //returning the address of position 0
+    setConfig();
 }
+
+
+string Comp::getText()
+{
+    return fText;
+}
+
 
 void Comp::formatFile()
 {
@@ -76,6 +88,7 @@ void Comp::formatFile()
 
 }
 
+
 string Comp::trim(string l) //trimming front and back
 {
     int i = 0; //keep track of position
@@ -111,8 +124,108 @@ string Comp::replaceSpace(string l) //puts commas in place of lone characters, u
     return l;
 }
 
+
 string Comp::formatLine(string l) //erases ALL forms of white space
 {
     l.erase(std::remove_if(l.begin(), l.end(), ::isspace), l.end()); //removes remaining white space
     return l;
+}
+
+
+void Comp::setConfig(void)
+{
+    int i=0;
+    string temp;
+
+    while (fText[i] != '\0')
+    {
+        if (fText[i] == '#')//'#'CONFIG,item,number
+        {
+            temp = fText.substr(i+1, 6); //#'CONFIG',item,number
+            if (temp == "config")
+            {
+                i+=8; //i should be after the first comma now
+                temp = fText.substr(i, 4);
+                if (temp == "scan")
+                {
+                    i+=8;
+                    setVars(&scanner, fText[i]);
+                }
+                else if (temp == "armo")
+                {
+                    i+=6;
+                    setVars(&armor, fText[i]);
+                }
+                else if (temp == "engi")
+                {
+                    i+=7;
+                    setVars(&engines, fText[i]);
+                }
+                else if (temp == "mine")
+                {
+                    i+=6;
+                    setVars(&mines, fText[i]);
+                }
+                else if (temp == "heat")
+                {
+                    i+=10;
+                    setVars(&heatsinks, fText[i]);
+                }
+                else if (temp == "weap")
+                {
+                    i+=7;
+                    setVars(&weapon, fText[i]);
+                }
+                else if (temp == "shie")
+                {
+                    i+=7;
+                    setVars(&shield, fText[i]);
+                }
+            }
+        }
+        while (fText[i] != '\n' && fText[i] != '\0')
+        {
+            i++;
+        }
+        i++;
+    }
+}
+
+
+void Comp::setVars(int * part, char val)
+{
+    switch (val)
+    {
+    case 49:
+        *part = 1;
+        break;
+    case 50:
+        *part = 2;
+        break;
+    case 51:
+        *part = 3;
+        break;
+    case 52:
+        *part = 4;
+        break;
+    case 53:
+        *part = 5;
+        break;
+    case 48:
+    default:
+        *part = 0;
+        break;
+    }
+}
+
+
+void Comp::dispConfig(void)
+{
+    cout << "scanner: " << scanner << endl;
+    cout << "armor: " << armor << endl;
+    cout << "engines: " << engines << endl;
+    cout << "mines: " << mines << endl;
+    cout << "heat sinks: " << heatsinks << endl;
+    cout << "weapon: " << weapon << endl;
+    cout << "shield: " << shield << endl;
 }
