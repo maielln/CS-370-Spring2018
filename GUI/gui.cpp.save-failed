@@ -9,9 +9,7 @@
 #include "fOpen.h"
 #include <SDL_ttf.h>
 #include <vector>
-#include <windows.h>
-#include <sstream>
-#include <ctime>
+
 
 /*
 Written by Eric McLean and Tyler Corey
@@ -20,15 +18,7 @@ Last updated 3/18/2018
 Desc: This program initializes SDL libraries, snipes sprites to create buttons,
 	then formats the images to the gui onscreen. The gui then produces another
 	window upon clicking a button, and plays a sound effect.
-
-
-
-4/15/2018 -- fix that goddamn while loop
-
-4/17/2018
 */
-
-using namespace std;
 
 //sets screen dimensions
 const int SCREEN_WIDTH = 800;
@@ -49,18 +39,15 @@ void closeMenu();
 string disect(string);
 void createRenderer();
 void selectScreen();
-void displayText(int);
 
 
 //the name of the window we create
 SDL_Window* gWindow = NULL;
 SDL_Window* nWindow = NULL; // the selector window
-SDL_Window* aWindow = NULL; // arena window
 
 //the "screen" created by the window
 SDL_Surface* gWindowSurface = NULL;
 SDL_Surface* nWindowSurface = NULL;
-SDL_Surface* aWindowSurface = NULL; //arena surface
 
 //our images
 SDL_Surface* titleScreen = NULL;
@@ -85,15 +72,13 @@ SDL_Point MPos[TOTAL_BUTTONS];
 Mix_Chunk *onClick = NULL;
 
 //text
+TTF_Font* font = NULL;
 SDL_Color textColor = {255, 255, 255, 255};
 SDL_Surface *message = NULL;
 SDL_Renderer *renderer;
 SDL_Texture *SurfaceToTexture( SDL_Surface* surf );
 SDL_Texture *messageTexture = NULL;
 SDL_Rect textRect;
-TTF_Font* font = TTF_OpenFont("arial.ttf", 25);
-
-
 
 //selector SDL stuff
 const int TOTAL_R_BUTTONS = 6;
@@ -111,21 +96,12 @@ SDL_Event* S[TOTAL_R_BUTTONS];  //mouse handler for the select screen
 SDL_Point SPos[TOTAL_R_BUTTONS];
 
 
-//arena stuff
-const int MAX_ROBOTS = 2;
+//select text
+//x =  +180px
+//y = buttons y -100px
 
-SDL_Rect robPos [2];
-SDL_Rect arenaPos;
 
-const int rob1 = 0; //becky
-const int rob2 = 1; //steve
 
-SDL_Surface* arena = NULL;
-SDL_Surface* robot1 = NULL;
-SDL_Surface* robot2 = NULL;
-
-void closeSelect();
-void loadArena();
 
 
 bool init() {
@@ -183,7 +159,7 @@ bool loadMedia() {
 	/* Desc: This fucntion loads in the files needed to
 		format the screen and sound effects. The buttons
 		are clipped from a sprite sheet. The audio is loaded. */
-	int xMax, yMax, xMin, yMin, xRange, yRange;
+
 	bool success = true;
 
 	//title image loaded
@@ -271,7 +247,36 @@ bool loadMedia() {
 }
 
 
+	/* selectRButton[2] = SDL_LoadBMP("r2.bmp");
+	if (exitButtonClick == NULL) {
+		printf("r 2 could not be loaded ");
+		success = false;
+	}
 
+	selectRButton[3] = SDL_LoadBMP("r3.bmp");
+	if (exitButtonClick == NULL) {
+		printf("r 3 could not be loaded ");
+		success = false;
+	}
+
+	selectRButton[4] = SDL_LoadBMP("r4.bmp");
+	if (exitButtonClick == NULL) {
+		printf("r 4 could not be loaded ");
+		success = false;
+	}
+
+	selectRButton[5] = SDL_LoadBMP("r5.bmp");
+	if (exitButtonClick == NULL) {
+		printf("r 5 could not be loaded ");
+		success = false;
+	}
+
+	selectRButton[6] = SDL_LoadBMP("r6.bmp");
+	if (exitButtonClick == NULL) {
+		printf("r 6 could not be loaded ");
+		success = false;
+	}
+	 */
 
 	selectRButtonClick[0] = SDL_LoadBMP("r0click.bmp");
 	if (exitButtonClick == NULL) {
@@ -306,6 +311,39 @@ bool loadMedia() {
 
 	}
 
+	/* selectRButtonClick[2] = SDL_LoadBMP("r2click.bmp");
+	if (exitButtonClick == NULL) {
+		printf("r 2 click could not be loaded ");
+		success = false;
+	}
+
+	selectRButtonClick[3] = SDL_LoadBMP("r3click.bmp");
+	if (exitButtonClick == NULL) {
+		printf("r 3 click could not be loaded ");
+		success = false;
+	}
+
+	selectRButtonClick[4] = SDL_LoadBMP("r4click.bmp");
+	if (exitButtonClick == NULL) {
+		printf("r 4 click could not be loaded ");
+		success = false;
+	}
+
+	selectRButtonClick[5] = SDL_LoadBMP("r5click.bmp");
+	if (exitButtonClick == NULL) {
+		printf("r 5 click could not be loaded ");
+		success = false;
+	}
+
+	selectRButtonClick[6] = SDL_LoadBMP("r6click.bmp");
+	if (exitButtonClick == NULL) {
+		printf("r 6 click could not be loaded ");
+		success = false;
+	} */
+
+	//set position for each button
+
+
 
 	//load select screen background
 	selectBG = SDL_LoadBMP("selectBG.bmp");
@@ -314,55 +352,6 @@ bool loadMedia() {
 		success = false;
 	}
 
-	arena = SDL_LoadBMP("arena.bmp");
-	if (arena == NULL) {
-		printf("arena Image could not be loaded");
-		success = false;
-	}
-
-	//set buttons
-	robot1 = SDL_LoadBMP("becky.bmp");
-	if (robot1 == NULL) {
-		printf("Play image could not be loaded");
-		success = false;
-	}
-
-	robot2 = SDL_LoadBMP("steve.bmp");
-	if (robot2 == NULL) {
-		printf("play click could not be loaded");
-		success = false;
-	}
-
-
-	arenaPos.x = 50;
-	arenaPos.y = 50;
-
-    xMin = 50;
-    yMin = 50;
-    xMax = 600;
-    yMax = 550;
-
-    xRange = xMax - xMin;
-    yRange = yMax - yMin;
-
-	//RNG for robots
-	//position has to be within arena
-	//pos cannot be ==
-
-    int pos = 5;
-    srand (time(NULL));
-	for (int cnt = 0; cnt < 2; cnt++) {
-
-
-		pos = xMin + (int)(xRange * rand()) / ((RAND_MAX + 1.0));
-		cout << pos << endl;
-		robPos[cnt].x = pos;
-
-		pos = yMin + (int)(yRange * rand()) / ((RAND_MAX + 1.0));
-		cout << pos << endl;;
-		robPos[cnt].y = pos;
-
-	}
 
 	//load audio
 	onClick = Mix_LoadWAV("ring.wav");
@@ -516,7 +505,7 @@ bool mouseHandle (SDL_Event* M) {
 
 	}
 
-bool mouseHandleS(SDL_Event* S) {
+bool mouseHandleS(SDL_Event* S, fOpen* g) {
 /*  Desc: this fucntion handles the position and actions
 		of the mouse. The mouse is located, and on click a new button
 		is shown to create a "flash" effect. A sound effect is
@@ -564,14 +553,15 @@ bool mouseHandleS(SDL_Event* S) {
 		if (inside) {
 			switch (S->type) {
 			case SDL_MOUSEBUTTONDOWN:
+				SDL_BlitSurface(selectRButtonClick[0], &rCButtonParam[0], nWindowSurface, &rButtonPos[0]);
 				SDL_BlitSurface(selectRButton[0], &rButtonParam[0], nWindowSurface, &rButtonPos[0]);
-				displayText(0);
-				quitter = true;
+				g = new fOpen();
+				return quitter = true;
 				break;
 
-				 case SDL_MOUSEBUTTONUP:
+				/* case SDL_MOUSEBUTTONUP:
 
-				break;
+				break; */
 
                 }
 
@@ -580,9 +570,8 @@ bool mouseHandleS(SDL_Event* S) {
 
 		}
 
-
-	 //r2
-	 if( S->type == SDL_MOUSEMOTION || S->type == SDL_MOUSEBUTTONDOWN || S->type == SDL_MOUSEBUTTONUP )
+	/* //r2
+	if( S->type == SDL_MOUSEMOTION || S->type == SDL_MOUSEBUTTONDOWN || S->type == SDL_MOUSEBUTTONUP )
 	{
 		//Get mouse position
 		int x, y;
@@ -590,31 +579,32 @@ bool mouseHandleS(SDL_Event* S) {
 
 		bool inside = true;
 		//left
-		if (x < SPos[1].x)  {
+		if (x < SPos[0].x)  {
 			inside = false;
-
+			printf("left");
 		}
 
-		if (x > SPos[1].x + BUTTON_WIDTH) {
+		if (x > SPos[0].x + BUTTON_WIDTH) {
 			inside = false;
-
+			printf("right");
 		}
 
-		if (y < SPos[1].y)  {
+		if (y < SPos[0].y)  {
 			inside = false;
-
+			printf("above");
 		}
 
-		if (y > SPos[1].y + BUTTON_HEIGHT) {
+		if (y > SPos[0].y + BUTTON_HEIGHT) {
 			inside = false;
-
+			printf("below");
 		}
 
 		if (inside) {
 			switch (S->type) {
 			case SDL_MOUSEBUTTONDOWN:
 				SDL_BlitSurface(selectRButtonClick[1], &rCButtonParam[1], nWindowSurface, &rButtonPos[1]);
-				displayText(1);
+				cout << "clicked" << endl;
+				//fOpen f;
 				break;
 
 				case SDL_MOUSEBUTTONUP:
@@ -627,11 +617,12 @@ bool mouseHandleS(SDL_Event* S) {
             }
 
 		}
-
+  */
 		return quitter;
 
 
 }
+
 
 int main( int argc, char* args[] ) {
     int cnt = 0;
@@ -668,7 +659,7 @@ int main( int argc, char* args[] ) {
 			//Update the screen
 			SDL_UpdateWindowSurface( gWindow );
 	}
-
+	//TTF_CloseFont( font );
 	closeAll();
 
 
@@ -679,14 +670,11 @@ void launch() {
 	SDL_Event S;
 	bool quit = false;
 	string fileName;
-
+    const char* SDL_GetError();
 
 	TTF_Font* font = TTF_OpenFont("arial.ttf", 25);
 
-	if (!font) {
-
-        TTF_GetError();
-	}
+	fOpen* g = NULL;
 
 	closeMenu();
 
@@ -696,7 +684,7 @@ void launch() {
 		while(SDL_PollEvent( &S ) != 0 )
 			{
 
-				quit = mouseHandleS(&S);
+				quit = mouseHandleS(&S, g);
 				if (quit == true) {
 
 					break;
@@ -709,9 +697,30 @@ void launch() {
 	}
 
 	//createRenderer
-	closeSelect();
 
-	loadArena();
+
+	fileName = disect(*g->getInPath());
+	const char *c = fileName.c_str();
+
+	cout << fileName << endl;
+	cout << c << endl;
+
+
+	message = TTF_RenderText_Solid(font, c, textColor);
+
+
+	messageTexture = SurfaceToTexture(message);
+
+	SDL_QueryTexture(messageTexture, NULL, NULL, NULL, NULL);
+
+	textRect.w = 300;
+	textRect.h = 100;
+
+	SDL_RenderClear( renderer );
+
+
+	SDL_RenderCopy(renderer, messageTexture, NULL, &textRect);
+	SDL_RenderPresent(renderer);
 
 
 
@@ -744,22 +753,13 @@ void closeMenu() {
 
 void closeSelect() {
 
-	SDL_FreeSurface(nWindowSurface);
-
-	for (int cnt = 0; cnt > TOTAL_R_BUTTONS; cnt++) {
-		SDL_FreeSurface(selectRButton[cnt]);
-		SDL_FreeSurface(selectRButtonClick[cnt]);
-		SDL_FreeSurface(selectBG);
-
-	}
-
-	SDL_DestroyWindow( nWindow );
-	nWindow = NULL;
+	//closes the select robot menu
 
 
 }
 
- string disect(string path) {
+
+ string disect(string &path) {
 	string fileName = "";
 	int length = path.length();
 	int lastBack = 0;
@@ -792,6 +792,58 @@ void closeSelect() {
 return fileName;
 }
 
+/* void createRenderer() {
+	int x, y;
+
+	nWindow = SDL_CreateWindow( "Text Window", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_SHOWN );
+
+	renderer = SDL_CreateRenderer( nWindow, -1, SDL_RENDERER_ACCELERATED );
+
+	if (renderer == NULL) {
+
+		cout << "ERROR: " << SDL_GetError() << endl;
+
+	}
+
+
+	x = SDL_RenderSetLogicalSize( renderer, SCREEN_WIDTH, SCREEN_HEIGHT);
+
+	if (x < 0) {
+
+		cout << "ERROR2: " << SDL_GetError() << endl;
+
+	}
+
+
+	y = SDL_SetRenderDrawColor( renderer, 34, 150, 200, 255 );
+
+	if (y < 0) {
+		cout << "ERROR3: " << SDL_GetError() << endl;
+
+	}
+
+
+
+
+
+}
+ */
+SDL_Texture* SurfaceToTexture( SDL_Surface* surf )
+{
+	SDL_Texture* text;
+
+	text = SDL_CreateTextureFromSurface( renderer, surf );
+
+	if (text == NULL) {
+
+		cout << "ERROR4: " << SDL_GetError() << endl;
+	}
+
+	SDL_FreeSurface( surf );
+
+	return text;
+}
+
 void selectScreen() {
 
 	nWindow = SDL_CreateWindow("Select Your RBT CHUNGUS", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_SHOWN);
@@ -808,145 +860,4 @@ void selectScreen() {
 	SDL_UpdateWindowSurface( nWindow );
 
 
-}
-
-void displayText (int buttonNum) {
-	string fileName;
-
-	TTF_Font* font = TTF_OpenFont("arial.ttf", 25);
-
-
-	if (!font) {
-
-        cout << "no font  " << SDL_GetError();
-		exit(1);
-	}
-
-	if (!TTF_WasInit() && TTF_Init() == -1) {
-		cout << "ya done fucked up " << TTF_GetError();
-		exit(1);
-
-	}
-
-
-	fOpen f;
-	fileName = disect(f.getInPath());
-	const char *c = fileName.c_str();
-
-	message = TTF_RenderText_Solid(font, c, textColor);
-
-	int x = 180;
-	int y = 120;
-	SDL_Rect textLocation = { x, y, 0, 0 };
-
-
-
-	if (buttonNum > 0) {
-		textLocation.y = textLocation.y + (100 * buttonNum);
-
-	}
-
-	SDL_BlitSurface(message, NULL, nWindowSurface, &textLocation);
-
-	SDL_UpdateWindowSurface(nWindow);
-
-	TTF_CloseFont( font );
-		if (!font) {
-
-		cout << "null is working" << endl;
-	}
-
-	font = NULL;
-
-
-}
-
-void loadArena ()  {
-
-	aWindow = SDL_CreateWindow("FIGHT!!!!!!", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_SHOWN);
-
-	aWindowSurface = SDL_GetWindowSurface(aWindow);
-
-	SDL_BlitSurface(arena, NULL, aWindowSurface, &arenaPos);
-	SDL_BlitSurface(robot1, NULL, aWindowSurface, &robPos[0]);
-	SDL_BlitSurface(robot2, NULL, aWindowSurface,  &robPos[1]);
-	SDL_UpdateWindowSurface(aWindow);
-
-	int cnt = 0;
-	int cnta = 0;
-	robPos[1].x = 500;
-
-	while (cnta < 10) {
-		while (cnt < 200) {
-			robPos[1].x++;
-
-			if (robPos[1].x >= 589) {
-				cout << "break" << endl;
-				cout <<  robPos[1].x << endl;
-				break;
-			}
-
-			SDL_BlitSurface(robot2, NULL, aWindowSurface,  &robPos[1]);
-			SDL_UpdateWindowSurface(aWindow);
-			cnt++;
-		}
-
-		while (cnt > -500) {
-			robPos[1].x--;
-
-			if (robPos[1].x <= 51) {
-				cout << "break" << endl;
-				cout <<  robPos[1].x << endl;
-				break;
-			}
-
-			SDL_BlitSurface(robot2, NULL, aWindowSurface,  &robPos[1]);
-			SDL_UpdateWindowSurface(aWindow);
-			cnt--;
-		}
-
-		cnta++;
-
-	}
-
-	//reset
-	cnt = 0;
-	cnta = 0;
-    cout << "y pos is " << robPos[1].y << endl;
-    while (cnta < 5) {
-        while (cnt > -200) {
-			robPos[1].y--;
-			//cout <<  robPos[1].x << endl;
-
-			if (robPos[1].y <= 51) {
-				cout << "break" << endl;
-				cout <<  robPos[1].y << endl;
-				break;
-			}
-
-			SDL_BlitSurface(robot2, NULL, aWindowSurface,  &robPos[1]);
-			SDL_UpdateWindowSurface(aWindow);
-			cnt--;
-		}
-
-		while (cnt < 1000) {
-			robPos[1].y++;
-			//cout <<  robPos[1].x << endl;
-
-			if (robPos[1].y >= 539) {
-				cout << "break" << endl;
-				cout <<  robPos[1].y << endl;
-				break;
-			}
-			SDL_BlitSurface(robot2, NULL, aWindowSurface,  &robPos[1]);
-			SDL_UpdateWindowSurface(aWindow);
-			cnt++;
-		}
-
-		cnta++;
-
-    }
-
-	SDL_Delay( 6000 );
-	exit(0);
 }

@@ -33,6 +33,11 @@ SDL_Rect arenaPos;
 const int rob1 = 0; //becky
 const int rob2 = 1; //steve
 
+/* const int ROBHEIGHT;
+const int ROBWIDTH;
+
+const int ARENA_SIZE;
+const int SIDEBAR; */
 
 //basic functions that start, load, and run SDL
 bool init();
