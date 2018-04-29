@@ -9,29 +9,34 @@ Written in C++ (gcc compiler) in the spring of 2018
 Purpose: to allow a program to open and read the contents of a file, as well as print into a different file.
 */
 
-fOpen::fOpen ()
+fOpen::fOpen (string inPath)
 {
-    cout << "Please insert the path for a .txt or .at2 file: ";
-    cin >> inPath;
-
     int i=0;
-    inPathStr = "i";
+    inPathStr = inPath;
+    int length = inPathStr.length();
+    char inPathArr[length-1] = "";
+
+    for (i=0;i<length;i++)
+    {
+        inPathArr[i] = inPathStr[i];
+    }
+    inPathArr[length] = 0;
+
     line_count = 0;
 
     FILE * roboFile = NULL;
     buffer = NULL;
 
-    if (!isValidExt(inPath))
+    if (!isValidExt(inPathArr))
     {
-        cout << "Invalid extension. Please use a .txt or .at2 file." << endl;
         inPathStr = "";
     }
     else
     {
-        roboFile = fopen(inPath, "rb");
+        roboFile = fopen(inPathArr, "rb");
         if (roboFile == NULL)
         {
-            cout << "Could not find file at " << inPath << endl;
+            cout << "Could not find file at " << inPathArr << endl;
             inPathStr = "";
         }
         else if (read_file_to_buffer(roboFile))
@@ -49,15 +54,11 @@ fOpen::fOpen ()
 
     }
 
-    if (inPathStr == "i")
-        inPathStr = (string)inPath;
-
     for (i=0;fText[i]!='\0';i++)
     {
         if (fText[i] == '\n')
             line_count++;
     }
-
 
     return;
 }
@@ -150,7 +151,10 @@ bool fOpen::isValidExt(char inPath[])
     else if ((ext[0] == 't' || ext[0] == 'T') && (ext[1] == 'x' || ext[1] == 'X') && (ext[2] == 't' || ext[2] == 'T'))
         return 1;
     else
+    {
+        cout << "Invalid extension: " << ext << endl << "Please use a .txt or .at2 file." << endl;
         return 0;
+    }
 
 }
 
