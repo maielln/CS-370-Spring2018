@@ -351,7 +351,7 @@ long matches,played,executed;
 //GENERAL SETTINGS
 bool quit,report,show_cnotice;
 int kill_count,report_type;
-fOpen file = new fOpen();
+fOpen file();
 
 
 //-----------------------------------------------------ATR2FUNC FUNCTIONS------------------------------------------------
@@ -2262,6 +2262,43 @@ char toUpper(char l)
     return l;
 }
 
+
+string cutString (string s)
+{
+    int i;
+    string a = "";
+
+    for (i=0;i<s.length();i++)
+    {
+        if (s[i]!=',')
+        {
+            a += s[i];
+        }
+        else
+        {
+            break;
+        }
+    }
+
+    return a;
+}
+
+
+int sToInt(string s)
+{
+    int i, pos=1;
+    int ans = 0;
+
+    for (i=s.length();i>0;i--)
+    {
+        ans += (s[i]-48)*pos;
+        pos *= 10;
+    }
+
+    return ans;
+}
+
+
 void parse1(int n, int p, string s) //it seems that this procedure will be very important to look at, as it is dealing with the robot's code, we may be able to simplify it
 {
     /*Something here doesn't want to work at all ever*/
@@ -2298,15 +2335,15 @@ void parse1(int n, int p, string s) //it seems that this procedure will be very 
             found = true;
         }
 
-        if ((s.substr(0, 1).compare('[')==0) && (s.substr(s.length(), s.length() - 1).compare(']')==0))
+        if ((s.substr(0, 1).compare("[")==0) && (s.substr(s.length(), s.length() - 1).compare("]")==0))
         {
-            s[i] = s[i].substr(2,(s[i].length() - 2));
+            s = s.substr(2,(s.length() - 2));
             indirect = true;
         }
 
-        if ((!found) && (s[i][1]='!'))
+        if ((!found) && (s[1]='!'))
         {
-            ss = s[i];
+            ss = s;
             ss = btrim(ss.substr(ss.length(),ss.length()-1));
             if (numlabels>0)
             {
@@ -2349,245 +2386,247 @@ void parse1(int n, int p, string s) //it seems that this procedure will be very 
     {
         for (j = 1; j < numvars; j++)
         {
-            if (s[i]=varname[j])
+            if (s==varname[j])
             {
                 opcode = varloc[j];
                 microcode = 1;
                 found = true;
             }
         }
+    string si;
+    si = cutString(s);
     //instructions
-    if (s[i] == "NOP")
+    if (si == "NOP")
     {
         opcode = 0;
         found = true;
     }
-    else if(s[i] == ("ADD"))
+    else if(si == ("ADD"))
     {
         opcode = 1;
         found = true;
     }
-    else if(s[i] == ("SUB"))
+    else if(si == ("SUB"))
     {
         opcode = 2;
         found = true;
     }
-    else if(s[i] == ("OR"))
+    else if(si == ("OR"))
     {
         opcode = 3;
         found = true;
     }
-    else if(s[i] == ("AND"))
+    else if(si == ("AND"))
     {
         opcode = 4;
         found = true;
     }
-    else if(s[i] == ("XOR"))
+    else if(si == ("XOR"))
     {
         opcode = 5;
         found = true;
     }
-    else if(s[i] == ("NOT"))
+    else if(si == ("NOT"))
     {
         opcode = 6;
         found = true;
     }
-    else if(s[i] == ("MPY"))
+    else if(si == ("MPY"))
     {
         opcode = 7;
         found = true;
     }
-    else if(s[i] == ("DIV"))
+    else if(si == ("DIV"))
     {
         opcode = 8;
         found = true;
     }
-    else if(s[i] == ("MOD"))
+    else if(si == ("MOD"))
     {
         opcode = 9;
         found = true;
     }
-    else if(s[i] == ("RET") || s[i] == ("RETURN"))
+    else if(si == ("RET") || si == ("RETURN"))
     {
         opcode = 10;
         found = true;
     }
-    else if(s[i] == ("GSB") || s[i] == ("GOSUB") || s[i] == ("CALL"))
+    else if(si == ("GSB") || si == ("GOSUB") || si == ("CALL"))
     {
         opcode = 11;
         found = true;
     }
-    else if(s[i] == ("JMP") || s[i] == ("JUMP") || s[i] == ("GOTO"))
+    else if(si == ("JMP") || si == ("JUMP") || si == ("GOTO"))
     {
         opcode = 12;
         found = true;
     }
-    else if(s[i] == ("JLS") || s[i] == ("JB"))
+    else if(si == ("JLS") || si == ("JB"))
     {
         opcode = 13;
         found = true;
     }
-    else if(s[i] == ("JGR") || s[i] == ("JA"))
+    else if(si == ("JGR") || si == ("JA"))
     {
         opcode = 14;
         found = true;
     }
-    else if(s[i] == ("JNE"))
+    else if(si == ("JNE"))
     {
         opcode = 15;
         found = true;
     }
-    else if(s[i] == ("JEQ") || s[i] == ("JE"))
+    else if(si == ("JEQ") || si == ("JE"))
     {
         opcode = 16;
         found = true;
     }
-    else if(s[i] == ("XCHG") || s[i] == ("SWAP"))
+    else if(si == ("XCHG") || si == ("SWAP"))
     {
         opcode = 17;
         found = true;
     }
-    else if(s[i] == ("DO"))
+    else if(si == ("DO"))
     {
         opcode = 18;
         found = true;
     }
-    else if(s[i] == ("LOOP"))
+    else if(si == ("LOOP"))
     {
         opcode = 19;
         found = true;
     }
-    else if(s[i] == ("CMP"))
+    else if(si == ("CMP"))
     {
         opcode = 20;
         found = true;
     }
-    else if(s[i] == ("TEST"))
+    else if(si == ("TEST"))
     {
         opcode = 21;
         found = true;
     }
-    else if(s[i] == ("SET") || s[i] == ("MOV"))
+    else if(si == ("SET") || si == ("MOV"))
     {
         opcode = 22;
         found = true;
     }
-    else if(s[i] == ("LOC") || s[i] == ("ADDR"))
+    else if(si == ("LOC") || si == ("ADDR"))
     {
         opcode = 23;
         found = true;
     }
-    else if(s[i] == ("GET"))
+    else if(si == ("GET"))
     {
         opcode = 24;
         found = true;
     }
-    else if(s[i] == ("PUT"))
+    else if(si == ("PUT"))
     {
         opcode = 25;
         found = true;
     }
-    else if(s[i] == ("INT"))
+    else if(si == ("INT"))
     {
         opcode = 26;
         found = true;
     }
-    else if(s[i] == ("IPO") || s[i] == ("IN"))
+    else if(si == ("IPO") || si == ("IN"))
     {
         opcode = 27;
         found = true;
     }
-    else if(s[i] == ("OPO") || s[i] == ("OUT"))
+    else if(si == ("OPO") || si == ("OUT"))
     {
         opcode = 28;
         found = true;
     }
-    else if(s[i] == ("DEL") || s[i] == ("DELAY"))
+    else if(si == ("DEL") || si == ("DELAY"))
     {
         opcode = 29;
         found = true;
     }
-    else if(s[i] == ("PUSH"))
+    else if(si == ("PUSH"))
     {
         opcode = 30;
         found = true;
     }
-    else if(s[i] == ("POP"))
+    else if(si == ("POP"))
     {
         opcode = 31;
         found = true;
     }
-    else if(s[i] == ("ERR") || s[i] == ("ERROR"))
+    else if(si == ("ERR") || si == ("ERROR"))
     {
         opcode = 32;
         found = true;
     }
-    else if(s[i] == ("INC"))
+    else if(si == ("INC"))
     {
         opcode = 33;
         found = true;
     }
-    else if(s[i] == ("DEC"))
+    else if(si == ("DEC"))
     {
         opcode = 34;
         found = true;
     }
-    else if(s[i] == ("SHL"))
+    else if(si == ("SHL"))
     {
         opcode = 35;
         found = true;
     }
-    else if(s[i] == ("SHR"))
+    else if(si == ("SHR"))
     {
         opcode = 36;
         found = true;
     }
-    else if(s[i] == ("ROL"))
+    else if(si == ("ROL"))
     {
         opcode = 37;
         found = true;
     }
-    else if(s[i] == ("ROR"))
+    else if(si == ("ROR"))
     {
         opcode = 38;
         found = true;
     }
-    else if(s[i] == ("JZ"))
+    else if(si == ("JZ"))
     {
         opcode = 39;
         found = true;
     }
-    else if(s[i] == ("JNZ"))
+    else if(si == ("JNZ"))
     {
         opcode = 40;
         found = true;
     }
-    else if(s[i] == ("JAE") || s[i] == ("JGE"))
+    else if(si == ("JAE") || si == ("JGE"))
     {
         opcode = 41;
         found = true;
     }
-    else if(s[i] == ("JLE") || s[i] == ("JBE"))
+    else if(si == ("JLE") || si == ("JBE"))
     {
         opcode = 42;
         found = true;
     }
-    else if(s[i] == ("SAL"))
+    else if(si == ("SAL"))
     {
         opcode = 43;
         found = true;
     }
-    else if(s[i] == ("SAR"))
+    else if(si == ("SAR"))
     {
         opcode = 44;
         found = true;
     }
-    else if(s[i] == ("NEG"))
+    else if(si == ("NEG"))
     {
         opcode = 45;
         found = true;
     }
-    else if(s[i] == ("JTL"))
+    else if(si == ("JTL"))
     {
         opcode = 46;
         found = true;
@@ -2601,73 +2640,73 @@ void parse1(int n, int p, string s) //it seems that this procedure will be very 
 // can check if the code was already found
     if(!found)
     {
-        if(s[i] == ("COLCNT"))
+        if(si == ("COLCNT"))
         {
             opcode = 8;
             microcode = 1;
             found = true;
         }
-        else if(s[i] == ("METERS"))
+        else if(si == ("METERS"))
         {
             opcode = 9;
             microcode = 1;
             found = true;
         }
-        else if(s[i] == ("COMBASE"))
+        else if(si == ("COMBASE"))
         {
             opcode = 10;
             microcode = 1;
             found = true;
         }
-        else if(s[i] == ("COMEND"))
+        else if(si == ("COMEND"))
         {
             opcode = 11;
             microcode = 1;
             found = true;
         }
-        else if(s[i] == ("FLAGS"))
+        else if(si == ("FLAGS"))
         {
             opcode = 64;
             microcode = 1;
             found = true;
         }
-        else if(s[i] == ("AX"))
+        else if(si == ("AX"))
         {
             opcode = 65;
             microcode = 1;
             found = true;
         }
-        else if(s[i] == ("BX"))
+        else if(si == ("BX"))
         {
             opcode = 66;
             microcode = 1;
             found = true;
         }
-        else if(s[i] == ("CX"))
+        else if(si == ("CX"))
         {
             opcode = 67;
             microcode = 1;
             found = true;
         }
-        else if(s[i] == ("DX"))
+        else if(si == ("DX"))
         {
             opcode = 68;
             microcode = 1;
             found = true;
         }
-        else if(s[i] == ("EX"))
+        else if(si == ("EX"))
         {
             opcode = 69;
             microcode = 1;
             found = true;
         }
-        else if(s[i] == ("FX"))
+        else if(si == ("FX"))
         {
             opcode = 70;
             microcode = 1;
             found = true;
         }
-        else if(s[i] == ("SP"))
+        else if(si == ("SP"))
         {
             opcode = 71;
             microcode = 1;
@@ -2681,277 +2720,277 @@ void parse1(int n, int p, string s) //it seems that this procedure will be very 
     //constants
     if(!found)
     {
-        if(s[i] == ("MAXINT"))
+        if(si == ("MAXINT"))
         {
         opcode = 32767;
         microcode = 0;
         found = true;
         }
-        else if(s[i] == ("MININT"))
+        else if(si == ("MININT"))
         {
         opcode = 32768;
         microcode = 0;
         found = true;
         }
-        else if(s[i] == ("P_SPEDOMETER"))
+        else if(si == ("P_SPEDOMETER"))
         {
         opcode = 1;
         microcode = 0;
         found = true;
         }
-        else if(s[i] == ("P_HEAT"))
+        else if(si == ("P_HEAT"))
         {
         opcode = 2;
         microcode = 0;
         found = true;
         }
-        else if(s[i] == ("P_COMPASS"))
+        else if(si == ("P_COMPASS"))
         {
         opcode = 3;
         microcode = 0;
         found = true;
         }
-        else if(s[i] == ("P_TANGLE") || s[i] == ("P_TURRET_OFS"))
+        else if(si == ("P_TANGLE") || si == ("P_TURRET_OFS"))
         {
         opcode = 4;
         microcode = 0;
         found = true;
         }
-        else if(s[i] == ("P_THEADING") || s[i] == ("P_TURRET_ABS"))
+        else if(si == ("P_THEADING") || si == ("P_TURRET_ABS"))
         {
         opcode = 5;
         microcode = 0;
         found = true;
         }
-        else if(s[i] == ("P_ARMOR") || s[i] == ("P_DAMAGE"))
+        else if(si == ("P_ARMOR") || si == ("P_DAMAGE"))
         {
         opcode = 6;
         microcode = 0;
         found = true;
         }
-        else if(s[i] == ("P_SCAN"))
+        else if(si == ("P_SCAN"))
         {
         opcode = 7;
         microcode = 0;
         found = true;
         }
-        else if(s[i] == ("P_ACCURACY"))
+        else if(si == ("P_ACCURACY"))
         {
         opcode = 8;
         microcode = 0;
         found = true;
         }
-        else if(s[i] == ("P_RADAR"))
+        else if(si == ("P_RADAR"))
         {
         opcode = 9;
         microcode = 0;
         found = true;
         }
-        else if(s[i] == ("P_RANDOM") || s[i] == ("P_RAND"))
+        else if(si == ("P_RANDOM") || si == ("P_RAND"))
         {
         opcode = 10;
         microcode = 0;
         found = true;
         }
-        else if(s[i] == ("P_THROTTLE"))
+        else if(si == ("P_THROTTLE"))
         {
         opcode = 11;
         microcode = 0;
         found = true;
         }
-        else if(s[i] == ("P_TROTATE") || s[i] == ("P_OFS_TURRET"))
+        else if(si == ("P_TROTATE") || si == ("P_OFS_TURRET"))
         {
         opcode = 12;
         microcode = 0;
         found = true;
         }
-        else if(s[i] == ("P_TAIM") || s[i] == ("P_ABS_TURRET"))
+        else if(si == ("P_TAIM") || si == ("P_ABS_TURRET"))
         {
         opcode = 13;
         microcode = 0;
         found = true;
         }
-        else if(s[i] == ("P_STEERING"))
+        else if(si == ("P_STEERING"))
         {
         opcode = 14;
         microcode = 0;
         found = true;
         }
-        else if(s[i] == ("P_WEAP") || s[i] == ("P_WEAPON") || s[i] == ("P_FIRE"))
+        else if(si == ("P_WEAP") || si == ("P_WEAPON") || si == ("P_FIRE"))
         {
         opcode = 15;
         microcode = 0;
         found = true;
         }
-        else if(s[i] == ("P_SONAR"))
+        else if(si == ("P_SONAR"))
         {
         opcode = 16;
         microcode = 0;
         found = true;
           }
-          else if(s[i] == ("P_ARC") || s[i] == ("P_SCANARC"))
+          else if(si == ("P_ARC") || si == ("P_SCANARC"))
           {
             opcode = 17;
             microcode = 0;
             found = true;
           }
-          else if(s[i] == ("P_OVERBURN"))
+          else if(si == ("P_OVERBURN"))
           {
             opcode = 18;
             microcode = 0;
             found = true;
           }
-          else if(s[i] == ("P_TRANSPONDER"))
+          else if(si == ("P_TRANSPONDER"))
           {
             opcode = 19;
             microcode = 0;
             found = true;
           }
-          else if(s[i] == ("P_SHUTDOWN"))
+          else if(si == ("P_SHUTDOWN"))
           {
             opcode = 20;
             microcode = 0;
             found = true;
           }
-          else if(s[i] == ("P_CHANNEL"))
+          else if(si == ("P_CHANNEL"))
           {
             opcode = 21;
             microcode = 0;
             found = true;
           }
-        else if(s[i] == ("P_MINELAYER"))
+        else if(si == ("P_MINELAYER"))
         {
             opcode = 22;
             microcode = 0;
             found = true;
         }
-        else if(s[i] == ("P_MINETRIGGER"))
+        else if(si == ("P_MINETRIGGER"))
         {
             opcode = 23;
             microcode = 0;
             found = true;
         }
-        else if(s[i] == ("P_SHIELD") || s[i] == ("P_SHIELDS"))
+        else if(si == ("P_SHIELD") || si == ("P_SHIELDS"))
         {
             opcode = 24;
             microcode = 0;
             found = true;
         }
-        else if(s[i] == ("I_DESTRUCT"))
+        else if(si == ("I_DESTRUCT"))
         {
             opcode = 0;
             microcode = 0;
             found = true;
         }
-        else if(s[i] == ("I_RESET"))
+        else if(si == ("I_RESET"))
         {
             opcode = 1;
             microcode = 0;
             found = true;
         }
-        else if(s[i] == ("I_LOCATE"))
+        else if(si == ("I_LOCATE"))
         {
             opcode = 2;
             microcode = 0;
             found = true;
         }
-        else if(s[i] == ("I_KEEPSHIFT"))
+        else if(si == ("I_KEEPSHIFT"))
         {
             opcode = 3;
             microcode = 0;
             found = true;
         }
-        else if(s[i] == ("I_OVERBURN"))
+        else if(si == ("I_OVERBURN"))
         {
             opcode = 4;
             microcode = 0;
             found = true;
         }
-        else if(s[i] == ("I_ID"))
+        else if(si == ("I_ID"))
         {
             opcode = 5;
             microcode = 0;
             found = true;
         }
-        else if(s[i] == ("I_TIMER"))
+        else if(si == ("I_TIMER"))
         {
             opcode = 6;
             microcode = 0;
             found = true;
         }
-        else if(s[i] == ("I_ANGLE"))
+        else if(si == ("I_ANGLE"))
         {
             opcode = 7;
             microcode = 0;
             found = true;
         }
-        else if(s[i] == ("I_TID") || s[i] == ("I_TARGETID"))
+        else if(si == ("I_TID") || si == ("I_TARGETID"))
         {
             opcode = 8;
             microcode = 0;
             found = true;
         }
-        else if(s[i] == ("I_TINFO") || s[i] == ("I_TARGETINFO"))
+        else if(si == ("I_TINFO") || si == ("I_TARGETINFO"))
         {
             opcode = 9;
             microcode = 0;
             found = true;
         }
-        else if(s[i] == ("I_GINFO") || s[i] == ("I_GAMEINFO"))
+        else if(si == ("I_GINFO") || si == ("I_GAMEINFO"))
         {
             opcode = 10;
             microcode = 0;
             found = true;
         }
-        else if(s[i] == ("I_RINFO") || s[i] == ("I_ROBOTINFO"))
+        else if(si == ("I_RINFO") || si == ("I_ROBOTINFO"))
         {
             opcode = 11;
             microcode = 0;
             found = true;
         }
-        else if(s[i] == ("I_COLLISIONS"))
+        else if(si == ("I_COLLISIONS"))
         {
             opcode = 12;
             microcode = 0;
             found = true;
         }
-        else if(s[i] == ("I_RESETCOLCNT"))
+        else if(si == ("I_RESETCOLCNT"))
         {
             opcode = 13;
             microcode = 0;
             found = true;
         }
-        else if(s[i] == ("I_TRANSMIT"))
+        else if(si == ("I_TRANSMIT"))
         {
             opcode = 14;
             microcode = 0;
             found = true;
         }
-        else if(s[i] == ("I_RECEIVE"))
+        else if(si == ("I_RECEIVE"))
         {
             opcode = 15;
             microcode = 0;
             found = true;
         }
-        else if(s[i] == ("I_DATAREADY"))
+        else if(si == ("I_DATAREADY"))
         {
             opcode = 16;
             microcode = 0;
             found = true;
         }
-        else if(s[i] == ("I_CLEARCOM"))
+        else if(si == ("I_CLEARCOM"))
         {
             opcode = 17;
             microcode = 0;
             found = true;
         }
-        else if(s[i] == ("I_KILLS") || s[i] == ("I_DEATHS"))
+        else if(si == ("I_KILLS") || si == ("I_DEATHS"))
         {
             opcode = 18;
             microcode = 0;
             found = true;
         }
-        else if(s[i] == ("I_CLEARMETERS"))
+        else if(si == ("I_CLEARMETERS"))
         {
             opcode = 19;
             microcode = 0;
@@ -2961,36 +3000,36 @@ void parse1(int n, int p, string s) //it seems that this procedure will be very 
     }
 
 //memory addresses
-    if ((!found) && (s[i][1]='@') && ((s[i][2] > '0') && (s[i][2] < '9')))
+    if ((!found) && (s[1]='@') && ((s[2] > '0') && (s[2] < '9')))
      {
-      opcode = (int)s.substr(i,s.length()-1);
-      if ((opcode<0) || (opcode>(max_ram+1)+(((max_code+1) << 3)-1))) then
-         prog_error(3,s[i]);
+      opcode = sToInt(s.substr(i,s.length()-1));
+      if ((opcode<0) || (opcode>(max_ram+1)+(((max_code+1) << 3)-1)))
+         prog_error(3,s);
       microcode = 1;
       found = true;
     }
 
 
-    if (!found) && (s[i][1] > '0' && s[i][1] < 9 || s[i][1] == "-") //this is if the code has a number to indicate what they want to change something to
+    if ((!found) && (s[1] > '0' &&( s[1] < 9 || s[1] == '-'))) //this is if the code has a number to indicate what they want to change something to
     {
-      opcode = (int)(s[i]);
+      opcode = sToInt(s);
       found = true;
     }
 
     if (found)
     {
-      code[p].op[i] = opcode;
+      robot[n].code.code[p].op[i] = opcode;
       if (indirect)
         microcode = microcode | 8;
-      code[p].op[max_op] = code[p].op[max_op] | (microcode << (i*4));
+      robot[n].code.code[p].op[max_op] = robot[n].code.code[p].op[max_op] | (microcode << (i*4));
     }
-    else if (s[i] != 0)
-      prog_error(2,s[i]);
+    else if (s[0] != 0)
+      prog_error(2,s);
     if (show_code)
       print_code(n,p);
-    if (compile_by_line)
-      readkey();
-//}
+//    if (compile_by_line)
+//      readkey();
+}
 };
 
 void check_plen(int plen) //will need this if we have a max amount of code
@@ -3014,23 +3053,23 @@ void compile(int n, string filename) //may need this to compile the robots, but 
   //lock_dat = 0;
   //if not exist(filename) then prog_error(8,filename);
   //textcolor(robot_color(n));
-  cout<<"Compiling robot #"<<n+1<<": "<<filename);
+  cout<<"Compiling robot #"<<n+1<<": "<<filename;
   //with robot[n]^ do
 
-  is_locked = false; //we cannot work with locked robots
+  bool is_locked = false; //we cannot work with locked robots
 
   //textcolor(robot_color(n));
   numvars = 0;
   numlabels = 0;
-  for k = 0 to max_code do
-  for i = 0 to max_op do
-  code[k].op[i] = 0;
-  plen = 0;
+//  for k = 0 to max_code do
+ // for i = 0 to max_op do
+//  robot[n].code.code[k].op[i] = 0;
+//  plen = 0;
   string clearFile;
   //assign(f,filename);
   //reset(f);
-  s = '';
-  linecount = 0;
+//  s = "";
+//  linecount = 0;
 /*  {--first pass, compile--}
   while (not eof(f)) and (s<>'#END') {and (plen<=maxcode)} do
   begin
@@ -3056,7 +3095,7 @@ void compile(int n, string filename) //may need this to compile the robots, but 
      writeln(zero_pad(linecount,3)+':'+zero_pad(plen,3)+' ',s);
   if debugging_compiler then
      begin if readkey=#27 then halt; end;
-*/
+*//*
   {-remove comments-}
   k = 0;
   for i = length(s) downto 1 do
@@ -3220,7 +3259,7 @@ void compile(int n, string filename) //may need this to compile the robots, but 
          }
     }
   }
-}
+}*/
 /*{-Add our implied NOP if there's room. This was originally to make sure
 no one tries using an empty robot program, kinda pointless otherwise-}*/
 /*
@@ -3257,7 +3296,8 @@ for j = 0 to max_op-1 do
 end;
 textcolor(7);
 end;
-*/
+*/}
+
 
 void robot_config(int n)
 {
